@@ -1,0 +1,60 @@
+// Admin editor
+.gutenberg-everywhere {
+	margin-bottom: 30px;
+
+	// Stop the theme from making it much taller than expected
+	.block-editor-default-block-appender__content {
+		height: 37px;
+	}
+
+	// Hide the original textarea
+	> textarea {
+		display: none;
+	}
+}
+
+.edit-post-header-toolbar__left {
+	padding-left: 0;
+}
+
+// wp-admin has a darker border
+.wp-admin .iso-editor {
+	border-color: #ccd0d4;
+}
+
+.is-root-container {
+	margin-top: 15px;
+}
+
+
+
+// Comments
+
+
+// Hide the standard comment textarea
+.comment-php #wp-content-editor-container,
+#respond .comment-form-comment label[for=comment],
+#comment {
+	display: none;
+}
+
+
+
+
+#whats-new-content {
+	min-height: 120px;
+}
+
+// BuddyPress
+#buddypress.twentytwentyone button {
+	background: inherit;
+	border: inherit;
+	border-radius: inherit;
+	color: inherit
+}
+
+#whats-new-content {}
+#whats-new-submit input[type="reset"],
+#whats-new {
+	display: none;
+}

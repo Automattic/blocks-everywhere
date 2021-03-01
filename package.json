@@ -1,0 +1,33 @@
+{
+	"name": "gutenberg-everywhere",
+	"version": "1.0.0",
+	"description": "Gutenberg in WordPress comments, admin pages, bbPress, and BuddyPress.",
+	"main": "src/index.js",
+	"scripts": {
+		"start": "wp-scripts start",
+		"build": "wp-scripts build",
+		"release": "yarn build && rm -rf release && mkdir -p release/gutenberg-everywhere && cp -R *.php readme.txt *.png build classes release/gutenberg-everywhere && COPYFILE_DISABLE=1 tar --strip-components=1 -cf release/gutenberg-everywhere.tar release/gutenberg-everywhere/* "
+	},
+	"author": "Automattic",
+	"license": "ISC",
+	"devDependencies": {
+		"@babel/core": "^7.13.8",
+		"@babel/preset-env": "^7.13.8",
+		"@babel/preset-react": "^7.12.13",
+		"@types/eslint": "^7.2.6",
+		"@wordpress/babel-preset-default": "^5.0.1",
+		"@wordpress/prettier-config": "^1.0.1",
+		"@wordpress/scripts": "^13.0.3",
+		"babel-plugin-emotion": "^11.0.0",
+		"babel-plugin-inline-json-import": "^0.3.2",
+		"eslint": "^7.21.0",
+		"eslint-config-wpcalypso": "^6.1.0",
+		"eslint-plugin-import": "^2.22.1",
+		"eslint-plugin-jsx-a11y": "^6.4.1",
+		"eslint-plugin-react": "^7.22.0",
+		"eslint-plugin-wpcalypso": "^5.0.0"
+	},
+	"dependencies": {
+		"isolated-block-editor": "automattic/isolated-block-editor#55c0f1422a3e79a14f2b9c7e0359d9f49c0501a5"
+	}
+}

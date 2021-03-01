@@ -1,0 +1,6 @@
+{
+    "require": {
+        "php-stubs/wordpress-stubs": "^5.6",
+        "vimeo/psalm": "^4.5"
+    }
+}

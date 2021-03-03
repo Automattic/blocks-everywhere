@@ -28,6 +28,6 @@
 		"eslint-plugin-wpcalypso": "^5.0.0"
 	},
 	"dependencies": {
-		"isolated-block-editor": "automattic/isolated-block-editor#55c0f1422a3e79a14f2b9c7e0359d9f49c0501a5"
+		"isolated-block-editor": "automattic/isolated-block-editor#be4797e4809fb50d804a631c2ec269afda331d73"
 	}
 }

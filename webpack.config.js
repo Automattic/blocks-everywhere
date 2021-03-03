@@ -4,6 +4,6 @@ module.exports = {
 	...defaultConfig,
 	resolve: {
 		...defaultConfig.resolve,
-		symlinks: false,
+//		symlinks: false,
 	},
 };

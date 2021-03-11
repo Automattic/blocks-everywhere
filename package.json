@@ -9,7 +9,7 @@
 		"release": "yarn build && rm -rf release && mkdir -p release/gutenberg-everywhere && cp -R *.php readme.txt *.png build classes release/gutenberg-everywhere && COPYFILE_DISABLE=1 tar --strip-components=1 -cf release/gutenberg-everywhere.tar release/gutenberg-everywhere/* "
 	},
 	"author": "Automattic",
-	"license": "ISC",
+	"license": "GPL-2.0-or-later",
 	"devDependencies": {
 		"@babel/core": "^7.13.8",
 		"@babel/preset-env": "^7.13.8",

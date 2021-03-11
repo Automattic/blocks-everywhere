@@ -1,5 +1,7 @@
 # Gutenberg Everywhere
 
+<img width="1280" alt="110600033-c625d880-8183-11eb-9609-70ab7390c0d9" src="https://user-images.githubusercontent.com/1277682/110774785-15d4d480-8256-11eb-8d21-40f0f2c20b79.png">
+
 Gutenberg in WordPress comments, admin pages, bbPress, and BuddyPress.
 
 Features:

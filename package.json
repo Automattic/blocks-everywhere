@@ -11,10 +11,10 @@
 	"author": "Automattic",
 	"license": "GPL-2.0-or-later",
 	"devDependencies": {
-		"@babel/core": "^7.13.8",
-		"@babel/preset-env": "^7.13.8",
+		"@babel/core": "^7.13.10",
+		"@babel/preset-env": "^7.13.10",
 		"@babel/preset-react": "^7.12.13",
-		"@types/eslint": "^7.2.6",
+		"@types/eslint": "^7.2.7",
 		"@wordpress/babel-preset-default": "^5.0.1",
 		"@wordpress/prettier-config": "^1.0.1",
 		"@wordpress/scripts": "^13.0.3",
@@ -28,6 +28,6 @@
 		"eslint-plugin-wpcalypso": "^5.0.0"
 	},
 	"dependencies": {
-		"isolated-block-editor": "automattic/isolated-block-editor#be4797e4809fb50d804a631c2ec269afda331d73"
+		"isolated-block-editor": "automattic/isolated-block-editor#5682ddeb940bfac9c3923491263aaf4ce44aaf0e"
 	}
 }

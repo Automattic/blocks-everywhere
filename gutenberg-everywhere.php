@@ -72,6 +72,9 @@ class Gutenberg_Everywhere {
 					add_filter( 'wp_editor_settings', [ $handler, 'wp_editor_settings' ], 10, 2 );
 				} );
 
+				// Stops a problem with the Gutenberg plugin accessing widgets that don't exist
+				remove_action( 'admin_footer', 'gutenberg_block_editor_admin_footer' );
+
 				// Load Gutenberg in in_admin_header so WP admin doesn't set the 'block-editor-page' body class
 				add_action( 'in_admin_header', function() use ( $handler ) {
 					$handler->load_editor( '.wp-editor-area' );

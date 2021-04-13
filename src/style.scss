@@ -45,13 +45,19 @@
 	min-height: 120px;
 }
 
-// BuddyPress
+// BuddyPress & 2021
+.edit-post-header button:not(:hover):not(:active):not(.has-background):not(.is-primary),
+.block-editor-inserter__panel-content button:not(:hover):not(:active):not(.has-background),
+.block-editor-inserter__tabs button:not(:hover):not(:active):not(.has-background),
 #buddypress.twentytwentyone button {
 	background: inherit;
 	border: inherit;
 	border-radius: inherit;
-	color: inherit
+	color: inherit;
+	border-color: inherit !important;
 }
+
+
 
 #whats-new-content {}
 #whats-new-submit input[type="reset"],

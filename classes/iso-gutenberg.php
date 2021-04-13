@@ -1,17 +1,43 @@
 <?php
 
-namespace IsoEditor;
-
 /**
  * Provides functions to load Gutenberg assets
  */
-class IsoEditor_Gutenberg {
+class GutenbergEverywhere_Editor {
 	/**
 	 * Constructor
 	 */
 	public function __construct() {
 		add_action( 'template_redirect', [ $this, 'setup_media' ] );
 		add_filter( 'block_editor_settings', [ $this, 'block_editor_settings' ] );
+		add_filter( 'block_editor_settings', [ $this, 'remove_theme_json' ], 20 );
+	}
+
+	// Gutenberg 10.3.2 adds detection for theme.json. If this doesn't exist in the theme then it loads 'classic.css', which overrides a bunch of P2 styles
+	// Until we have proper theme.json support just remove this dependency
+	public function remove_theme_json( $settings ) {
+		$exclude = [
+			'wp-edit-blocks' => [ 'wp-editor-classic-layout-styles' ],
+			'wp-reset-editor-styles' => [ 'forms', 'common' ],
+		];
+		$styles = wp_styles();
+
+		foreach ( $exclude as $handle => $deps ) {
+			// Find the handle
+			$style = $styles->query( $handle, 'registered' );
+
+			if ( $style ) {
+				// Remove the dependencies without breaking the parent style itself
+				$style->deps = array_filter(
+					$style->deps,
+					function( $item ) use ( $deps ) {
+						return ! in_array( $item, $deps );
+					}
+				);
+			}
+		}
+
+		return $settings;
 	}
 
 	/**

@@ -1,7 +1,5 @@
 <?php
 
-use IsoEditor\IsoEditor_Gutenberg;
-
 require_once __DIR__ . '/iso-gutenberg.php';
 
 abstract class Gutenberg_Handler {
@@ -139,7 +137,7 @@ abstract class Gutenberg_Handler {
 	 * @return void
 	 */
 	public function load_editor( $textarea, $container = null ) {
-		$this->gutenberg = new IsoEditor_Gutenberg();
+		$this->gutenberg = new GutenbergEverywhere_Editor();
 		$this->gutenberg->load();
 
 		$asset_file = dirname( __DIR__ ) . '/build/index.asset.php';

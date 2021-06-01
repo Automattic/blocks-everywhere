@@ -36,5 +36,8 @@ The plugin is simple to install:
 1. Gutenberg in a comment form
 2. Gutenberg when editing a comment
 
+= 1.1.0 =
+* Support Gutenberg 10.6.0
+
 = 1.0 =
 * First release

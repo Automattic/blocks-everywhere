@@ -44,3 +44,9 @@ Run:
 `yarn release`
 
 The plugin will be available in the `release` directory.
+
+## Distribution
+
+Run:
+
+`yarn dist`

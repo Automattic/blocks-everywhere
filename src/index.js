@@ -6,7 +6,7 @@ import { render } from '@wordpress/element';
 import { useEffect } from '@wordpress/element';
 import domReady from '@wordpress/dom-ready';
 import { useDispatch } from '@wordpress/data';
-import IsolatedBlockEditor, { EditorLoaded } from 'isolated-block-editor';
+import IsolatedBlockEditor, { EditorLoaded } from '@automattic/isolated-block-editor';
 
 /**
  * Internal dependencies

@@ -1,8 +1,8 @@
 === Plugin Name ===
 Contributors: johnny5, automattic
 Tags: gutenberg, comments
-Requires at least: 5.5
-Tested up to: 5.5.2
+Requires at least: 5.8
+Tested up to: 5.8
 Stable tag: trunk
 Requires PHP: 5.6
 License: GPLv3
@@ -35,6 +35,12 @@ The plugin is simple to install:
 
 1. Gutenberg in a comment form
 2. Gutenberg when editing a comment
+
+= 1.2.1 =
+* Fix bbPress error 'your reply cannot be empty'
+
+= 1.2.0 =
+* Support Gutenberg 11.1.0
 
 = 1.1.0 =
 * Support Gutenberg 10.6.0

@@ -34,7 +34,7 @@ function setLoaded( container ) {
 }
 
 function createContainer( textarea, existingContainer ) {
-	if ( existingContainer ) {
+	if ( existingContainer && ! existingContainer.contains( textarea ) ) {
 		return existingContainer;
 	}
 

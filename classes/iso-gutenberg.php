@@ -175,14 +175,16 @@ class GutenbergEverywhere_Editor {
 			$max_upload_size = 0;
 		}
 
-		// Editor Styles.
-		$styles = array(
-			array(
-				'css' => file_get_contents(
-					ABSPATH . WPINC . '/css/dist/editor/editor-styles.css'
+		if ( ! WP_Theme_JSON_Resolver::theme_has_support() ) {
+			$styles = array(
+				array(
+					'css'            => 'body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif }',
+					'__unstableType' => 'core',
 				),
-			),
-		);
+			);
+		} else {
+			$styles = array();
+		}
 
 		$locale_font_family = esc_html_x( 'Noto Serif', 'CSS Font Family for Editor Font' );
 		$styles[]           = array(

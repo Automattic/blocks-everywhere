@@ -1,6 +1,6 @@
 {
 	"name": "gutenberg-everywhere",
-	"version": "1.2.0",
+	"version": "1.2.1",
 	"description": "Gutenberg in WordPress comments, admin pages, bbPress, and BuddyPress.",
 	"main": "src/index.js",
 	"scripts": {
@@ -13,7 +13,7 @@
 	"license": "GPL-2.0-or-later",
 	"devDependencies": {
 		"@babel/core": "^7.14.8",
-		"@babel/preset-env": "^7.14.8",
+		"@babel/preset-env": "^7.14.9",
 		"@babel/preset-react": "^7.14.5",
 		"@types/eslint": "^7.28.0",
 		"@wordpress/babel-preset-default": "^6.3.1",
@@ -21,7 +21,7 @@
 		"@wordpress/scripts": "^17.1.0",
 		"babel-plugin-emotion": "^11.0.0",
 		"babel-plugin-inline-json-import": "^0.3.2",
-		"eslint": "^7.31.0",
+		"eslint": "^7.32.0",
 		"eslint-config-wpcalypso": "^6.1.0",
 		"eslint-plugin-import": "^2.23.4",
 		"eslint-plugin-jsx-a11y": "^6.4.1",

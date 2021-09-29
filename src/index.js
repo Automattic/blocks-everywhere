@@ -88,7 +88,15 @@ function createEditor( container, textarea, settings ) {
 
 domReady( () => {
 	document.querySelectorAll( wpGutenbergEverywhere.saveTextarea ).forEach( ( node ) => {
-		const container = createContainer( node, document.querySelector( wpGutenbergEverywhere.container ) );
+		let container;
+
+		// Prefer enclosing containers, so check if one exists outside.
+		const outerContainerNode = node.closest( wpGutenbergEverywhere.container );
+		if ( outerContainerNode ) {
+			container = createContainer( node, outerContainerNode );
+		} else {
+			container = createContainer( node, document.querySelector( wpGutenbergEverywhere.container ) );
+		}
 
 		createEditor( container, node, wpGutenbergEverywhere );
 	} );

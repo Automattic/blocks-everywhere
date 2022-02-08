@@ -186,7 +186,7 @@ class GutenbergEverywhere_Editor {
 			$styles = array();
 		}
 
-		$locale_font_family = esc_html_x( 'Noto Serif', 'CSS Font Family for Editor Font' );
+		$locale_font_family = esc_html_x( 'Noto Serif', 'CSS Font Family for Editor Font', 'gutenberg-everywhere' );
 		$styles[]           = array(
 			'css' => "body { font-family: '$locale_font_family' }",
 		);
@@ -215,10 +215,10 @@ class GutenbergEverywhere_Editor {
 		$image_size_names = apply_filters(
 			'image_size_names_choose',
 			array(
-				'thumbnail' => __( 'Thumbnail' ),
-				'medium'    => __( 'Medium' ),
-				'large'     => __( 'Large' ),
-				'full'      => __( 'Full Size' ),
+				'thumbnail' => __( 'Thumbnail', 'gutenberg-everywhere' ),
+				'medium'    => __( 'Medium', 'gutenberg-everywhere' ),
+				'large'     => __( 'Large', 'gutenberg-everywhere' ),
+				'full'      => __( 'Full Size', 'gutenberg-everywhere' ),
 			)
 		);
 
@@ -233,7 +233,7 @@ class GutenbergEverywhere_Editor {
 		/**
 		 * @psalm-suppress TooManyArguments
 		 */
-		$body_placeholder = apply_filters( 'write_your_story', __( 'Start writing or type / to choose a block' ), $post );
+		$body_placeholder = apply_filters( 'write_your_story', __( 'Start writing or type / to choose a block', 'gutenberg-everywhere' ), $post );
 		$allowed_block_types = apply_filters( 'allowed_block_types', true, $post );
 
 		/**
@@ -245,7 +245,7 @@ class GutenbergEverywhere_Editor {
 			'disableCustomFontSizes' => get_theme_support( 'disable-custom-font-sizes' ),
 			'disablePostFormats'     => ! current_theme_supports( 'post-formats' ),
 			/** This filter is documented in wp-admin/edit-form-advanced.php */
-			'titlePlaceholder'       => apply_filters( 'enter_title_here', __( 'Add title' ), $post ),
+			'titlePlaceholder'       => apply_filters( 'enter_title_here', __( 'Add title', 'gutenberg-everywhere' ), $post ),
 			'bodyPlaceholder'        => $body_placeholder,
 			'isRTL'                  => is_rtl(),
 			'autosaveInterval'       => AUTOSAVE_INTERVAL,

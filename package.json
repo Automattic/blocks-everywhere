@@ -12,26 +12,26 @@
 	"author": "Automattic",
 	"license": "GPL-2.0-or-later",
 	"devDependencies": {
-		"@babel/core": "^7.14.8",
-		"@babel/preset-env": "^7.14.9",
-		"@babel/preset-react": "^7.14.5",
-		"@types/eslint": "^7.28.0",
-		"@wordpress/babel-preset-default": "^6.3.1",
-		"@wordpress/prettier-config": "^1.1.0",
-		"@wordpress/scripts": "^17.1.0",
+		"@babel/core": "^7.18.6",
+		"@babel/preset-env": "^7.18.6",
+		"@babel/preset-react": "^7.18.6",
+		"@types/eslint": "^8.4.3",
+		"@wordpress/babel-preset-default": "^6.14.0",
+		"@wordpress/prettier-config": "^1.4.0",
+		"@wordpress/scripts": "^23.4.0",
 		"babel-plugin-emotion": "^11.0.0",
 		"babel-plugin-inline-json-import": "^0.3.2",
-		"eslint": "^7.32.0",
+		"eslint": "^8.18.0",
 		"eslint-config-wpcalypso": "^6.1.0",
-		"eslint-plugin-import": "^2.23.4",
-		"eslint-plugin-jsx-a11y": "^6.4.1",
-		"eslint-plugin-react": "^7.24.0",
-		"eslint-plugin-wpcalypso": "^5.0.0",
+		"eslint-plugin-import": "^2.26.0",
+		"eslint-plugin-jsx-a11y": "^6.6.0",
+		"eslint-plugin-react": "^7.30.1",
+		"eslint-plugin-wpcalypso": "^6.0.0",
 		"precss": "^4.0.0",
-		"release-it": "^14.10.1"
+		"release-it": "^15.1.1"
 	},
 	"dependencies": {
-		"@automattic/isolated-block-editor": "^2.2.0"
+		"@automattic/isolated-block-editor": "^2.16.0"
 	},
 	"release-it": {
 		"github": {

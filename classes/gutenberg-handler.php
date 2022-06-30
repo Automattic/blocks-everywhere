@@ -175,6 +175,10 @@ abstract class Gutenberg_Handler {
 					'allowBlocks' => $this->get_allowed_blocks(),
 				],
 				'moreMenu' => false,
+				'sidebar' => [
+					'inserter' => false,
+					'inspector' => false,
+				],
 			],
 			'saveTextarea' => $textarea,
 			'container' => $container,

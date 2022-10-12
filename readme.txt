@@ -26,6 +26,8 @@ The condition of the Gutenberg replacements are:
 - comments - alright
 - BuddyPress - needs a lot of work
 
+Gutenberg Everywhere is developed on Github at https://github.com/Automattic/gutenberg-everywhere
+
 == Caveats ==
 
 Gutenberg is placed directly on the page along with your post, forum, etc. This means the contents of the editor will look like the page they will appear on. However, it also

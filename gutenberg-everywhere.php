@@ -2,7 +2,7 @@
 /*
 Plugin Name: Gutenberg Everywhere
 Description: Because somewhere is just not enough. Add Gutenberg to WordPress comments, bbPress forums, and BuddyPress streams. Also enables Gutenberg for comment & bbPress moderation.
-Version: 1.3.0
+Version: 1.4.0
 Author: Automattic
 Text Domain: 'gutenberg-everywhere'
 */
@@ -50,9 +50,18 @@ class Gutenberg_Everywhere {
 	 * Constructor
 	 */
 	public function __construct() {
-		$this->handlers[] = new Gutenberg_Comments();
-		$this->handlers[] = new Gutenberg_bbPress();
-		$this->handlers[] = new Gutenberg_BuddyPress();
+		$default_comments = defined( 'GUTENBERG_EVERYWHERE_COMMENTS' ) ? GUTENBERG_EVERYWHERE_COMMENTS : false;
+		if ( apply_filters( 'gutenberg-everywhere-comments', $default_comments ) ) {
+			$this->handlers[] = new Gutenberg_Comments();
+		}
+
+		if ( apply_filters( 'gutenberg-everywhere-bbpress', class_exists( 'bbPress' ) ) ) {
+			$this->handlers[] = new Gutenberg_bbPress();
+		}
+
+		if ( apply_filters( 'gutenberg-everywhere-buddypress', class_exists( 'BuddyPress' ) ) ) {
+			$this->handlers[] = new Gutenberg_BuddyPress();
+		}
 
 		// Admin editors
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );

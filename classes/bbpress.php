@@ -23,6 +23,8 @@ class Gutenberg_bbPress extends Gutenberg_Handler {
 		add_filter( 'bbp_register_topic_post_type', [ $this, 'support_gutenberg' ] );
 		add_filter( 'bbp_register_reply_post_type', [ $this, 'support_gutenberg' ] );
 		add_filter( 'bbp_register_forum_post_type', [ $this, 'support_gutenberg' ] );
+
+		add_action( 'bbp_head', [ $this, 'bbp_head' ]);
 	}
 
 	public function support_gutenberg( $args ) {
@@ -34,4 +36,14 @@ class Gutenberg_bbPress extends Gutenberg_Handler {
 		$this->load_editor( '.bbp-the-content', '.gutenberg-everywhere' );
 		return $content;
 	}
+
+	function bbp_head() {
+		add_filter( 'body_class', [ $this, 'body_class' ] );
+	}
+
+	public function body_class( $classes ) {
+		$classes[] = 'gutenberg-support';
+		return $classes;
+	}
+
 }

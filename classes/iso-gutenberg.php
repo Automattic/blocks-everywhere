@@ -150,6 +150,7 @@ class GutenbergEverywhere_Editor {
 			'supportsTemplateMode'                 => current_theme_supports( 'block-templates' ),
 			'enableCustomFields'                   => false,
 			'generateAnchors'                      => true,
+			'canLockBlocks'                        => false,
 		);
 
 		$block_editor_context = new WP_Block_Editor_Context( array( 'post' => $post ) );

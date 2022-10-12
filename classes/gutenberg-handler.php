@@ -108,7 +108,7 @@ abstract class Gutenberg_Handler {
 	private function get_allowed_blocks() {
 		global $allowedtags;
 
-		$allowed = [ 'core/paragraph', 'core/list', 'core/code' ];
+		$allowed = [ 'core/paragraph', 'core/list', 'core/code', 'core/list-item' ];
 		$convert = [
 			'blockquote' => 'core/quote',
 			'h1' => 'core/heading',
@@ -179,12 +179,15 @@ abstract class Gutenberg_Handler {
 					'inserter' => false,
 					'inspector' => false,
 				],
+				'defaultPreferences' => [
+					'fixedToolbar' => true,
+				]
 			],
 			'saveTextarea' => $textarea,
 			'container' => $container,
 			'editorType' => $this->get_editor_type(),
 		];
 
-		wp_localize_script( 'gutenberg-everywhere', 'wpGutenbergEverywhere', $settings );
+		wp_localize_script( 'gutenberg-everywhere', 'wpGutenbergEverywhere', apply_filters( 'gutenberg_everywhere_editor_settings', $settings ) );
 	}
 }

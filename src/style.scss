@@ -13,10 +13,8 @@
 	}
 }
 
-.iso-editor {
-	.edit-post-editor-regions__header {
-		margin: 0 15px;
-	}
+.iso-editor .edit-post-editor-regions__header {
+	margin: 0 15px;
 }
 
 .edit-post-header-toolbar__left {
@@ -32,20 +30,14 @@
 	margin-top: 15px;
 }
 
-
-
 // Comments
-
 
 // Hide the standard comment textarea
 .comment-php #wp-content-editor-container,
-#respond .comment-form-comment label[for=comment],
+#respond .comment-form-comment label[for="comment"],
 #comment {
 	display: none;
 }
-
-
-
 
 #whats-new-content {
 	min-height: 120px;
@@ -63,10 +55,105 @@
 	border-color: inherit !important;
 }
 
-
-
-#whats-new-content {}
 #whats-new-submit input[type="reset"],
 #whats-new {
 	display: none;
+}
+
+// bbPress
+.gutenberg-support {
+	// Hide bbPress editor
+	#bbcode_buttons,
+	.form-allowed-tags,
+	#bbp_reply_content,
+	#bbp_topic_content {
+		display: none;
+	}
+
+	// Let popovers show outside the editor
+	#bbpress-forums,
+	.interface-interface-skeleton,
+	.interface-interface-skeleton__body,
+	.interface-interface-skeleton__content,
+	.interface-interface-skeleton__editor {
+		overflow: inherit;
+	}
+
+	// Fix titles that may get changed
+	.block-editor-inserter__panel-header h2 {
+		font-size: 11px;
+	}
+
+	.block-editor-block-types-list__item-title span {
+		font-size: 12px;
+	}
+
+	.components-menu-group span {
+		font-size: 13px;
+	}
+
+	// Paragraph margins
+	.editor-styles-wrapper p {
+		margin-top: 1.3em !important;
+		margin-bottom: 1.8em !important;
+	}
+
+	#bbpress-forums,
+	.bbp-topic-form {
+		/* Override bbPress list styles */
+		.editor-styles-wrapper li,
+		.editor-styles-wrapper ul {
+			list-style: inherit;
+			margin: inherit;
+			padding: inherit;
+		}
+
+		.editor-styles-wrapper ul {
+			padding-left: 15px;
+		}
+
+		.editor-styles-wrapper li {
+			margin-top: 0;
+			padding-left: 5px;
+		}
+
+		// Clean up the link popup
+		fieldset.bbp-form input {
+			margin: inherit;
+			max-width: inherit;
+			padding: 11px 16px;
+			height: inherit;
+			min-height: inherit;
+		}
+	}
+
+	// Highlight on block inserter
+	.edit-post-header__toolbar button:hover svg,
+	.block-editor-block-types-list__list-item:hover span {
+		color: var(--wp-admin-theme-color);
+		fill: var(--wp-admin-theme-color);
+	}
+}
+
+// Add the loading animation on bbPress
+html:not(.interface-interface-skeleton__html-container) .gutenberg-support .bbp-the-content-wrapper {
+	min-height: 200px;
+	animation: loading-fade 1.6s ease-in-out infinite;
+	background-color: #ddd;
+
+	.interface-interface-skeleton {
+		min-height: 200px;
+	}
+}
+
+@keyframes loading-fade {
+	0% {
+		opacity: 0.3;
+	}
+	50% {
+		opacity: 1;
+	}
+	100% {
+		opacity: 0.3;
+	}
 }

@@ -6,7 +6,7 @@
 	"scripts": {
 		"start": "wp-scripts start",
 		"build": "wp-scripts build",
-		"release": "yarn build && rm -rf release && mkdir -p release && cp -R *.php readme.txt *.png build classes release",
+		"release": "yarn build && rm -rf release && mkdir -p release && cp -R *.php readme.txt *.png build LICENSE.md classes release",
 		"dist": "yarn release && rm -rf dist && mkdir dist && mv release gutenberg-everywhere && zip gutenberg-everywhere.zip -r gutenberg-everywhere && mv gutenberg-everywhere release && mv gutenberg-everywhere.zip dist && release-it"
 	},
 	"author": "Automattic",

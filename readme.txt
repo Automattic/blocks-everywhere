@@ -62,6 +62,9 @@ The plugin is simple to install:
 1. Gutenberg in a comment form
 2. Gutenberg when editing a comment
 
+= 1.4.1 =
+* Improve loading of handlers so plugins have more chance to override them
+
 = 1.4.0 =
 * Further bbPress improvements
 * Conditionally load the handlers depending on what is installed

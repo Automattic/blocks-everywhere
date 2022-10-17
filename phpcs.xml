@@ -64,7 +64,7 @@
 
 	<!-- Overrides -->
 	<file>classes/</file>
-	<file>gutenberg-everywhere.php</file>
+	<file>blocks-everywhere.php</file>
 
 	<exclude-pattern>build/</exclude-pattern>
 	<exclude-pattern>dist/</exclude-pattern>
@@ -77,7 +77,7 @@
 	<rule ref="WordPress.WP.I18n">
 		<properties>
 			<property name="text_domain" type="array">
-				<element value="gutenberg-everywhere"/>
+				<element value="blocks-everywhere"/>
 			</property>
 		</properties>
 	</rule>

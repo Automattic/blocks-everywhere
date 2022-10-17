@@ -112,17 +112,17 @@ function createEditor( container, textarea, settings ) {
 domReady( () => {
 	apiFetch.use( removeNullPostFromFileUploadMiddleware );
 
-	document.querySelectorAll( wpGutenbergEverywhere.saveTextarea ).forEach( ( node ) => {
+	document.querySelectorAll( wpBlocksEverywhere.saveTextarea ).forEach( ( node ) => {
 		let container;
 
 		// Prefer enclosing containers, so check if one exists outside.
-		const outerContainerNode = node.closest( wpGutenbergEverywhere.container );
+		const outerContainerNode = node.closest( wpBlocksEverywhere.container );
 		if ( outerContainerNode ) {
 			container = createContainer( node, outerContainerNode );
 		} else {
-			container = createContainer( node, document.querySelector( wpGutenbergEverywhere.container ) );
+			container = createContainer( node, document.querySelector( wpBlocksEverywhere.container ) );
 		}
 
-		createEditor( container, node, wpGutenbergEverywhere );
+		createEditor( container, node, wpBlocksEverywhere );
 	} );
 } );

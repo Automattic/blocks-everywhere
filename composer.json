@@ -1,5 +1,5 @@
 {
-    "name": "automattic/gutenberg-everywhere",
+    "name": "automattic/blocks-everywhere",
 	"description": "Puts Gutenberg everywhere it can - bbPress, comments, and BuddyPress.",
     "require": {
 		"php": "7.4.*"

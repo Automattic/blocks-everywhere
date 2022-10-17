@@ -7,7 +7,7 @@ Stable tag: trunk
 Requires PHP: 5.6
 License: GPLv3
 
-Puts Gutenberg everywhere it can - bbPress, comments, and BuddyPress.
+Puts the Gutenberg block editor everywhere it can - bbPress, comments, and BuddyPress.
 
 == Description ==
 
@@ -26,7 +26,7 @@ The condition of the Gutenberg replacements are:
 - comments - alright
 - BuddyPress - needs a lot of work
 
-Gutenberg Everywhere is developed on Github at https://github.com/Automattic/gutenberg-everywhere
+Blocks Everywhere is developed on Github at https://github.com/Automattic/blocks-everywhere
 
 == Caveats ==
 
@@ -40,27 +40,30 @@ The loading of Gutenberg will also increase the page size of any page it is load
 
 == Usage ==
 
-To enable Gutenberg Everywhere you need to add the relevant `define` to `wp-config.php`:
+To enable Blocks Everywhere you need to add the relevant `define` to `wp-config.php`:
 
-`define( 'GUTENBERG_EVERYWHERE_COMMENTS', true );`
-`define( 'GUTENBERG_EVERYWHERE_BBPRESS', true );`
-`define( 'GUTENBERG_EVERYWHERE_BUDDYPRESS', true );`
+`define( 'BLOCKS_EVERYWHERE_COMMENTS', true );`
+`define( 'BLOCKS_EVERYWHERE_BBPRESS', true );`
+`define( 'BLOCKS_EVERYWHERE_BUDDYPRESS', true );`
 
-You can also use the WordPress filter `gutenberg_everywhere_comments`, `gutenberg_everywhere_bbpress`, and `gutenberg_everywhere_buddypress`.
+You can also use the WordPress filter `blocks_everywhere_comments`, `blocks_everywhere_bbpress`, and `blocks_everywhere_buddypress`.
 
 == Installation ==
 
 The plugin is simple to install:
 
-1. Download `gutenberg-everywhere.zip`
+1. Download `blocks-everywhere.zip`
 1. Unzip
-1. Upload `gutenberg-everywhere` directory to your `/wp-content/plugins` directory
+1. Upload `blocks-everywhere` directory to your `/wp-content/plugins` directory
 1. Go to the plugin management page and enable the plugin
 
 == Screenshots ==
 
 1. Gutenberg in a comment form
 2. Gutenberg when editing a comment
+
+= 1.6.0 =
+* Rename to Blocks Everywhere
 
 = 1.5.0 =
 * Further tweak the loading so handlers are not enabled by default

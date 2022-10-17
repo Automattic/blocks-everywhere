@@ -1,10 +1,10 @@
 <?php
 /*
-Plugin Name: Gutenberg Everywhere
+Plugin Name: Blocks Everywhere
 Description: Because somewhere is just not enough. Add Gutenberg to WordPress comments, bbPress forums, and BuddyPress streams. Also enables Gutenberg for comment & bbPress moderation.
-Version: 1.5.0
+Version: 1.6.0
 Author: Automattic
-Text Domain: 'gutenberg-everywhere'
+Text Domain: 'blocks-everywhere'
 */
 
 require_once __DIR__ . '/classes/gutenberg-handler.php';
@@ -12,10 +12,10 @@ require_once __DIR__ . '/classes/comments.php';
 require_once __DIR__ . '/classes/bbpress.php';
 require_once __DIR__ . '/classes/buddypress.php';
 
-class Gutenberg_Everywhere {
+class Blocks_Everywhere {
 	/**
 	 * Instance variable
-	 * @var Gutenberg_Everywhere|null
+	 * @var Blocks_Everywhere|null
 	 */
 	private static $instance = null;
 
@@ -36,11 +36,11 @@ class Gutenberg_Everywhere {
 	/**
 	 * Singleton access
 	 *
-	 * @return Gutenberg_Everywhere
+	 * @return Blocks_Everywhere
 	 */
 	public static function init() {
 		if ( is_null( self::$instance ) ) {
-			self::$instance = new Gutenberg_Everywhere();
+			self::$instance = new Blocks_Everywhere();
 		}
 
 		return self::$instance;
@@ -57,19 +57,19 @@ class Gutenberg_Everywhere {
 	}
 
 	public function load_handlers() {
-		$default_comments = defined( 'GUTENBERG_EVERYWHERE_COMMENTS' ) ? GUTENBERG_EVERYWHERE_COMMENTS : false;
-		$default_bbpress = defined( 'GUTENBERG_EVERYWHERE_BBPRESS' ) ? GUTENBERG_EVERYWHERE_BBPRESS : false;
-		$default_buddypress = defined( 'GUTENBERG_EVERYWHERE_BUDDYPRESS' ) ? GUTENBERG_EVERYWHERE_BUDDYPRESS : false;
+		$default_comments = defined( 'BLOCKS_EVERYWHERE_COMMENTS' ) ? BLOCKS_EVERYWHERE_COMMENTS : false;
+		$default_bbpress = defined( 'BLOCKS_EVERYWHERE_BBPRESS' ) ? BLOCKS_EVERYWHERE_BBPRESS : false;
+		$default_buddypress = defined( 'BLOCKS_EVERYWHERE_BUDDYPRESS' ) ? BLOCKS_EVERYWHERE_BUDDYPRESS : false;
 
-		if ( apply_filters( 'gutenberg_everywhere_comments', $default_comments ) ) {
+		if ( apply_filters( 'blocks_everywhere_comments', $default_comments ) ) {
 			$this->handlers[] = new Gutenberg_Comments();
 		}
 
-		if ( apply_filters( 'gutenberg_everywhere_bbpress', $default_bbpress ) ) {
+		if ( apply_filters( 'blocks_everywhere_bbpress', $default_bbpress ) ) {
 			$this->handlers[] = new Gutenberg_bbPress();
 		}
 
-		if ( apply_filters( 'gutenberg_everywhere_buddypress', $default_buddypress ) ) {
+		if ( apply_filters( 'blocks_everywhere_buddypress', $default_buddypress ) ) {
 			$this->handlers[] = new Gutenberg_BuddyPress();
 		}
 	}
@@ -108,4 +108,4 @@ class Gutenberg_Everywhere {
 	}
 }
 
-Gutenberg_Everywhere::init();
+Blocks_Everywhere::init();

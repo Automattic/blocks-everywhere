@@ -2,7 +2,7 @@
 /*
 Plugin Name: Gutenberg Everywhere
 Description: Because somewhere is just not enough. Add Gutenberg to WordPress comments, bbPress forums, and BuddyPress streams. Also enables Gutenberg for comment & bbPress moderation.
-Version: 1.4.2
+Version: 1.5.0
 Author: Automattic
 Text Domain: 'gutenberg-everywhere'
 */

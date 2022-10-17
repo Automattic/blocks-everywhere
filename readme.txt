@@ -62,7 +62,7 @@ The plugin is simple to install:
 1. Gutenberg in a comment form
 2. Gutenberg when editing a comment
 
-= 1.4.2 =
+= 1.5.0 =
 * Further tweak the loading so handlers are not enabled by default
 * Improve placeholders in bbPress
 * Allow media upload to work, if enabled

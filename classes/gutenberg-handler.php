@@ -162,7 +162,7 @@ abstract class Gutenberg_Handler {
 				],
 				'defaultPreferences' => [
 					'fixedToolbar' => true,
-				]
+				],
 			],
 			'saveTextarea' => $textarea,
 			'container' => $container,

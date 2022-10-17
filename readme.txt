@@ -65,6 +65,7 @@ The plugin is simple to install:
 = 1.4.2 =
 * Further tweak the loading so handlers are not enabled by default
 * Improve placeholders in bbPress
+* Allow media upload to work, if enabled
 
 = 1.4.1 =
 * Improve loading of handlers so plugins have more chance to override them

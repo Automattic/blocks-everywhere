@@ -83,10 +83,9 @@
 		font-size: 13px;
 	}
 
-	// Paragraph margins
-	.editor-styles-wrapper p {
-		margin-top: 1.3em !important;
-		margin-bottom: 1.3em !important;
+	:where(.wp-block) {
+		margin-top: 28px !important;
+		margin-bottom: 28px !important;
 	}
 
 	#bbpress-forums,
@@ -149,34 +148,21 @@ html:not(.interface-interface-skeleton__html-container) .gutenberg-support .bbp-
 	}
 }
 
-.edit-post-header__toolbar {
-	flex-grow: inherit;
-}
-
-.edit-post-header__settings {
-	flex-grow: 1;
-}
-
-.block-editor-block-contextual-toolbar.is-fixed {
-	border: none;
-	min-height: inherit;
-}
-
-.edit-post-visual-editor .block-editor-block-contextual-toolbar {
-	display: none;
-}
-
 /* Reset bbPress code style */
-body.single-forum .bbp-topic-form .editor-styles-wrapper code {
-	border: none;
-	background-color: inherit;
-	font-size: inherit;
-	padding: 0;
-	margin-top: 0;
-	width: inherit;
-}
+body.page .bbp-topic-form,
+body.single-forum .bbp-topic-form {
+	.editor-styles-wrapper code {
+		border: none;
+		background-color: inherit;
+		font-size: inherit;
+		padding: 0;
+		margin-top: 0;
+		width: inherit;
+		display: inline;
+	}
 
-body.single-forum .bbp-topic-form .editor-styles-wrapper pre {
-	margin-top: 16px;
-	margin-bottom: 16px;
+	.editor-styles-wrapper pre {
+		margin-top: 16px;
+		margin-bottom: 16px;
+	}
 }

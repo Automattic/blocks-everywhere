@@ -6,13 +6,31 @@ import { render } from '@wordpress/element';
 import { useEffect } from '@wordpress/element';
 import domReady from '@wordpress/dom-ready';
 import { useDispatch } from '@wordpress/data';
+import { mediaUpload } from '@wordpress/editor';
 import IsolatedBlockEditor, { EditorLoaded } from '@automattic/isolated-block-editor';
+import apiFetch from '@wordpress/api-fetch';
 
 /**
  * Internal dependencies
  */
 
 import './style.scss';
+
+const removeNullPostFromFileUploadMiddleware = ( options, next ) => {
+	if ( options.method === 'POST' && options.path === '/wp/v2/media' ) {
+		const formData = options.body;
+
+		if (
+			formData instanceof FormData &&
+			formData.has( 'post' ) &&
+			formData.get( 'post' ) === 'null'
+		) {
+			formData.delete( 'post' );
+		}
+	}
+
+	return next( options );
+};
 
 /**
  * Save blocks to the comment form
@@ -34,7 +52,7 @@ function setLoaded( container ) {
 }
 
 function createContainer( textarea, existingContainer ) {
-	if ( existingContainer && ! existingContainer.contains( textarea ) ) {
+	if ( existingContainer && !existingContainer.contains( textarea ) ) {
 		return existingContainer;
 	}
 
@@ -71,6 +89,11 @@ function BuddyPress( props ) {
 }
 
 function createEditor( container, textarea, settings ) {
+	if ( settings?.editor?.hasUploadPermissions ) {
+		// Connect the media uploader if it's enabled
+		settings.editor.mediaUpload = mediaUpload;
+	}
+
 	render(
 		<IsolatedBlockEditor
 			settings={ settings }
@@ -87,6 +110,8 @@ function createEditor( container, textarea, settings ) {
 }
 
 domReady( () => {
+	apiFetch.use( removeNullPostFromFileUploadMiddleware );
+
 	document.querySelectorAll( wpGutenbergEverywhere.saveTextarea ).forEach( ( node ) => {
 		let container;
 

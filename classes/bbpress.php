@@ -1,5 +1,6 @@
 <?php
 
+// phpcs:ignore
 class Gutenberg_bbPress extends Gutenberg_Handler {
 	/**
 	 * Constructor
@@ -13,18 +14,25 @@ class Gutenberg_bbPress extends Gutenberg_Handler {
 		add_filter( 'bbp_get_the_content', [ $this, 'add_to_bbpress' ] );
 
 		// Ensure blocks are processed when displaying
-		add_filter( 'bbp_get_forum_content', function( $content ) {
-			return $this->do_blocks( $content, 'bbp_get_forum_content' );
-		}, 8 );
-		add_filter( 'bbp_get_reply_content', function( $content ) {
-			return $this->do_blocks( $content, 'bbp_get_reply_content' );
-		}, 8 );
+		add_filter(
+			'bbp_get_forum_content',
+			function( $content ) {
+				return $this->do_blocks( $content, 'bbp_get_forum_content' );
+			},
+			8
+		);
+		add_filter(
+			'bbp_get_reply_content',
+			function( $content ) {
+				return $this->do_blocks( $content, 'bbp_get_reply_content' );
+			},
+			8
+		);
 
 		add_filter( 'bbp_register_topic_post_type', [ $this, 'support_gutenberg' ] );
 		add_filter( 'bbp_register_reply_post_type', [ $this, 'support_gutenberg' ] );
 		add_filter( 'bbp_register_forum_post_type', [ $this, 'support_gutenberg' ] );
-
-		add_action( 'bbp_head', [ $this, 'bbp_head' ]);
+		add_action( 'bbp_head', [ $this, 'bbp_head' ] );
 	}
 
 	public function support_gutenberg( $args ) {
@@ -37,7 +45,7 @@ class Gutenberg_bbPress extends Gutenberg_Handler {
 		return $content;
 	}
 
-	function bbp_head() {
+	public function bbp_head() {
 		add_filter( 'body_class', [ $this, 'body_class' ] );
 	}
 
@@ -45,5 +53,4 @@ class Gutenberg_bbPress extends Gutenberg_Handler {
 		$classes[] = 'gutenberg-support';
 		return $classes;
 	}
-
 }

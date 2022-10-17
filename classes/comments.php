@@ -10,9 +10,13 @@ class Gutenberg_Comments extends Gutenberg_Handler {
 		add_filter( 'pre_comment_content', [ $this, 'remove_blocks' ] );
 
 		// Ensure blocks are processed when displaying
-		add_filter( 'comment_text', function( $content ) {
-			return $this->do_blocks( $content, 'comment_text' );
-		}, 8 );
+		add_filter(
+			'comment_text',
+			function( $content ) {
+				return $this->do_blocks( $content, 'comment_text' );
+			},
+			8
+		);
 	}
 
 	public function can_show_admin_editor( $hook ) {

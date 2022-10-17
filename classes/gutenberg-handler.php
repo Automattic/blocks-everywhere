@@ -50,10 +50,6 @@ abstract class Gutenberg_Handler {
 		return $content;
 	}
 
-	public function can_show_admin_editor( $hook ) {
-		return false;
-	}
-
 	/**
 	 * Add the Gutenberg editor to the comment editor, but only if it includes blocks.
 	 *
@@ -66,7 +62,7 @@ abstract class Gutenberg_Handler {
 		return '<div class="gutenberg-everywhere iso-editor__loading">' . $editor . '</div>';
 	}
 
-	public function wp_editor_settings( $settings, $editor_id ) {
+	public function wp_editor_settings( $settings ) {
 		$settings['tinymce'] = false;
 		$settings['quicktags'] = false;
 		return $settings;
@@ -142,22 +138,7 @@ abstract class Gutenberg_Handler {
 
 		$asset_file = dirname( __DIR__ ) . '/build/index.asset.php';
 		$asset = file_exists( $asset_file ) ? require_once $asset_file : null;
-		$dependencies = isset( $asset['dependencies'] ) ? $asset['dependencies'] : [];
 		$version = isset( $asset['version'] ) ? $asset['version'] : time();
-
-		$js_dependencies = array_filter(
-			$dependencies,
-			function( $depend ) {
-				return strpos( $depend, '.css' ) === false;
-			}
-		);
-
-		$css_dependencies = array_filter(
-			$dependencies,
-			function( $depend ) {
-				return strpos( $depend, '.css' ) !== false;
-			}
-		);
 
 		$plugin = dirname( dirname( __FILE__ ) ) . '/gutenberg-everywhere.php';
 
@@ -181,7 +162,7 @@ abstract class Gutenberg_Handler {
 				],
 				'defaultPreferences' => [
 					'fixedToolbar' => true,
-				]
+				],
 			],
 			'saveTextarea' => $textarea,
 			'container' => $container,
@@ -189,5 +170,9 @@ abstract class Gutenberg_Handler {
 		];
 
 		wp_localize_script( 'gutenberg-everywhere', 'wpGutenbergEverywhere', apply_filters( 'gutenberg_everywhere_editor_settings', $settings ) );
+	}
+
+	public function can_show_admin_editor( $hook ) {
+		return false;
 	}
 }

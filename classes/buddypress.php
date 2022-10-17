@@ -8,9 +8,13 @@ class Gutenberg_BuddyPress extends Gutenberg_Handler {
 		add_action( 'bp_after_activity_post_form', [ $this, 'load_editor_buddypress' ] );
 
 		// Ensure blocks are processed when displaying
-		add_filter( 'bp_get_activity_content_body', function( $content ) {
-			return $this->do_blocks( $content, 'bp_get_activity_content_body' );
-		}, 8 );
+		add_filter(
+			'bp_get_activity_content_body',
+			function( $content ) {
+				return $this->do_blocks( $content, 'bp_get_activity_content_body' );
+			},
+			8
+		);
 
 		// These cause problems for the activity page itself
 		if ( ! is_admin() ) {

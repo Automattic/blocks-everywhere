@@ -40,13 +40,13 @@ The loading of Gutenberg will also increase the page size of any page it is load
 
 == Usage ==
 
-To enable Gutenberg in comments you need to add this to `wp-config.php`:
+To enable Gutenberg Everywhere you need to add the relevant `define` to `wp-config.php`:
 
 `define( 'GUTENBERG_EVERYWHERE_COMMENTS', true );`
+`define( 'GUTENBERG_EVERYWHERE_BBPRESS', true );`
+`define( 'GUTENBERG_EVERYWHERE_BUDDYPRESS', true );`
 
-You can also use the WordPress filter `gutenberg-everywhere-comments`.
-
-Gutenberg is enabled for bbPress and BuddyPress automatically if they are installed. You can also use the WordPress filters `gutenberg-everywhere-bbpress` and `gutenberg-everywhere-buddypress` to override.
+You can also use the WordPress filter `gutenberg_everywhere_comments`, `gutenberg_everywhere_bbpress`, and `gutenberg_everywhere_buddypress`.
 
 == Installation ==
 
@@ -61,6 +61,10 @@ The plugin is simple to install:
 
 1. Gutenberg in a comment form
 2. Gutenberg when editing a comment
+
+= 1.4.2 =
+* Further tweak the loading so handlers are not enabled by default
+* Improve placeholders in bbPress
 
 = 1.4.1 =
 * Improve loading of handlers so plugins have more chance to override them

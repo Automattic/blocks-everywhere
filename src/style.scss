@@ -2,11 +2,6 @@
 .gutenberg-everywhere {
 	margin-bottom: 30px;
 
-	// Stop the theme from making it much taller than expected
-	.block-editor-default-block-appender__content {
-		height: 37px;
-	}
-
 	// Hide the original textarea
 	> textarea {
 		display: none;
@@ -24,10 +19,6 @@
 // wp-admin has a darker border
 .wp-admin .iso-editor {
 	border-color: #ccd0d4;
-}
-
-.is-root-container {
-	margin-top: 15px;
 }
 
 // Comments
@@ -95,7 +86,7 @@
 	// Paragraph margins
 	.editor-styles-wrapper p {
 		margin-top: 1.3em !important;
-		margin-bottom: 1.8em !important;
+		margin-bottom: 1.3em !important;
 	}
 
 	#bbpress-forums,
@@ -156,4 +147,36 @@ html:not(.interface-interface-skeleton__html-container) .gutenberg-support .bbp-
 	100% {
 		opacity: 0.3;
 	}
+}
+
+.edit-post-header__toolbar {
+	flex-grow: inherit;
+}
+
+.edit-post-header__settings {
+	flex-grow: 1;
+}
+
+.block-editor-block-contextual-toolbar.is-fixed {
+	border: none;
+	min-height: inherit;
+}
+
+.edit-post-visual-editor .block-editor-block-contextual-toolbar {
+	display: none;
+}
+
+/* Reset bbPress code style */
+body.single-forum .bbp-topic-form .editor-styles-wrapper code {
+	border: none;
+	background-color: inherit;
+	font-size: inherit;
+	padding: 0;
+	margin-top: 0;
+	width: inherit;
+}
+
+body.single-forum .bbp-topic-form .editor-styles-wrapper pre {
+	margin-top: 16px;
+	margin-bottom: 16px;
 }

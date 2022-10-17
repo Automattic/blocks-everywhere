@@ -35,7 +35,7 @@ class Gutenberg_Comments extends Gutenberg_Handler {
 	 */
 	public function comment_form_defaults( $defaults ) {
 		$defaults['class_container'] .= ' gutenberg-comments';
-		$defaults['comment_field'] .= '<div class="gutenberg-everywhere iso-editor__loading"></div>';
+		$defaults['comment_field'] .= '<div class="blocks-everywhere iso-editor__loading"></div>';
 
 		return $defaults;
 	}
@@ -46,6 +46,6 @@ class Gutenberg_Comments extends Gutenberg_Handler {
 	 * @return string
 	 */
 	public function add_to_comments() {
-		$this->load_editor( '#comment', '.gutenberg-everywhere' );
+		$this->load_editor( '#comment', '.blocks-everywhere' );
 	}
 }

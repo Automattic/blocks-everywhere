@@ -3,7 +3,7 @@
 /**
  * Provides functions to load Gutenberg assets
  */
-class GutenbergEverywhere_Editor {
+class BlocksEverywhere_Editor {
 	/**
 	 * Constructor
 	 */

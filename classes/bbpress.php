@@ -41,7 +41,7 @@ class Gutenberg_bbPress extends Gutenberg_Handler {
 	}
 
 	public function add_to_bbpress( $content ) {
-		$this->load_editor( '.bbp-the-content', '.gutenberg-everywhere' );
+		$this->load_editor( '.bbp-the-content', '.blocks-everywhere' );
 		return $content;
 	}
 

@@ -59,7 +59,7 @@ abstract class Gutenberg_Handler {
 	public function the_editor( $editor ) {
 		$editor = preg_replace( '@.*?(<textarea.*?</textarea>).*@', '$1', $editor );
 
-		return '<div class="gutenberg-everywhere iso-editor__loading">' . $editor . '</div>';
+		return '<div class="blocks-everywhere iso-editor__loading">' . $editor . '</div>';
 	}
 
 	public function wp_editor_settings( $settings ) {
@@ -124,7 +124,7 @@ abstract class Gutenberg_Handler {
 			}
 		}
 
-		return apply_filters( 'gutenberg_everywhere_allowed_blocks', array_unique( $allowed ), $this->get_editor_type() );
+		return apply_filters( 'blocks_everywhere_allowed_blocks', array_unique( $allowed ), $this->get_editor_type() );
 	}
 
 	/**
@@ -133,20 +133,20 @@ abstract class Gutenberg_Handler {
 	 * @return void
 	 */
 	public function load_editor( $textarea, $container = null ) {
-		$this->gutenberg = new GutenbergEverywhere_Editor();
+		$this->gutenberg = new BlocksEverywhere_Editor();
 		$this->gutenberg->load();
 
 		$asset_file = dirname( __DIR__ ) . '/build/index.asset.php';
 		$asset = file_exists( $asset_file ) ? require_once $asset_file : null;
 		$version = isset( $asset['version'] ) ? $asset['version'] : time();
 
-		$plugin = dirname( dirname( __FILE__ ) ) . '/gutenberg-everywhere.php';
+		$plugin = dirname( dirname( __FILE__ ) ) . '/blocks-everywhere.php';
 
-		wp_register_script( 'gutenberg-everywhere', plugins_url( 'build/index.js', $plugin ), [], $version, true );
-		wp_enqueue_script( 'gutenberg-everywhere' );
+		wp_register_script( 'blocks-everywhere', plugins_url( 'build/index.js', $plugin ), [], $version, true );
+		wp_enqueue_script( 'blocks-everywhere' );
 
-		wp_register_style( 'gutenberg-everywhere', plugins_url( 'build/style-index.css', $plugin ), [], $version );
-		wp_enqueue_style( 'gutenberg-everywhere' );
+		wp_register_style( 'blocks-everywhere', plugins_url( 'build/style-index.css', $plugin ), [], $version );
+		wp_enqueue_style( 'blocks-everywhere' );
 
 		// Settings for the editor
 		$settings = [
@@ -169,7 +169,7 @@ abstract class Gutenberg_Handler {
 			'editorType' => $this->get_editor_type(),
 		];
 
-		wp_localize_script( 'gutenberg-everywhere', 'wpGutenbergEverywhere', apply_filters( 'gutenberg_everywhere_editor_settings', $settings ) );
+		wp_localize_script( 'blocks-everywhere', 'wpBlocksEverywhere', apply_filters( 'blocks_everywhere_editor_settings', $settings ) );
 	}
 
 	public function can_show_admin_editor( $hook ) {

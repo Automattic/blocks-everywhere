@@ -1,5 +1,5 @@
 {
-	"name": "gutenberg-everywhere",
+	"name": "blocks-everywhere",
 	"version": "1.4.2",
 	"description": "Gutenberg in WordPress comments, admin pages, bbPress, and BuddyPress.",
 	"main": "src/index.js",
@@ -7,7 +7,7 @@
 		"start": "wp-scripts start",
 		"build": "wp-scripts build && ./bin/lintfix.sh",
 		"release": "yarn build && rm -rf release && mkdir -p release && cp -R *.php readme.txt *.png build LICENSE.md classes release",
-		"dist": "yarn release && rm -rf dist && mkdir dist && mv release gutenberg-everywhere && zip gutenberg-everywhere.zip -r gutenberg-everywhere && mv gutenberg-everywhere release && mv gutenberg-everywhere.zip dist && release-it",
+		"dist": "yarn release && rm -rf dist && mkdir dist && mv release blocks-everywhere && zip blocks-everywhere.zip -r blocks-everywhere && mv blocks-everywhere release && mv blocks-everywhere.zip dist && release-it",
 		"lint:css": "wp-scripts lint-style",
 		"lint:js": "wp-scripts lint-js",
 		"lint:php": "composer run-script lint"
@@ -40,7 +40,7 @@
 		"github": {
 			"release": true,
 			"assets": [
-				"dist/gutenberg-everywhere.zip"
+				"dist/blocks-everywhere.zip"
 			]
 		},
 		"npm": false

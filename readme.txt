@@ -62,6 +62,11 @@ The plugin is simple to install:
 1. Gutenberg in a comment form
 2. Gutenberg when editing a comment
 
+== Changelog ==
+
+= 1.6.1 =
+* Don't load admin form reset on front end pages
+
 = 1.6.0 =
 * Rename to Blocks Everywhere
 

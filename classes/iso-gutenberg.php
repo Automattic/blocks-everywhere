@@ -55,6 +55,7 @@ class BlocksEverywhere_Editor {
 		$this->setup_rest_api();
 
 		set_current_screen( 'front' );
+		wp_styles()->done = array( 'wp-reset-editor-styles' );
 
 		$categories = wp_json_encode( get_block_categories( $post ) );
 

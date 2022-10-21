@@ -1,0 +1,78 @@
+// bbPress
+.gutenberg-support {
+	// Hide bbPress editor
+	#bbcode_buttons,
+	.form-allowed-tags,
+	#bbp_reply_content,
+	#bbp_topic_content {
+		display: none;
+	}
+
+	// Let popovers show outside the editor
+	#bbpress-forums,
+	.interface-interface-skeleton,
+	.interface-interface-skeleton__body,
+	.interface-interface-skeleton__content,
+	.interface-interface-skeleton__editor {
+		overflow: inherit;
+	}
+
+	#bbpress-forums,
+	.bbp-topic-form {
+		/* Override bbPress list styles */
+		.editor-styles-wrapper li,
+		.editor-styles-wrapper ul {
+			list-style: inherit;
+			margin: inherit;
+			padding: inherit;
+		}
+
+		.editor-styles-wrapper ul {
+			padding-left: 15px;
+		}
+
+		.editor-styles-wrapper li {
+			margin-top: 0;
+			padding-left: 5px;
+		}
+
+		// Clean up the link popup
+		fieldset.bbp-form .block-editor-link-control input {
+			margin: inherit;
+			max-width: inherit;
+			padding: 11px 16px;
+			height: 100%;
+			min-height: inherit;
+		}
+	}
+}
+
+// Add the loading animation on bbPress
+html:not(.interface-interface-skeleton__html-container) .gutenberg-support .bbp-the-content-wrapper {
+	min-height: 200px;
+	animation: loading-fade 1.6s ease-in-out infinite;
+	background-color: #ddd;
+
+	.interface-interface-skeleton {
+		min-height: 200px;
+	}
+}
+
+/* Reset bbPress code style */
+body.page .bbp-topic-form,
+body.single-forum .bbp-topic-form {
+	.editor-styles-wrapper code {
+		border: none;
+		background-color: inherit;
+		font-size: inherit;
+		padding: 0;
+		margin-top: 0;
+		width: inherit;
+		display: inline;
+	}
+
+	.editor-styles-wrapper pre {
+		margin-top: 16px;
+		margin-bottom: 16px;
+	}
+}

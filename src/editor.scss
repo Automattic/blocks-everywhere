@@ -1,0 +1,52 @@
+// Basic editor fixes
+.gutenberg-support .iso-editor {
+	.iso-editor .edit-post-editor-regions__header {
+		margin: 0 15px;
+	}
+
+	.edit-post-header-toolbar__left {
+		padding-left: 15px;
+	}
+
+	// Fix titles that may get changed
+	.block-editor-inserter__panel-header h2 {
+		font-size: 11px;
+	}
+
+	.block-editor-block-types-list__item-title span {
+		font-size: 12px;
+	}
+
+	.components-menu-group span {
+		font-size: 13px;
+	}
+
+	:where(.wp-block):not(ul > li > ul, li) {
+		margin-top: 28px !important;
+		margin-bottom: 28px !important;
+	}
+
+	// Highlight on block inserter
+	.edit-post-header__toolbar button:hover svg,
+	.block-editor-block-types-list__list-item:hover span {
+		color: var(--wp-admin-theme-color);
+		fill: var(--wp-admin-theme-color);
+	}
+
+	.block-editor-writing-flow [data-type="core/list"] {
+		ul {
+			margin-top: 0.5em;
+			margin-bottom: 0.5em;
+		}
+
+		li {
+			margin-bottom: 0.5em;
+		}
+	}
+
+	.block-editor-writing-flow {
+		ul > li > ul {
+			margin-left: 0;
+		}
+	}
+}

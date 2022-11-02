@@ -1,0 +1,8 @@
+// Comments
+.gutenberg-support {
+	.comment-php #wp-content-editor-container,
+	#respond .comment-form-comment label[for="comment"],
+	#comment {
+		display: none;
+	}
+}

@@ -1,6 +1,8 @@
 <?php
 
-class Gutenberg_BuddyPress extends Gutenberg_Handler {
+namespace Automattic\Blocks_Everywhere\Handler;
+
+class BuddyPress extends Handler {
 	/**
 	 * Constructor
 	 */

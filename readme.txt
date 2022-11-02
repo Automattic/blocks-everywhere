@@ -2,8 +2,8 @@
 Contributors: johnny5, automattic
 Tags: gutenberg, comments, bbpress, buddypress
 Requires at least: 5.8
-Tested up to: 6.0.3
-Stable tag: trunk
+Tested up to: 6.1
+Stable tag: 1.7.0
 Requires PHP: 5.6
 License: GPLv3
 
@@ -67,6 +67,9 @@ The plugin is simple to install:
 = 1.7.0 =
 * Improve list block appearance
 * Split out CSS files so it's easier to identify what is applied
+* Remove some unnecessary bbPress CSS
+* Fix image block causing crash
+* Namespace code
 
 = 1.6.1 =
 * Don't load admin form reset on front end pages

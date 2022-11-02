@@ -50,3 +50,8 @@
 		}
 	}
 }
+
+// Make the change from loading to loaded a bit better
+.blocks-everywhere.iso-editor__loading {
+	min-height: 200px;
+}

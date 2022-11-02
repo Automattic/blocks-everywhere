@@ -1,6 +1,8 @@
 <?php
 
-class Gutenberg_Comments extends Gutenberg_Handler {
+namespace Automattic\Blocks_Everywhere\Handler;
+
+class Comments extends Handler {
 	/**
 	 * Constructor
 	 */

@@ -1,9 +1,11 @@
 <?php
 
+namespace Automattic\Blocks_Everywhere;
+
 /**
  * Provides functions to load Gutenberg assets
  */
-class BlocksEverywhere_Editor {
+class Editor {
 	/**
 	 * Constructor
 	 */
@@ -74,6 +76,8 @@ class BlocksEverywhere_Editor {
 			'wp-blocks',
 			'wp.blocks.unstable__bootstrapServerSideBlockDefinitions(' . wp_json_encode( get_block_editor_server_block_settings() ) . ');'
 		);
+
+		$this->setup_media();
 	}
 
 	/**
@@ -145,23 +149,21 @@ class BlocksEverywhere_Editor {
 			'styles'                               => get_block_editor_theme_styles(),
 			'richEditingEnabled'                   => user_can_richedit(),
 			'postLock'                             => false,
-			'supportsLayout'                       => WP_Theme_JSON_Resolver::theme_has_support(),
-			'__experimentalBlockPatterns'          => WP_Block_Patterns_Registry::get_instance()->get_all_registered(),
-			'__experimentalBlockPatternCategories' => WP_Block_Pattern_Categories_Registry::get_instance()->get_all_registered(),
+			'supportsLayout'                       => \WP_Theme_JSON_Resolver::theme_has_support(),
+			'__experimentalBlockPatterns'          => \WP_Block_Patterns_Registry::get_instance()->get_all_registered(),
+			'__experimentalBlockPatternCategories' => \WP_Block_Pattern_Categories_Registry::get_instance()->get_all_registered(),
 			'supportsTemplateMode'                 => current_theme_supports( 'block-templates' ),
 			'enableCustomFields'                   => false,
 			'generateAnchors'                      => true,
 			'canLockBlocks'                        => false,
 		);
 
-		$block_editor_context = new WP_Block_Editor_Context( array( 'post' => $post ) );
+		$block_editor_context = new \WP_Block_Editor_Context( array( 'post' => $post ) );
 		return get_block_editor_settings( $editor_settings, $block_editor_context );
 	}
 
 	/**
 	 * Set up the Gutenberg REST API and preloaded data
-	 *
-	 * We set the 'post' to be whatever the latest P2 post is, but we change the post ID to 0
 	 *
 	 * @return void
 	 */
@@ -221,7 +223,7 @@ class BlocksEverywhere_Editor {
 			'wp-edit-blocks',
 		);
 
-		$block_registry = WP_Block_Type_Registry::get_instance();
+		$block_registry = \WP_Block_Type_Registry::get_instance();
 
 		foreach ( $block_registry->get_all_registered() as $block_type ) {
 			if ( ! empty( $block_type->style ) ) {
@@ -237,7 +239,16 @@ class BlocksEverywhere_Editor {
 			}
 		}
 
-		$style_handles = array_unique( apply_filters( 'p2_editor_styles', $style_handles ) );
+		$style_handles = apply_filters( 'blocks_everywhere_editor_styles', $style_handles );
+
+		// Make sure there are only strings in this array
+		$style_handles = array_filter(
+			$style_handles,
+			function( $handle ) {
+				return is_string( $handle );
+			}
+		);
+		$style_handles = array_unique( $style_handles );
 		$done          = wp_styles()->done;
 
 		ob_start();
@@ -249,7 +260,7 @@ class BlocksEverywhere_Editor {
 
 		$styles = ob_get_clean();
 
-		$script_handles = array_unique( apply_filters( 'p2_editor_scripts', $script_handles ) );
+		$script_handles = array_unique( apply_filters( 'blocks_everywhere_editor_scripts', $script_handles ) );
 		$done           = wp_scripts()->done;
 
 		ob_start();

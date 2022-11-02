@@ -7,10 +7,12 @@ Author: Automattic
 Text Domain: 'blocks-everywhere'
 */
 
-require_once __DIR__ . '/classes/gutenberg-handler.php';
-require_once __DIR__ . '/classes/comments.php';
-require_once __DIR__ . '/classes/bbpress.php';
-require_once __DIR__ . '/classes/buddypress.php';
+namespace Automattic\Blocks_Everywhere;
+
+use Automattic\Blocks_Everywhere\Handler;
+
+require_once __DIR__ . '/classes/class-handler.php';
+require_once __DIR__ . '/classes/class-editor.php';
 
 class Blocks_Everywhere {
 	/**
@@ -62,15 +64,15 @@ class Blocks_Everywhere {
 		$default_buddypress = defined( 'BLOCKS_EVERYWHERE_BUDDYPRESS' ) ? BLOCKS_EVERYWHERE_BUDDYPRESS : false;
 
 		if ( apply_filters( 'blocks_everywhere_comments', $default_comments ) ) {
-			$this->handlers[] = new Gutenberg_Comments();
+			$this->handlers[] = new Handler\Comments();
 		}
 
 		if ( apply_filters( 'blocks_everywhere_bbpress', $default_bbpress ) ) {
-			$this->handlers[] = new Gutenberg_bbPress();
+			$this->handlers[] = new Handler\bbPress();
 		}
 
 		if ( apply_filters( 'blocks_everywhere_buddypress', $default_buddypress ) ) {
-			$this->handlers[] = new Gutenberg_BuddyPress();
+			$this->handlers[] = new Handler\BuddyPress();
 		}
 	}
 

@@ -1,8 +1,12 @@
 <?php
 
-require_once __DIR__ . '/iso-gutenberg.php';
+namespace Automattic\Blocks_Everywhere\Handler;
 
-abstract class Gutenberg_Handler {
+require_once __DIR__ . '/handlers/class-bbpress.php';
+require_once __DIR__ . '/handlers/class-buddypress.php';
+require_once __DIR__ . '/handlers/class-comments.php';
+
+abstract class Handler {
 	private $doing_hook = null;
 
 	/**
@@ -133,14 +137,14 @@ abstract class Gutenberg_Handler {
 	 * @return void
 	 */
 	public function load_editor( $textarea, $container = null ) {
-		$this->gutenberg = new BlocksEverywhere_Editor();
+		$this->gutenberg = new \Automattic\Blocks_Everywhere\Editor();
 		$this->gutenberg->load();
 
 		$asset_file = dirname( __DIR__ ) . '/build/index.asset.php';
 		$asset = file_exists( $asset_file ) ? require_once $asset_file : null;
 		$version = isset( $asset['version'] ) ? $asset['version'] : time();
 
-		$plugin = dirname( dirname( __FILE__ ) ) . '/blocks-everywhere.php';
+		$plugin = dirname( __DIR__ ) . '/blocks-everywhere.php';
 
 		wp_register_script( 'blocks-everywhere', plugins_url( 'build/index.js', $plugin ), [], $version, true );
 		wp_enqueue_script( 'blocks-everywhere' );

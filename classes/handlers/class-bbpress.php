@@ -1,7 +1,9 @@
 <?php
 
+namespace Automattic\Blocks_Everywhere\Handler;
+
 // phpcs:ignore
-class Gutenberg_bbPress extends Gutenberg_Handler {
+class bbPress extends Handler {
 	/**
 	 * Constructor
 	 */
@@ -49,6 +51,12 @@ class Gutenberg_bbPress extends Gutenberg_Handler {
 		add_filter( 'body_class', [ $this, 'body_class' ] );
 	}
 
+	/**
+	 * Make it easier to restrict the CSS to pages where it is expected to run
+	 *
+	 * @param string[] $classes
+	 * @return string[]
+	 */
 	public function body_class( $classes ) {
 		$classes[] = 'gutenberg-support';
 		return $classes;

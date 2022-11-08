@@ -21,6 +21,10 @@ The plugin uses the [Isolated Block Editor](https://github.com/Automattic/isolat
 - [Gutenberg Desktop](https://github.com/Automattic/gutenberg-desktop/) - a desktop editor that supports the loading and saving of HTML and Markdown files
 - [P2](https://wordpress.com/p2/) - WordPress as a collaborative workspace (coming soon for self-hosted)
 
+Blocks Everywhere can be downloaded from WordPress.org:
+
+https://wordpress.org/plugins/blocks-everywhere/
+
 ## Caveats
 
 - The editor loads on every page where it is used. It may be performant to load it on-click.

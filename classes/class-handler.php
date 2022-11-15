@@ -149,7 +149,7 @@ abstract class Handler {
 		wp_register_script( 'blocks-everywhere', plugins_url( 'build/index.min.js', $plugin ), [], $version, true );
 		wp_enqueue_script( 'blocks-everywhere' );
 
-		wp_register_style( 'blocks-everywhere', plugins_url( 'build/style-index.css', $plugin ), [], $version );
+		wp_register_style( 'blocks-everywhere', plugins_url( 'build/style.min.css', $plugin ), [], $version );
 		wp_enqueue_style( 'blocks-everywhere' );
 
 		// Settings for the editor

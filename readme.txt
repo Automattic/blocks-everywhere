@@ -3,7 +3,7 @@ Contributors: johnny5, automattic
 Tags: gutenberg, comments, bbpress, buddypress
 Requires at least: 5.8
 Tested up to: 6.1
-Stable tag: 1.7.0
+Stable tag: 1.8.0
 Requires PHP: 5.6
 License: GPLv3
 
@@ -11,30 +11,28 @@ Puts the Gutenberg block editor everywhere it can - bbPress, comments, and Buddy
 
 == Description ==
 
-Switches the default WordPress editor for comments, bbPress, and BuddyPress to use Gutenberg. These can now use a richer set of editing tools, as well as having
-access to the full power of Gutenberg blocks.
+Switches the default WordPress editor for comments, bbPress, and BuddyPress to use Gutenberg. These can now use a richer set of editing tools, as well as having access to the full power of Gutenberg blocks.
 
 Admin moderation is also upgraded to use Gutenberg, and blocks are processed on the front end.
 
 For extra security the list of available blocks is determined by the allowed tags from WordPress.
 
-Gutenberg is not bundled and instead is side-loaded from WordPress. For better compatibility you should use the plugin version of Gutenberg, which is typically several versions
-ahead of the one included in WordPress.
+Gutenberg is not bundled and instead is side-loaded from WordPress. For better compatibility you should use the plugin version of Gutenberg, which is typically several versions ahead of the one included in WordPress.
 
 The condition of the Gutenberg replacements are:
 - bbPress - pretty good (requires bbPress 2.6+)
 - comments - alright
 - BuddyPress - needs a lot of work
 
-Blocks Everywhere is developed on Github at https://github.com/Automattic/blocks-everywhere
+Blocks Everywhere is developed on Github at:
+
+[https://github.com/Automattic/blocks-everywhere](https://github.com/Automattic/blocks-everywhere)
 
 == Caveats ==
 
-Gutenberg is placed directly on the page along with your post, forum, etc. This means the contents of the editor will look like the page they will appear on. However, it also
-means that styles from the page may affect the editor.
+Gutenberg is placed directly on the page along with your post, forum, etc. This means the contents of the editor will look like the page they will appear on. However, it also means that styles from the page may affect the editor.
 
-Currently we don't have a perfect way of seperating these styles and it is possible that styles from the page or from Gutenberg may affect the other. If you are using this plugin
-then it is expected that you will be able to fix any differences as appropriate for your site.
+Currently we don't have a perfect way of seperating these styles and it is possible that styles from the page or from Gutenberg may affect the other. If you are using this plugin then it is expected that you will be able to fix any differences as appropriate for your site.
 
 The loading of Gutenberg will also increase the page size of any page it is loaded on. You should be aware of this and willing to accept this in the context of your site.
 
@@ -63,6 +61,10 @@ The plugin is simple to install:
 2. Gutenberg when editing a comment
 
 == Changelog ==
+
+= 1.8.0 =
+* Use .min in JS filename so it matches WP recommendations
+* Add a check for queuing media, for sites that need to do custom setups.
 
 = 1.7.0 =
 * Improve list block appearance

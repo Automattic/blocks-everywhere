@@ -140,20 +140,8 @@ abstract class Handler {
 		$this->gutenberg = new \Automattic\Blocks_Everywhere\Editor();
 		$this->gutenberg->load();
 
-		$asset_file = dirname( __DIR__ ) . '/build/index.min.asset.php';
-		$asset = file_exists( $asset_file ) ? require_once $asset_file : null;
-		$version = isset( $asset['version'] ) ? $asset['version'] : time();
-
-		$plugin = dirname( __DIR__ ) . '/blocks-everywhere.php';
-
-		wp_register_script( 'blocks-everywhere', plugins_url( 'build/index.min.js', $plugin ), [], $version, true );
-		wp_enqueue_script( 'blocks-everywhere' );
-
-		wp_register_style( 'blocks-everywhere', plugins_url( 'build/style.min.css', $plugin ), [], $version );
-		wp_enqueue_style( 'blocks-everywhere' );
-
 		// Settings for the editor
-		$settings = [
+		$default_settings = [
 			'editor' => $this->gutenberg->get_editor_settings(),
 			'iso' => [
 				'blocks' => [
@@ -173,7 +161,49 @@ abstract class Handler {
 			'editorType' => $this->get_editor_type(),
 		];
 
-		wp_localize_script( 'blocks-everywhere', 'wpBlocksEverywhere', apply_filters( 'blocks_everywhere_editor_settings', $settings ) );
+		$settings = apply_filters( 'blocks_everywhere_editor_settings', $default_settings );
+
+		// Enqueue assets
+		$this->enqueue_assets(
+			'blocks-everywhere',
+			'index.min.asset.php',
+			'index.min.js',
+			'style-index.min.css',
+			$settings
+		);
+
+		// TODO only need them if block is allowed
+		$this->enqueue_assets(
+			'support-content-view',
+			'support-content-view.min.asset.php',
+			'support-content-view.min.js',
+			'support-content-view.min.css',
+			$settings
+		);
+		$this->enqueue_assets(
+			'support-content-editor',
+			'support-content-editor.min.asset.php',
+			'support-content-editor.min.js',
+			'support-content-editor.min.css',
+			$settings
+		);
+	}
+
+	private function enqueue_assets( $name, $asset_file, $js_file, $css_file, $settings ) {
+		$asset_file = dirname( __DIR__ ) . '/build/' . $asset_file;
+		$asset = file_exists( $asset_file ) ? require_once $asset_file : null;
+		$version = isset( $asset['version'] ) ? $asset['version'] : time();
+
+		$plugin = dirname( __DIR__ ) . '/blocks-everywhere.php';
+
+		wp_register_script( $name, plugins_url( 'build/' . $js_file, $plugin ), [], $version, true );
+		wp_enqueue_script( $name );
+
+		wp_register_style( $name, plugins_url( 'build/' . $css_file, $plugin ), [], $version );
+		wp_enqueue_style( $name );
+
+
+		wp_localize_script( $name, 'wpBlocksEverywhere', $settings );
 	}
 
 	public function can_show_admin_editor( $hook ) {

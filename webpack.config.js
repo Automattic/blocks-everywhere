@@ -8,6 +8,10 @@ module.exports = {
 		...defaultConfig.output,
 		filename: '[name].min.js',
 	},
+	entry: {
+		['support-content-editor']: './src/support-content-block/index.tsx',
+		['support-content-view']: './src/support-content-block/view.tsx',
+	},
 	plugins: [
 		...defaultConfig.plugins.filter( item => !( item instanceof MiniCssExtractPlugin ) ),
 		new MiniCssExtractPlugin( { filename: 'style.min.css' } ),

@@ -172,21 +172,22 @@ abstract class Handler {
 			$settings
 		);
 
-		// TODO only need them if block is allowed
-		$this->enqueue_assets(
-			'support-content-view',
-			'support-content-view.min.asset.php',
-			'support-content-view.min.js',
-			'support-content-view.min.css',
-			$settings
-		);
-		$this->enqueue_assets(
-			'support-content-editor',
-			'support-content-editor.min.asset.php',
-			'support-content-editor.min.js',
-			'support-content-editor.min.css',
-			$settings
-		);
+		if ( in_array( 'blocks-everywhere/support-content', $settings['iso']['blocks']['allowBlocks'] ) ) {
+			$this->enqueue_assets(
+				'support-content-view',
+				'support-content-view.min.asset.php',
+				'support-content-view.min.js',
+				'support-content-view.min.css',
+				$settings
+			);
+			$this->enqueue_assets(
+				'support-content-editor',
+				'support-content-editor.min.asset.php',
+				'support-content-editor.min.js',
+				'support-content-editor.min.css',
+				$settings
+			);
+		}
 	}
 
 	private function enqueue_assets( $name, $asset_file, $js_file, $css_file, $settings ) {

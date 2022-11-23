@@ -17,7 +17,7 @@ import { Save } from './save';
 /**
  * Block variation for support pages
  */
-registerBlockType( 'happy-blocks/support-page', {
+registerBlockType( 'blocks-everywhere/support-content', {
 	title: __( 'WordPress.com Guide', 'happy-blocks' ),
 	icon: <WordPressIcon variant="small" />,
 	category: 'embed',

@@ -34,7 +34,9 @@
 		"release-it": "^15.5.0"
 	},
 	"dependencies": {
-		"@automattic/isolated-block-editor": "2.19.0"
+		"@automattic/color-studio": "^2.5.0",
+		"@automattic/isolated-block-editor": "2.19.0",
+		"@automattic/typography": "^1.0.0"
 	},
 	"release-it": {
 		"github": {

@@ -10,6 +10,11 @@
     "@jridgewell/gen-mapping" "^0.1.0"
     "@jridgewell/trace-mapping" "^0.3.9"
 
+"@automattic/color-studio@^2.5.0":
+  version "2.5.0"
+  resolved "https://registry.npmjs.org/@automattic/color-studio/-/color-studio-2.5.0.tgz#27f69e2569062258f24ca50f0a4b8a572a00e287"
+  integrity sha512-gZWaJbx3p1oennAIoJtMGluTmoM95Efk4rc44TSBxWSZZ8gH3Am2eh1o3i1NhrZmg2Zt3AiVFeZZ4AJccIpBKQ==
+
 "@automattic/isolated-block-editor@2.19.0":
   version "2.19.0"
   resolved "https://registry.yarnpkg.com/@automattic/isolated-block-editor/-/isolated-block-editor-2.19.0.tgz#0052e192e9dcf7f27a72dd08ad48d11cb657bb8e"
@@ -78,6 +83,11 @@
     refx "^3.1.1"
     uuid "^9.0.0"
     yjs "^13.5.41"
+
+"@automattic/typography@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.npmjs.org/@automattic/typography/-/typography-1.0.0.tgz#008a54ba7a02001b9b0dcbad859f29f13f5ee202"
+  integrity sha512-TnT+vPaNUXQYwDsPCPxhNY0d4LnOKvrb0SizUCC5iybo5sfOlX/rYalGDyz6nPQDF0EBaQwMf7qhVsflFR0cBg==
 
 "@babel/code-frame@^7.0.0", "@babel/code-frame@^7.14.5":
   version "7.14.5"

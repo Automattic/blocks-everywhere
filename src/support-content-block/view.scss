@@ -88,15 +88,13 @@
 	}
 
 	&__content {
-		$visible-lines: 3;
-
 		color: $studio-gray-80;
 
-		max-height: calc(var(--line-height-content) * $visible-lines);
+		max-height: calc(var(--line-height-content) * 3);
 		overflow: hidden;
 
 		display: -webkit-box;
-		-webkit-line-clamp: $visible-lines;
+		-webkit-line-clamp: 3;
 		-webkit-box-orient: vertical;
 	}
 

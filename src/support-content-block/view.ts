@@ -1,4 +1,5 @@
-import {getRelativeDate} from "./utils"
+import { getRelativeDate } from './utils';
+import './view.scss';
 
 export function updateForumTopicDate( blockRoot: HTMLElement ) {
 	const dateElement = blockRoot.querySelector( '.hb-support-page-embed__created' );

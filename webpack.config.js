@@ -9,12 +9,12 @@ module.exports = {
 		filename: '[name].min.js',
 	},
 	entry: {
-		...defaultConfig.entry,
+		index: './src/index.js',
 		[ 'support-content-editor' ]: './src/support-content-block/index.tsx',
 		[ 'support-content-view' ]: './src/support-content-block/view.ts',
 	},
 	plugins: [
 		...defaultConfig.plugins.filter( ( item ) => ! ( item instanceof MiniCssExtractPlugin ) ),
-		new MiniCssExtractPlugin( { filename: 'style.min.css' } ),
+		new MiniCssExtractPlugin( { filename: '[name].min.css' } ),
 	],
 };

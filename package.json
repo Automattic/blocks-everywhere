@@ -19,22 +19,22 @@
 		"@babel/preset-env": "^7.20.2",
 		"@babel/preset-react": "^7.18.6",
 		"@types/eslint": "^8.4.10",
-		"@wordpress/babel-preset-default": "^7.5.0",
-		"@wordpress/prettier-config": "^2.4.0",
-		"@wordpress/scripts": "^24.5.0",
+		"@wordpress/babel-preset-default": "^7.6.0",
+		"@wordpress/prettier-config": "^2.5.0",
+		"@wordpress/scripts": "^24.6.0",
 		"babel-plugin-emotion": "^11.0.0",
 		"babel-plugin-inline-json-import": "^0.3.2",
-		"eslint": "^8.27.0",
+		"eslint": "^8.28.0",
 		"eslint-config-wpcalypso": "^6.1.0",
 		"eslint-plugin-import": "^2.26.0",
 		"eslint-plugin-jsx-a11y": "^6.6.1",
-		"eslint-plugin-react": "^7.31.10",
+		"eslint-plugin-react": "^7.31.11",
 		"eslint-plugin-wpcalypso": "^6.1.0",
 		"precss": "^4.0.0",
 		"release-it": "^15.5.0"
 	},
 	"dependencies": {
-		"@automattic/isolated-block-editor": "2.19.0"
+		"@automattic/isolated-block-editor": "2.20.0"
 	},
 	"release-it": {
 		"github": {

@@ -1,4 +1,4 @@
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const MiniCssExtractPlugin = require( 'mini-css-extract-plugin' );
 const defaultConfig = require( '@wordpress/scripts/config/webpack.config' );
 
 // Default @wordpress/scripts but output with .min in the filename
@@ -9,11 +9,12 @@ module.exports = {
 		filename: '[name].min.js',
 	},
 	entry: {
-		['support-content-editor']: './src/support-content-block/index.tsx',
-		['support-content-view']: './src/support-content-block/view.tsx',
+		...defaultConfig.entry,
+		[ 'support-content-editor' ]: './src/support-content-block/index.tsx',
+		[ 'support-content-view' ]: './src/support-content-block/view.ts',
 	},
 	plugins: [
-		...defaultConfig.plugins.filter( item => !( item instanceof MiniCssExtractPlugin ) ),
+		...defaultConfig.plugins.filter( ( item ) => ! ( item instanceof MiniCssExtractPlugin ) ),
 		new MiniCssExtractPlugin( { filename: 'style.min.css' } ),
-	]
+	],
 };

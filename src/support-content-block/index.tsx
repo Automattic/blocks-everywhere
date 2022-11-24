@@ -1,9 +1,8 @@
 import React from 'react';
 import { BlockInstance, createBlock, registerBlockType } from '@wordpress/blocks';
-import { dispatch } from '@wordpress/data';
 import { renderToString } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
-import { fetchAttributes, getContentTypeFromUrl, SupportContentBlockAttributes } from './block';
+import { getContentTypeFromUrl, SupportContentBlockAttributes } from './block';
 import { Edit } from './edit';
 import { Save } from './save';
 import { ContentBlockIcon } from './ContentBlockIcon';

@@ -1,9 +1,17 @@
 import './edit.scss';
 import { BlockControls, useBlockProps } from '@wordpress/block-editor';
-import { BlockEditProps } from '@wordpress/blocks';
-import { MenuItem, ToolbarButton, ToolbarGroup, withNotices, Popover } from '@wordpress/components';
+import { BlockEditProps, createBlock } from '@wordpress/blocks';
+import {
+	__experimentalElevation as Elevation,
+	MenuItem,
+	NavigableMenu,
+	Popover,
+	ToolbarButton,
+	ToolbarGroup,
+	withNotices,
+} from '@wordpress/components';
 import { compose } from '@wordpress/compose';
-import { useState } from '@wordpress/element';
+import { renderToString, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { edit } from '@wordpress/icons';
 import React from 'react';
@@ -11,10 +19,9 @@ import { fetchAttributes, getContentTypeFromUrl, SupportContentBlockAttributes }
 import { EmbedPlaceHolder } from './embed-placeholder';
 import { SupportContentEmbed } from './support-content-embed';
 import { ContentBlockIcon } from './ContentBlockIcon';
+import { useDispatch } from '@wordpress/data';
 
-import { __experimentalElevation as Elevation, NavigableMenu } from '@wordpress/components';
-
-const ConfirmContent = ( { url } ) => {
+const ConfirmContent = ( { url, confirm, cancel } ) => {
 	return (
 		<>
 			<a href={ url } target="_blank">
@@ -26,7 +33,14 @@ const ConfirmContent = ( { url } ) => {
 					<div className="be-support-content-confirm-content">
 						<Elevation value={ 3 } />
 						<NavigableMenu role="menu">
-							<MenuItem variant="tertiary" className="be-support-content-confirm-content__item">
+							<MenuItem
+								variant="tertiary"
+								className="be-support-content-confirm-content__item"
+								onClick={ ( e ) => {
+									e.preventDefault();
+									confirm();
+								} }
+							>
 								Create embed
 							</MenuItem>
 
@@ -34,6 +48,10 @@ const ConfirmContent = ( { url } ) => {
 								variant="tertiary"
 								isDestructive
 								className="be-support-content-confirm-content__item"
+								onClick={ ( e ) => {
+									e.preventDefault();
+									cancel();
+								} }
 							>
 								Dismiss
 							</MenuItem>
@@ -52,6 +70,8 @@ type EditProps = BlockEditProps< SupportContentBlockAttributes > & withNotices.P
  */
 export const Edit = compose( withNotices )( ( props: EditProps ) => {
 	const { attributes, className, setAttributes, noticeOperations, noticeUI } = props;
+
+	const { replaceBlock } = useDispatch( 'core/editor' );
 
 	const instructions = __( 'Embed a Support doc or a forum topic.', 'blocks-everywhere' );
 	const mismatchErrorMessage = __( 'It does not look like a Support doc or a forum topic URL.', 'blocks-everywhere' );
@@ -96,7 +116,17 @@ export const Edit = compose( withNotices )( ( props: EditProps ) => {
 	if ( ! isConfirmed ) {
 		return (
 			<div { ...blockProps }>
-				<ConfirmContent url={ url } />
+				<ConfirmContent
+					url={ url }
+					confirm={ () => setIsConfirmed( true ) }
+					cancel={ () => {
+						const link = <a href={ url }>{ url }</a>;
+						const newBlock = createBlock( 'core/paragraph', {
+							content: renderToString( link ),
+						} );
+						replaceBlock( blockProps[ 'data-block' ], newBlock );
+					} }
+				/>
 			</div>
 		);
 	}

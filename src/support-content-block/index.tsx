@@ -80,10 +80,6 @@ registerBlockType( 'blocks-everywhere/support-content', {
 						url: nodeText,
 					} );
 
-					fetchAttributes( nodeText ).then( ( attributes ) => {
-						dispatch( 'core/block-editor' ).updateBlockAttributes( block.clientId, attributes );
-					} );
-
 					return block;
 				},
 			},

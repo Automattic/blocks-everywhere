@@ -1,7 +1,7 @@
 import './edit.scss';
 import { BlockControls, useBlockProps } from '@wordpress/block-editor';
 import { BlockEditProps } from '@wordpress/blocks';
-import { ToolbarButton, ToolbarGroup, withNotices } from '@wordpress/components';
+import { MenuItem, ToolbarButton, ToolbarGroup, withNotices, Popover } from '@wordpress/components';
 import { compose } from '@wordpress/compose';
 import { useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
@@ -11,6 +11,39 @@ import { fetchAttributes, getContentTypeFromUrl, SupportContentBlockAttributes }
 import { EmbedPlaceHolder } from './embed-placeholder';
 import { SupportContentEmbed } from './support-content-embed';
 import { ContentBlockIcon } from './ContentBlockIcon';
+
+import { __experimentalElevation as Elevation, NavigableMenu } from '@wordpress/components';
+
+const ConfirmContent = ( { url } ) => {
+	return (
+		<>
+			<a href={ url } target="_blank">
+				{ url }
+			</a>
+
+			<span className="be-support-content-confirm-anchor">
+				<Popover variant="unstyled" offset={ 16 } placement="right-start">
+					<div className="be-support-content-confirm-content">
+						<Elevation value={ 3 } />
+						<NavigableMenu role="menu">
+							<MenuItem variant="tertiary" className="be-support-content-confirm-content__item">
+								Create embed
+							</MenuItem>
+
+							<MenuItem
+								variant="tertiary"
+								isDestructive
+								className="be-support-content-confirm-content__item"
+							>
+								Dismiss
+							</MenuItem>
+						</NavigableMenu>
+					</div>
+				</Popover>
+			</span>
+		</>
+	);
+};
 
 type EditProps = BlockEditProps< SupportContentBlockAttributes > & withNotices.Props & { noticeUI: JSX.Element };
 
@@ -24,11 +57,12 @@ export const Edit = compose( withNotices )( ( props: EditProps ) => {
 	const mismatchErrorMessage = __( 'It does not look like a Support doc or a forum topic URL.', 'blocks-everywhere' );
 	const placeholder = __( 'Enter URL to embed here…', 'blocks-everywhere' );
 
-	const [ editing, setEditing ] = useState( false );
+	const [ isConfirmed, setIsConfirmed ] = useState( false );
+	const [ isEditing, setIsEditing ] = useState( false );
 	const [ url, setUrl ] = useState( attributes.url );
 
 	const onEditModeToggle = () => {
-		setEditing( ! editing );
+		setIsEditing( ! isEditing );
 	};
 
 	const onSubmit = async () => {
@@ -46,7 +80,7 @@ export const Edit = compose( withNotices )( ( props: EditProps ) => {
 			const fetchedAttributes = await fetchAttributes( url );
 
 			noticeOperations.removeAllNotices();
-			setEditing( false );
+			setIsEditing( false );
 
 			setAttributes( fetchedAttributes );
 		} catch ( e: any ) {
@@ -59,21 +93,29 @@ export const Edit = compose( withNotices )( ( props: EditProps ) => {
 
 	const blockProps = useBlockProps();
 
+	if ( ! isConfirmed ) {
+		return (
+			<div { ...blockProps }>
+				<ConfirmContent url={ url } />
+			</div>
+		);
+	}
+
 	return (
 		<div { ...blockProps }>
 			<BlockControls>
 				<ToolbarGroup>
-					{ ! editing && (
+					{ ! isEditing && (
 						<ToolbarButton
 							icon={ edit }
 							label={ __( 'Edit URL', 'blocks-everywhere' ) }
-							isActive={ editing }
+							isActive={ isEditing }
 							onClick={ onEditModeToggle }
 						/>
 					) }
 				</ToolbarGroup>
 			</BlockControls>
-			{ editing || ! attributes.url ? (
+			{ isEditing || ! attributes.url ? (
 				<EmbedPlaceHolder
 					className={ className }
 					icon={ <ContentBlockIcon marginRight /> }

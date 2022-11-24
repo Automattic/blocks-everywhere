@@ -2,7 +2,7 @@ import React from 'react';
 import { createInterpolateElement } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 import { SupportContentBlockAttributes } from './block';
-import { WordPressIcon } from './WordPressIcon';
+import { WordPressIcon } from './wordpress-icon';
 import { InlineSkeleton } from './inline-skeleton';
 import { getRelativeDate } from './utils';
 

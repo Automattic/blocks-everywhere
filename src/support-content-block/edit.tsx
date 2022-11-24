@@ -1,15 +1,7 @@
 import './edit.scss';
 import { BlockControls, useBlockProps } from '@wordpress/block-editor';
 import { BlockEditProps, createBlock } from '@wordpress/blocks';
-import {
-	__experimentalElevation as Elevation,
-	MenuItem,
-	NavigableMenu,
-	Popover,
-	ToolbarButton,
-	ToolbarGroup,
-	withNotices,
-} from '@wordpress/components';
+import { ToolbarButton, ToolbarGroup, withNotices } from '@wordpress/components';
 import { compose } from '@wordpress/compose';
 import { renderToString, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
@@ -18,50 +10,9 @@ import React from 'react';
 import { fetchAttributes, getContentTypeFromUrl, SupportContentBlockAttributes } from './block';
 import { EmbedPlaceHolder } from './embed-placeholder';
 import { SupportContentEmbed } from './support-content-embed';
-import { ContentBlockIcon } from './ContentBlockIcon';
+import { ContentBlockIcon } from './content-block-icon';
 import { useDispatch } from '@wordpress/data';
-
-const ConfirmContent = ( { url, confirm, cancel } ) => {
-	return (
-		<>
-			<a href={ url } target="_blank">
-				{ url }
-			</a>
-
-			<span className="be-support-content-confirm-anchor">
-				<Popover variant="unstyled" offset={ 16 } placement="right-start">
-					<div className="be-support-content-confirm-content">
-						<Elevation value={ 3 } />
-						<NavigableMenu role="menu">
-							<MenuItem
-								variant="tertiary"
-								className="be-support-content-confirm-content__item"
-								onClick={ ( e ) => {
-									e.preventDefault();
-									confirm();
-								} }
-							>
-								Create embed
-							</MenuItem>
-
-							<MenuItem
-								variant="tertiary"
-								isDestructive
-								className="be-support-content-confirm-content__item"
-								onClick={ ( e ) => {
-									e.preventDefault();
-									cancel();
-								} }
-							>
-								Dismiss
-							</MenuItem>
-						</NavigableMenu>
-					</div>
-				</Popover>
-			</span>
-		</>
-	);
-};
+import { ConfirmContent } from './confirm-content';
 
 type EditProps = BlockEditProps< SupportContentBlockAttributes > & withNotices.Props & { noticeUI: JSX.Element };
 

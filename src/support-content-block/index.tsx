@@ -5,7 +5,7 @@ import { __ } from '@wordpress/i18n';
 import { getContentTypeFromUrl, SupportContentBlockAttributes } from './block';
 import { Edit } from './edit';
 import { Save } from './save';
-import { ContentBlockIcon } from './ContentBlockIcon';
+import { ContentBlockIcon } from './content-block-icon';
 
 /**
  * Block variation for support pages

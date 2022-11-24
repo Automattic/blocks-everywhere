@@ -18,7 +18,7 @@ export const SupportContentEmbed = ( props: {
 
 	const likes = sprintf(
 		/* translators: Number of people marked this page useful, eg: "25332 people have found this useful" */
-		__( '%1$d people have found this useful!', 'happy-blocks' ),
+		__( '%1$d people have found this useful!', 'blocks-everywhere' ),
 		props.attributes.minutesToRead ?? 0
 	);
 
@@ -35,7 +35,7 @@ export const SupportContentEmbed = ( props: {
 		const minToRead = props.attributes.minutesToRead
 			? sprintf(
 					/* translators: Minutes it takes to read embedded support page, eg: "5 min to read" */
-					__( '%1$d min read', 'happy-blocks' ),
+					__( '%1$d min read', 'blocks-everywhere' ),
 					props.attributes.minutesToRead
 			  )
 			: '';
@@ -51,7 +51,7 @@ export const SupportContentEmbed = ( props: {
 		if ( props.attributes.author ) {
 			const startedby = sprintf(
 				/* translators: Person who created forum topic, eg: "Started by davidgonzalezwp" */
-				__( 'Started by %s', 'happy-blocks' ),
+				__( 'Started by %s', 'blocks-everywhere' ),
 				props.attributes.minutesToRead
 			);
 
@@ -62,7 +62,7 @@ export const SupportContentEmbed = ( props: {
 			);
 		} else if ( props.attributes.created ) {
 			/* translators: Date when forum topic was created, eg: "Started 5 days ago" */
-			const startedOn = __( 'Started', 'happy-blocks' );
+			const startedOn = __( 'Started', 'blocks-everywhere' );
 
 			return (
 				<>

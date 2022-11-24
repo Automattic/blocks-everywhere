@@ -18,10 +18,10 @@ import { Save } from './save';
  * Block variation for support pages
  */
 registerBlockType( 'blocks-everywhere/support-content', {
-	title: __( 'WordPress.com Guide', 'happy-blocks' ),
+	title: __( 'WordPress.com Guide', 'blocks-everywhere' ),
 	icon: <WordPressIcon variant="small" />,
 	category: 'embed',
-	description: __( 'Embed a page from the WordPress Guide', 'happy-blocks' ),
+	description: __( 'Embed a page from the WordPress Guide', 'blocks-everywhere' ),
 	keywords: [ __( 'guide' ), __( 'support' ), __( 'how to' ), __( 'howto' ) ],
 	attributes: {
 		url: {
@@ -56,7 +56,7 @@ registerBlockType( 'blocks-everywhere/support-content', {
 	edit: ( props: BlockEditProps< SupportContentBlockAttributes > ) => (
 		<Edit
 			urlPattern={ SUPPORT_PAGE_PATTERN }
-			title={ __( 'WordPress.com Guide page URL', 'happy-blocks' ) }
+			title={ __( 'WordPress.com Guide page URL', 'blocks-everywhere' ) }
 			fetch={ fetchSupportPageAttributes }
 			{ ...props }
 		/>
@@ -108,10 +108,10 @@ registerBlockType( 'blocks-everywhere/support-content', {
  * Block variation for support pages
  */
 registerBlockType( 'happy-blocks/forum-topic', {
-	title: __( 'WordPress.com Forums', 'happy-blocks' ),
+	title: __( 'WordPress.com Forums', 'blocks-everywhere' ),
 	icon: <WordPressIcon variant="small" />,
 	category: 'embed',
-	description: __( 'Embed a topic from the WordPress Forums', 'happy-blocks' ),
+	description: __( 'Embed a topic from the WordPress Forums', 'blocks-everywhere' ),
 	keywords: [ __( 'forum' ), __( 'topic' ) ],
 	attributes: {
 		url: {
@@ -151,7 +151,7 @@ registerBlockType( 'happy-blocks/forum-topic', {
 	edit: ( props: BlockEditProps< SupportContentBlockAttributes > ) => (
 		<Edit
 			urlPattern={ FORUM_TOPIC_PATTERN }
-			title={ __( 'WordPress.com Forums topic URL', 'happy-blocks' ) }
+			title={ __( 'WordPress.com Forums topic URL', 'blocks-everywhere' ) }
 			fetch={ fetchForumTopicAttributes }
 			{ ...props }
 		/>

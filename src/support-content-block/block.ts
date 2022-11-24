@@ -1,9 +1,7 @@
 import { __ } from '@wordpress/i18n';
 
-export const SUPPORT_PAGE_PATTERN =
-	/^https?:\/\/wordpress\.com\/((?<lang>[a-z]{2})\/)?support\/(?<slug>\S+)$/i;
-export const FORUM_TOPIC_PATTERN =
-	/^https?:\/\/wordpress\.com\/((?<lang>[a-z]{2})\/)?forums\/topic\/(?<slug>\S+)$/i;
+export const SUPPORT_PAGE_PATTERN = /^https?:\/\/wordpress\.com\/((?<lang>[a-z]{2})\/)?support\/(?<slug>\S+)$/i;
+export const FORUM_TOPIC_PATTERN = /^https?:\/\/wordpress\.com\/((?<lang>[a-z]{2})\/)?forums\/topic\/(?<slug>\S+)$/i;
 const EMBED_CONTENT_MAXLENGTH = 400;
 const AVERAGE_READING_SPEED = 250; // words per minute
 
@@ -23,9 +21,7 @@ export type SupportContentBlockAttributes = {
 /**
  * Fetch the support page via API and parse its data into block attributes
  */
-export async function fetchSupportPageAttributes(
-	url: string
-): Promise< SupportContentBlockAttributes > {
+export async function fetchSupportPageAttributes( url: string ): Promise< SupportContentBlockAttributes > {
 	const { blog, slug } = getSupportPageSlugFromUrl( url );
 
 	const apiUrl = `https://public-api.wordpress.com/rest/v1.1/sites/${ blog }/posts/slug:${ encodeURIComponent(
@@ -34,7 +30,7 @@ export async function fetchSupportPageAttributes(
 	const response = await fetch( apiUrl );
 
 	if ( ! response.ok ) {
-		throw new Error( __( 'Failed to load the page. Check URL', 'happy-blocks' ) );
+		throw new Error( __( 'Failed to load the page. Check URL', 'blocks-everywhere' ) );
 	}
 
 	const page = await response.json();
@@ -56,18 +52,14 @@ export async function fetchSupportPageAttributes(
 /**
  * Fetch forum topic via API and parse its data into block attributes
  */
-export async function fetchForumTopicAttributes(
-	url: string
-): Promise< SupportContentBlockAttributes > {
+export async function fetchForumTopicAttributes( url: string ): Promise< SupportContentBlockAttributes > {
 	const { blog, slug } = getForumTopicSlugFromUrl( url );
 
-	const apiUrl = `https://public-api.wordpress.com/wp/v2/sites/${ blog }/topic?slug=${ encodeURIComponent(
-		slug
-	) }`;
+	const apiUrl = `https://public-api.wordpress.com/wp/v2/sites/${ blog }/topic?slug=${ encodeURIComponent( slug ) }`;
 	const response = await fetch( apiUrl );
 
 	if ( ! response.ok ) {
-		throw new Error( __( 'Failed to load the page. Check URL', 'happy-blocks' ) );
+		throw new Error( __( 'Failed to load the page. Check URL', 'blocks-everywhere' ) );
 	}
 
 	const topic = ( await response.json() )[ 0 ];

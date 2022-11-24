@@ -2,8 +2,8 @@ import { getRelativeDate } from './utils';
 import './view.scss';
 
 export function updateForumTopicDate( blockRoot: HTMLElement ) {
-	const dateElement = blockRoot.querySelector( '.hb-support-page-embed__created' );
-	const relativeDateElement = blockRoot.querySelector( '.hb-support-page-embed__relative-created' );
+	const dateElement = blockRoot.querySelector( '.be-support-content__created' );
+	const relativeDateElement = blockRoot.querySelector( '.be-support-content__relative-created' );
 
 	if ( dateElement?.textContent && relativeDateElement ) {
 		relativeDateElement.textContent = getRelativeDate( dateElement.textContent );

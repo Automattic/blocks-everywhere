@@ -21,7 +21,7 @@ export const WordPressIcon = ( props: WordIconProps ) => {
 	return (
 		<>
 			<div
-				className={ classnames( 'hb-support-page-embed-icon', {
+				className={ classnames( 'be-support-content-icon', {
 					'is-small': props.variant === 'small',
 					'is-large': props.variant === 'large' || props.variant === 'raster',
 					'is-margin-right': props.marginRight,

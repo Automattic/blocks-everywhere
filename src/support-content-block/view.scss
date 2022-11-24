@@ -1,7 +1,7 @@
 @import "~@automattic/typography/styles/variables";
 @import "~@automattic/color-studio/dist/color-variables";
 
-.hb-support-page-embed {
+.be-support-content {
 	--line-height-content: 20px;
 	--line-height-title: 24px;
 	--color-light-gray: #eee;
@@ -106,7 +106,7 @@
 	}
 }
 
-.hb-support-page-embed-icon {
+.be-support-content-icon {
 	background-color: $studio-blue-50;
 	border-radius: 2px;
 	display: flex;
@@ -133,7 +133,7 @@
 	}
 }
 
-@keyframes hb-support-page_skeleton__animation {
+@keyframes be-support-content_skeleton__animation {
 	0% {
 		opacity: 0.5;
 	}
@@ -147,13 +147,13 @@
 	}
 }
 
-.hb-support-page-inline-skeleton {
+.be-support-content-inline-skeleton {
 	display: inline-block;
 	color: var(--color-light-gray);
 	background-color: var(--color-light-gray);
 	width: 20em;
 
-	animation: hb-support-page_skeleton__animation 1.6s ease-in-out infinite;
+	animation: be-support-content_skeleton__animation 1.6s ease-in-out infinite;
 
 	&::after {
 		content: "X";

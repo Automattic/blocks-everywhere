@@ -30,17 +30,17 @@ registerBlockType( 'blocks-everywhere/support-content', {
 		title: {
 			type: 'string',
 			source: 'text',
-			selector: '.hb-support-page-embed__title',
+			selector: '.be-support-content__title',
 		},
 		content: {
 			type: 'string',
 			source: 'text',
-			selector: '.hb-support-page-embed__content',
+			selector: '.be-support-content__content',
 		},
 		source: {
 			type: 'string',
 			source: 'text',
-			selector: '.hb-support-page-embed__link',
+			selector: '.be-support-content__link',
 		},
 		minutesToRead: {
 			type: 'number',
@@ -120,17 +120,17 @@ registerBlockType( 'happy-blocks/forum-topic', {
 		title: {
 			type: 'string',
 			source: 'text',
-			selector: '.hb-support-page-embed__title',
+			selector: '.be-support-content__title',
 		},
 		content: {
 			type: 'string',
 			source: 'text',
-			selector: '.hb-support-page-embed__content',
+			selector: '.be-support-content__content',
 		},
 		source: {
 			type: 'string',
 			source: 'text',
-			selector: '.hb-support-page-embed__link',
+			selector: '.be-support-content__link',
 		},
 		status: {
 			type: 'string',
@@ -141,7 +141,7 @@ registerBlockType( 'happy-blocks/forum-topic', {
 		created: {
 			type: 'string',
 			source: 'text',
-			selector: '.hb-support-page-embed__created',
+			selector: '.be-support-content__created',
 		},
 	},
 	supports: {

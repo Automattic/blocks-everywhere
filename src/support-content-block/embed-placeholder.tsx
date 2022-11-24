@@ -21,7 +21,7 @@ type EmbedPlaceHolderProps = {
  */
 export const EmbedPlaceHolder = ( props: EmbedPlaceHolderProps ) => {
 	return (
-		<div className={ classnames( 'hb-support-page-embed-placeholder', props.className ) }>
+		<div className={ classnames( 'be-support-content-placeholder', props.className ) }>
 			<Placeholder
 				icon={ props.icon }
 				label={ props.label }

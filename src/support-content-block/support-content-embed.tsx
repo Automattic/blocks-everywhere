@@ -41,7 +41,7 @@ export const SupportContentEmbed = ( props: {
 			: '';
 
 		const createdDateElement = (
-			<span className="hb-support-page-embed__relative-created">
+			<span className="be-support-content__relative-created">
 				{ props.attributes.created && props.showRelativeDate
 					? getRelativeDate( props.attributes.created )
 					: '' }
@@ -74,44 +74,44 @@ export const SupportContentEmbed = ( props: {
 	};
 
 	return (
-		<div className="hb-support-page-embed">
+		<div className="be-support-content">
 			{ !! props.attributes.created && (
-				<div className="hb-support-page-embed__created">{ props.attributes.created }</div>
+				<div className="be-support-content__created">{ props.attributes.created }</div>
 			) }
 
 			{ /* Only make embed clickable while viewing content for author not to lose unsaved changes */ }
-			{ props.clickable && <a className="hb-support-page-embed__opener" href={ props.attributes.url } /> }
+			{ props.clickable && <a className="be-support-content__opener" href={ props.attributes.url } /> }
 
-			<div className="hb-support-page-embed__header">
+			<div className="be-support-content__header">
 				<WordPressIcon variant="raster" />
 				<div>
-					<div className="hb-support-page-embed__title">
+					<div className="be-support-content__title">
 						<InlineSkeleton loaded={ loaded }>
 							{ props.attributes.title }
-							{ /*<span className="hb-support-page-embed__badge">Support article</span>*/ }
+							{ /*<span className="be-support-content__badge">Support article</span>*/ }
 						</InlineSkeleton>
 					</div>
-					<div className="hb-support-page-embed__source">
+					<div className="be-support-content__source">
 						<InlineSkeleton hidden loaded={ loaded }>
 							{ createInterpolateElement( source, {
-								a: <a className="hb-support-page-embed__link" href={ props.attributes.url } />,
+								a: <a className="be-support-content__link" href={ props.attributes.url } />,
 							} ) }
 						</InlineSkeleton>
 					</div>
 					{ ( ! loaded || detailsPresent ) && (
-						<div className="hb-support-page-embed__details">
+						<div className="be-support-content__details">
 							<InlineSkeleton loaded={ loaded }>{ getDetails() }</InlineSkeleton>
 						</div>
 					) }
 				</div>
 			</div>
-			<div className="hb-support-page-embed__content">
+			<div className="be-support-content__content">
 				<InlineSkeleton large loaded={ loaded }>
 					{ props.attributes.content }
 				</InlineSkeleton>
 			</div>
 			{ ( ! loaded || props.attributes.likes ) && (
-				<div className="hb-support-page-embed__reactions">
+				<div className="be-support-content__reactions">
 					<InlineSkeleton loaded={ loaded }>{ likes }</InlineSkeleton>
 				</div>
 			) }

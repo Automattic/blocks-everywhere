@@ -17,7 +17,7 @@ export const InlineSkeleton = ( props: InlineSkeletonProps ) => {
 	}
 	return (
 		<span
-			className={ classnames( 'hb-support-page-inline-skeleton', {
+			className={ classnames( 'be-support-content-inline-skeleton', {
 				'is-hidden': props.hidden,
 				'is-large': props.large,
 			} ) }

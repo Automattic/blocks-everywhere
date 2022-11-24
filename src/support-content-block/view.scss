@@ -1,6 +1,15 @@
 @import "~@automattic/typography/styles/variables";
 @import "~@automattic/color-studio/dist/color-variables";
 
+.wp-block-blocks-everywhere-support-content {
+	&:not(:first-child) {
+		margin-top: 28px;
+	}
+	&:not(:last-child) {
+		margin-bottom: 28px;
+	}
+}
+
 .be-support-content {
 	--line-height-content: 20px;
 	--line-height-title: 24px;
@@ -104,6 +113,15 @@
 		font-size: $font-body-extra-small;
 		line-height: var(--line-height-content);
 		color: $studio-gray-60;
+	}
+}
+
+// Override bbPress styles
+.bbp-reply-content a.be-support-content__link {
+	text-decoration: none !important;
+
+	&:hover {
+		text-decoration: underline !important;
 	}
 }
 

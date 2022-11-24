@@ -2,7 +2,7 @@ import React from 'react';
 import { createInterpolateElement } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 import { SupportContentBlockAttributes } from './block';
-import { WordPressIcon } from './icon';
+import { WordPressIcon } from './WordPressIcon';
 import { InlineSkeleton } from './inline-skeleton';
 import { getRelativeDate } from './utils';
 
@@ -83,7 +83,7 @@ export const SupportContentEmbed = ( props: {
 			{ props.clickable && <a className="be-support-content__opener" href={ props.attributes.url } /> }
 
 			<div className="be-support-content__header">
-				<WordPressIcon variant="raster" />
+				<WordPressIcon />
 				<div>
 					<div className="be-support-content__title">
 						<InlineSkeleton loaded={ loaded }>

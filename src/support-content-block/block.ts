@@ -5,6 +5,11 @@ export const FORUM_TOPIC_PATTERN = /^https?:\/\/wordpress\.com\/((?<lang>[a-z]{2
 const EMBED_CONTENT_MAXLENGTH = 400;
 const AVERAGE_READING_SPEED = 250; // words per minute
 
+enum ContentType {
+	SUPPORT_PAGE = 'support_page',
+	FORUM_TOPIC = 'forum_topic',
+}
+
 /** Attributes of the Block */
 export type SupportContentBlockAttributes = {
 	url: string;
@@ -17,6 +22,27 @@ export type SupportContentBlockAttributes = {
 	author?: number;
 	created?: string;
 };
+
+export function getContentTypeFromUrl( url: string ): ContentType | null {
+	if ( SUPPORT_PAGE_PATTERN.test( url ) ) {
+		return ContentType.SUPPORT_PAGE;
+	} else if ( FORUM_TOPIC_PATTERN.test( url ) ) {
+		return ContentType.FORUM_TOPIC;
+	}
+	return null;
+}
+
+export async function fetchAttributes( url: string ): Promise< SupportContentBlockAttributes > {
+	const type = await getContentTypeFromUrl( url );
+
+	if ( type == ContentType.SUPPORT_PAGE ) {
+		return fetchSupportPageAttributes( url );
+	} else if ( type == ContentType.FORUM_TOPIC ) {
+		return fetchForumTopicAttributes( url );
+	} else {
+		throw new Error( __( 'Failed to load the page. Check URL', 'blocks-everywhere' ) );
+	}
+}
 
 /**
  * Fetch the support page via API and parse its data into block attributes
@@ -53,6 +79,8 @@ export async function fetchSupportPageAttributes( url: string ): Promise< Suppor
  * Fetch forum topic via API and parse its data into block attributes
  */
 export async function fetchForumTopicAttributes( url: string ): Promise< SupportContentBlockAttributes > {
+	// TODO Support non WPCOM forums
+
 	const { blog, slug } = getForumTopicSlugFromUrl( url );
 
 	const apiUrl = `https://public-api.wordpress.com/wp/v2/sites/${ blog }/topic?slug=${ encodeURIComponent( slug ) }`;

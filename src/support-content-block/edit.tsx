@@ -7,24 +7,20 @@ import { useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { edit } from '@wordpress/icons';
 import React from 'react';
-import { SupportContentBlockAttributes } from './block';
+import { fetchAttributes, getContentTypeFromUrl, SupportContentBlockAttributes } from './block';
 import { EmbedPlaceHolder } from './embed-placeholder';
-import { WordPressIcon } from './icon';
 import { SupportContentEmbed } from './support-content-embed';
+import { ContentBlockIcon } from './ContentBlockIcon';
 
-type EditProps = BlockEditProps< SupportContentBlockAttributes > & {
-	title: string;
-	urlPattern: RegExp;
-	fetch: ( url: string ) => Promise< SupportContentBlockAttributes >;
-};
+type EditProps = BlockEditProps< SupportContentBlockAttributes > & withNotices.Props & { noticeUI: JSX.Element };
 
 /**
  * Renders block in the editor
  */
-export const Edit = compose( withNotices )( ( props: EditProps & withNotices.Props & { noticeUI: JSX.Element } ) => {
+export const Edit = compose( withNotices )( ( props: EditProps ) => {
 	const { attributes, className, setAttributes, noticeOperations, noticeUI } = props;
 
-	const instructions = __( 'Paste a link to the page you want to display.', 'blocks-everywhere' );
+	const instructions = __( 'Embed a Support doc or a forum topic.', 'blocks-everywhere' );
 	const mismatchErrorMessage = __( 'It does not look like an embeddable URL.', 'blocks-everywhere' );
 	const placeholder = __( 'Enter URL to embed here…', 'blocks-everywhere' );
 
@@ -36,7 +32,9 @@ export const Edit = compose( withNotices )( ( props: EditProps & withNotices.Pro
 	};
 
 	const onSubmit = async () => {
-		if ( ! props.urlPattern.test( url ) ) {
+		const type = getContentTypeFromUrl( url );
+
+		if ( ! type ) {
 			noticeOperations.removeAllNotices();
 			noticeOperations.createErrorNotice( mismatchErrorMessage );
 			return;
@@ -45,7 +43,7 @@ export const Edit = compose( withNotices )( ( props: EditProps & withNotices.Pro
 		try {
 			setAttributes( { url } );
 
-			const fetchedAttributes = await props.fetch( url );
+			const fetchedAttributes = await fetchAttributes( url );
 
 			noticeOperations.removeAllNotices();
 			setEditing( false );
@@ -78,9 +76,9 @@ export const Edit = compose( withNotices )( ( props: EditProps & withNotices.Pro
 			{ editing || ! attributes.url ? (
 				<EmbedPlaceHolder
 					className={ className }
-					icon={ <WordPressIcon variant="small" marginRight /> }
+					icon={ <ContentBlockIcon marginRight /> }
 					instructions={ instructions }
-					label={ props.title }
+					label={ 'Content Embed' }
 					url={ url }
 					notices={ noticeUI }
 					placeholder={ placeholder }

@@ -1,7 +1,7 @@
 import { getRelativeDate } from './utils';
 import './view.scss';
 
-export function updateForumTopicDate( blockRoot: HTMLElement ) {
+export function updateRelativeDateCreated( blockRoot: HTMLElement ) {
 	const dateElement = blockRoot.querySelector( '.be-support-content__created' );
 	const relativeDateElement = blockRoot.querySelector( '.be-support-content__relative-created' );
 
@@ -11,5 +11,5 @@ export function updateForumTopicDate( blockRoot: HTMLElement ) {
 }
 
 document.addEventListener( 'DOMContentLoaded', () => {
-	document.querySelectorAll( '.wp-block-happy-blocks-forum-topic' ).forEach( updateForumTopicDate );
+	document.querySelectorAll( '.wp-block-blocks-everywhere-support-content' ).forEach( updateRelativeDateCreated );
 } );

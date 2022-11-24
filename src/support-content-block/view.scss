@@ -106,30 +106,22 @@
 	}
 }
 
-.be-support-content-icon {
+.be-support-content-wordpress-icon {
 	background-color: $studio-blue-50;
 	border-radius: 2px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 
-	&.is-small {
-		width: 24px;
-		height: 24px;
-	}
-
 	&.is-large {
 		width: 60px;
 		height: 60px;
-
 	}
+}
 
+.be-support-content-block-icon {
 	&.is-margin-right {
 		margin-right: 10px;
-	}
-
-	svg {
-		min-width: unset !important;
 	}
 }
 

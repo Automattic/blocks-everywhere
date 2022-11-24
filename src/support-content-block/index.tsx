@@ -1,28 +1,22 @@
 import React from 'react';
-import { BlockEditProps, BlockInstance, createBlock, registerBlockType } from '@wordpress/blocks';
+import { BlockInstance, createBlock, registerBlockType } from '@wordpress/blocks';
 import { dispatch } from '@wordpress/data';
 import { renderToString } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
-import {
-	fetchForumTopicAttributes,
-	fetchSupportPageAttributes,
-	FORUM_TOPIC_PATTERN,
-	SUPPORT_PAGE_PATTERN,
-	SupportContentBlockAttributes,
-} from './block';
+import { fetchAttributes, getContentTypeFromUrl, SupportContentBlockAttributes } from './block';
 import { Edit } from './edit';
-import { WordPressIcon } from './icon';
 import { Save } from './save';
+import { ContentBlockIcon } from './ContentBlockIcon';
 
 /**
  * Block variation for support pages
  */
 registerBlockType( 'blocks-everywhere/support-content', {
-	title: __( 'WordPress.com Guide', 'blocks-everywhere' ),
-	icon: <WordPressIcon variant="small" />,
+	title: __( 'Content Embed', 'blocks-everywhere' ),
+	icon: <ContentBlockIcon />,
 	category: 'embed',
-	description: __( 'Embed a page from the WordPress Guide', 'blocks-everywhere' ),
-	keywords: [ __( 'guide' ), __( 'support' ), __( 'how to' ), __( 'howto' ) ],
+	description: __( 'Embed a page from the WordPress Guide or a forum topic', 'blocks-everywhere' ),
+	keywords: [ __( 'guide' ), __( 'support' ), __( 'how to' ), __( 'howto' ), __( 'forum' ), __( 'topic' ) ],
 	attributes: {
 		url: {
 			type: 'string',
@@ -48,90 +42,6 @@ registerBlockType( 'blocks-everywhere/support-content', {
 		likes: {
 			type: 'number',
 		},
-	},
-	supports: {
-		align: true,
-		anchor: true,
-	},
-	edit: ( props: BlockEditProps< SupportContentBlockAttributes > ) => (
-		<Edit
-			urlPattern={ SUPPORT_PAGE_PATTERN }
-			title={ __( 'WordPress.com Guide page URL', 'blocks-everywhere' ) }
-			fetch={ fetchSupportPageAttributes }
-			{ ...props }
-		/>
-	),
-	save: Save,
-	transforms: {
-		from: [
-			{
-				type: 'raw',
-				isMatch: ( node: Element ): boolean => {
-					if ( node.nodeName !== 'P' ) {
-						return false;
-					}
-
-					const nodeText = node.textContent?.trim() ?? '';
-					return SUPPORT_PAGE_PATTERN.test( nodeText );
-				},
-				transform: ( node: Element ): BlockInstance => {
-					const nodeText = node.textContent?.trim() ?? '';
-
-					const block = createBlock( 'happy-blocks/support-page', {
-						url: nodeText,
-					} );
-
-					fetchSupportPageAttributes( nodeText ).then( ( attributes ) => {
-						dispatch( 'core/block-editor' ).updateBlockAttributes( block.clientId, attributes );
-					} );
-
-					return block;
-				},
-			},
-		],
-		to: [
-			{
-				type: 'block',
-				blocks: [ 'core/paragraph' ],
-				transform: ( { url }: SupportContentBlockAttributes ) => {
-					const link = <a href={ url }>{ url }</a>;
-					return createBlock( 'core/paragraph', {
-						content: renderToString( link ),
-					} );
-				},
-			},
-		],
-	},
-} );
-
-/**
- * Block variation for support pages
- */
-registerBlockType( 'happy-blocks/forum-topic', {
-	title: __( 'WordPress.com Forums', 'blocks-everywhere' ),
-	icon: <WordPressIcon variant="small" />,
-	category: 'embed',
-	description: __( 'Embed a topic from the WordPress Forums', 'blocks-everywhere' ),
-	keywords: [ __( 'forum' ), __( 'topic' ) ],
-	attributes: {
-		url: {
-			type: 'string',
-		},
-		title: {
-			type: 'string',
-			source: 'text',
-			selector: '.be-support-content__title',
-		},
-		content: {
-			type: 'string',
-			source: 'text',
-			selector: '.be-support-content__content',
-		},
-		source: {
-			type: 'string',
-			source: 'text',
-			selector: '.be-support-content__link',
-		},
 		status: {
 			type: 'string',
 		},
@@ -148,14 +58,7 @@ registerBlockType( 'happy-blocks/forum-topic', {
 		align: true,
 		anchor: true,
 	},
-	edit: ( props: BlockEditProps< SupportContentBlockAttributes > ) => (
-		<Edit
-			urlPattern={ FORUM_TOPIC_PATTERN }
-			title={ __( 'WordPress.com Forums topic URL', 'blocks-everywhere' ) }
-			fetch={ fetchForumTopicAttributes }
-			{ ...props }
-		/>
-	),
+	edit: Edit,
 	save: Save,
 	transforms: {
 		from: [
@@ -167,16 +70,17 @@ registerBlockType( 'happy-blocks/forum-topic', {
 					}
 
 					const nodeText = node.textContent?.trim() ?? '';
-					return FORUM_TOPIC_PATTERN.test( nodeText );
+
+					return !! getContentTypeFromUrl( nodeText );
 				},
 				transform: ( node: Element ): BlockInstance => {
 					const nodeText = node.textContent?.trim() ?? '';
 
-					const block = createBlock( 'happy-blocks/forum-topic', {
+					const block = createBlock( 'blocks-everywhere/support-content', {
 						url: nodeText,
 					} );
 
-					fetchForumTopicAttributes( nodeText ).then( ( attributes ) => {
+					fetchAttributes( nodeText ).then( ( attributes ) => {
 						dispatch( 'core/block-editor' ).updateBlockAttributes( block.clientId, attributes );
 					} );
 

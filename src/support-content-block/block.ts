@@ -13,6 +13,7 @@ enum ContentType {
 /** Attributes of the Block */
 export type SupportContentBlockAttributes = {
 	url: string;
+	isConfirmed: boolean;
 	title: string;
 	content: string;
 	source: string;
@@ -72,7 +73,7 @@ export async function fetchSupportPageAttributes( url: string ): Promise< Suppor
 		content = content.substring( 0, EMBED_CONTENT_MAXLENGTH );
 	}
 
-	return { url, content, title, source: 'WordPress.com Guide', minutesToRead };
+	return { url, isConfirmed: true, content, title, source: 'WordPress.com Guide', minutesToRead };
 }
 
 /**
@@ -102,6 +103,7 @@ export async function fetchForumTopicAttributes( url: string ): Promise< Support
 
 	return {
 		url,
+		isConfirmed: true,
 		content,
 		title,
 		source: 'WordPress.com Forums',

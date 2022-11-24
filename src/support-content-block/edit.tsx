@@ -77,7 +77,7 @@ export const Edit = compose( withNotices )( ( props: EditProps ) => {
 	const mismatchErrorMessage = __( 'It does not look like a Support doc or a forum topic URL.', 'blocks-everywhere' );
 	const placeholder = __( 'Enter URL to embed here…', 'blocks-everywhere' );
 
-	const [ isConfirmed, setIsConfirmed ] = useState( false );
+	const [ isConfirmed, setIsConfirmed ] = useState( props.attributes.isConfirmed );
 	const [ isEditing, setIsEditing ] = useState( false );
 	const [ url, setUrl ] = useState( attributes.url );
 
@@ -85,7 +85,7 @@ export const Edit = compose( withNotices )( ( props: EditProps ) => {
 		setIsEditing( ! isEditing );
 	};
 
-	const onSubmit = async () => {
+	const fetchBlockAttributes = async () => {
 		const type = getContentTypeFromUrl( url );
 
 		if ( ! type ) {
@@ -104,6 +104,7 @@ export const Edit = compose( withNotices )( ( props: EditProps ) => {
 
 			setAttributes( fetchedAttributes );
 		} catch ( e: any ) {
+			setIsEditing( true );
 			noticeOperations.removeAllNotices();
 			noticeOperations.createErrorNotice(
 				e.message || e || __( 'Unable to fetch the page, check the URL', 'blocks-everywhere' )
@@ -118,7 +119,10 @@ export const Edit = compose( withNotices )( ( props: EditProps ) => {
 			<div { ...blockProps }>
 				<ConfirmContent
 					url={ url }
-					confirm={ () => setIsConfirmed( true ) }
+					confirm={ async () => {
+						setIsConfirmed( true );
+						await fetchBlockAttributes();
+					} }
 					cancel={ () => {
 						const link = <a href={ url }>{ url }</a>;
 						const newBlock = createBlock( 'core/paragraph', {
@@ -154,7 +158,7 @@ export const Edit = compose( withNotices )( ( props: EditProps ) => {
 					url={ url }
 					notices={ noticeUI }
 					placeholder={ placeholder }
-					onSubmit={ onSubmit }
+					onSubmit={ fetchBlockAttributes }
 					updateUrl={ setUrl }
 				/>
 			) : (

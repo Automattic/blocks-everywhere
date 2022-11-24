@@ -20,6 +20,10 @@ registerBlockType( 'blocks-everywhere/support-content', {
 		url: {
 			type: 'string',
 		},
+		isConfirmed: {
+			type: 'boolean',
+			default: true,
+		},
 		title: {
 			type: 'string',
 			source: 'text',
@@ -77,6 +81,7 @@ registerBlockType( 'blocks-everywhere/support-content', {
 
 					const block = createBlock( 'blocks-everywhere/support-content', {
 						url: nodeText,
+						isConfirmed: false,
 					} );
 
 					return block;

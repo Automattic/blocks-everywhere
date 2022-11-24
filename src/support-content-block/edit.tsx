@@ -46,17 +46,16 @@ export const Edit = compose( withNotices )( ( props: EditProps ) => {
 		}
 
 		try {
-			setAttributes( { url } );
-
-			const fetchedAttributes = await fetchAttributes( url );
-
 			noticeOperations.removeAllNotices();
 			setIsEditing( false );
+
+			setAttributes( { url, content: null } );
+
+			const fetchedAttributes = await fetchAttributes( url );
 
 			setAttributes( fetchedAttributes );
 		} catch ( e: any ) {
 			setIsEditing( true );
-			noticeOperations.removeAllNotices();
 			noticeOperations.createErrorNotice(
 				e.message || e || __( 'Unable to fetch the page, check the URL', 'blocks-everywhere' )
 			);

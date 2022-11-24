@@ -21,7 +21,7 @@ export const Edit = compose( withNotices )( ( props: EditProps ) => {
 	const { attributes, className, setAttributes, noticeOperations, noticeUI } = props;
 
 	const instructions = __( 'Embed a Support doc or a forum topic.', 'blocks-everywhere' );
-	const mismatchErrorMessage = __( 'It does not look like an embeddable URL.', 'blocks-everywhere' );
+	const mismatchErrorMessage = __( 'It does not look like a Support doc or a forum topic URL.', 'blocks-everywhere' );
 	const placeholder = __( 'Enter URL to embed here…', 'blocks-everywhere' );
 
 	const [ editing, setEditing ] = useState( false );

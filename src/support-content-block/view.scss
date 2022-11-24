@@ -107,21 +107,22 @@
 }
 
 .be-support-content-wordpress-icon {
-	background-color: $studio-blue-50;
-	border-radius: 2px;
+	width: 60px;
+	height: 60px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-
-	&.is-large {
-		width: 60px;
-		height: 60px;
-	}
+	background-color: $studio-blue-50;
+	border-radius: 2px;
 }
 
 .be-support-content-block-icon {
 	&.is-margin-right {
 		margin-right: 10px;
+	}
+
+	svg {
+		fill: $studio-white !important;
 	}
 }
 

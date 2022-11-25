@@ -31,22 +31,48 @@ class bbPress extends Handler {
 			8
 		);
 
-		add_filter( 'bbp_register_topic_post_type', [ $this, 'support_gutenberg' ] );
-		add_filter( 'bbp_register_reply_post_type', [ $this, 'support_gutenberg' ] );
-		add_filter( 'bbp_register_forum_post_type', [ $this, 'support_gutenberg' ] );
+		// Determine whether to show the bbPress CPT in the backend editor
+		$default_admin = defined( 'BLOCKS_EVERYWHERE_ADMIN' ) ? BLOCKS_EVERYWHERE_ADMIN : false;
+		if ( apply_filters( 'blocks_everywhere_admin', $default_admin ) ) {
+			$cap = apply_filters( 'blocks_everywhere_admin_cap', 'manage_options' );
+
+			if ( current_user_can( $cap ) ) {
+				add_filter( 'bbp_register_topic_post_type', [ $this, 'support_gutenberg' ] );
+				add_filter( 'bbp_register_reply_post_type', [ $this, 'support_gutenberg' ] );
+				add_filter( 'bbp_register_forum_post_type', [ $this, 'support_gutenberg' ] );
+			}
+		}
+
 		add_action( 'bbp_head', [ $this, 'bbp_head' ] );
 	}
 
+	/**
+	 * Toggle the custom post types for Gutenberg
+	 *
+	 * @param array $args
+	 * @return array
+	 */
 	public function support_gutenberg( $args ) {
 		$args['show_in_rest'] = true;
 		return $args;
 	}
 
+	/**
+	 * Determine whether to load Gutenberg in this forum and then do that.
+	 *
+	 * @param string $content Content.
+	 * @return string Content/
+	 */
 	public function add_to_bbpress( $content ) {
 		$this->load_editor( '.bbp-the-content', '.blocks-everywhere' );
 		return $content;
 	}
 
+	/**
+	 * Action callback for bbp_head. We use this to know when to modify the body class parameters
+	 *
+	 * @return void
+	 */
 	public function bbp_head() {
 		add_filter( 'body_class', [ $this, 'body_class' ] );
 	}

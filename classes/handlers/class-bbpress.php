@@ -31,6 +31,7 @@ class bbPress extends Handler {
 			8
 		);
 
+		// Besides Gutenberg, it is also required to embed topic via support-content-block
 		add_filter( 'bbp_register_topic_post_type', [ $this, 'support_gutenberg' ] );
 		add_filter( 'bbp_register_reply_post_type', [ $this, 'support_gutenberg' ] );
 		add_filter( 'bbp_register_forum_post_type', [ $this, 'support_gutenberg' ] );

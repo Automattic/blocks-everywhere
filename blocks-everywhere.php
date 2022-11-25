@@ -2,7 +2,7 @@
 /*
 Plugin Name: Blocks Everywhere
 Description: Because somewhere is just not enough. Add Gutenberg to WordPress comments, bbPress forums, and BuddyPress streams. Also enables Gutenberg for comment & bbPress moderation.
-Version: 1.8.0
+Version: 1.9.0
 Author: Automattic
 Text Domain: 'blocks-everywhere'
 */
@@ -58,6 +58,11 @@ class Blocks_Everywhere {
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
 	}
 
+	/**
+	 * Load whatever handler is configured
+	 *
+	 * @return void
+	 */
 	public function load_handlers() {
 		$default_comments = defined( 'BLOCKS_EVERYWHERE_COMMENTS' ) ? BLOCKS_EVERYWHERE_COMMENTS : false;
 		$default_bbpress = defined( 'BLOCKS_EVERYWHERE_BBPRESS' ) ? BLOCKS_EVERYWHERE_BBPRESS : false;

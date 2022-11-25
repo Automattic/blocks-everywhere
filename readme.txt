@@ -46,6 +46,11 @@ To enable Blocks Everywhere you need to add the relevant `define` to `wp-config.
 
 You can also use the WordPress filter `blocks_everywhere_comments`, `blocks_everywhere_bbpress`, and `blocks_everywhere_buddypress`.
 
+
+== Problems ==
+
+Gutenberg outputs HTML content and this may be affected by KSES (WordPress HTML sanitisation). The default sanitisation should work fine with the default blocks, however you may run into problems if you are using different blocks or have customised permission levels.
+
 == Installation ==
 
 The plugin is simple to install:
@@ -61,6 +66,11 @@ The plugin is simple to install:
 2. Gutenberg when editing a comment
 
 == Changelog ==
+
+= 1.9.0 =
+* Increase minimum editor size
+* Prevent editor buttons accidentally triggering a page submit
+* Add filter to enable back-end editing
 
 = 1.8.0 =
 * Use .min in JS filename so it matches WP recommendations

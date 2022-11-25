@@ -109,6 +109,21 @@ function createEditor( container, textarea, settings ) {
 	);
 }
 
+// If the container is inside a form then we need insulate button clicks inside the editor from propagating out into the form
+// This is because a lot of Gutenberg buttons don't set a 'type', and so default to 'submit'
+function insulateForm( container ) {
+	const form = container.closest( 'form' );
+
+	if ( form ) {
+		form.addEventListener( 'submit', ( ev ) => {
+			if ( ev.submitter && ev.submitter.closest( '.iso-editor' ) ) {
+				ev.stopPropagation();
+				ev.preventDefault();
+			}
+		} );
+	}
+}
+
 domReady( () => {
 	apiFetch.use( removeNullPostFromFileUploadMiddleware );
 
@@ -123,6 +138,7 @@ domReady( () => {
 			container = createContainer( node, document.querySelector( wpBlocksEverywhere.container ) );
 		}
 
+		insulateForm( container );
 		createEditor( container, node, wpBlocksEverywhere );
 	} );
 } );

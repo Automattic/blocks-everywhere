@@ -1,5 +1,7 @@
 // Basic editor fixes
 .gutenberg-support .iso-editor {
+	min-height: 280px;
+
 	.iso-editor .edit-post-editor-regions__header {
 		margin: 0 15px;
 	}

@@ -62,6 +62,10 @@ The plugin is simple to install:
 
 == Changelog ==
 
+= 1.9.0 =
+* Increase minimum editor size
+* Prevent editor buttons accidentally triggering a page submit
+
 = 1.8.0 =
 * Use .min in JS filename so it matches WP recommendations
 * Add a check for queuing media, for sites that need to do custom setups.

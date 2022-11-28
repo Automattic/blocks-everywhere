@@ -24,6 +24,13 @@ class bbPress extends Handler {
 			8
 		);
 		add_filter(
+			'bbp_get_topic_content',
+			function( $content ) {
+				return $this->do_blocks( $content, 'bbp_get_topic_content' );
+			},
+			8
+		);
+		add_filter(
 			'bbp_get_reply_content',
 			function( $content ) {
 				return $this->do_blocks( $content, 'bbp_get_reply_content' );

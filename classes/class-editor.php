@@ -15,6 +15,20 @@ class Editor {
 
 		add_action( 'wp_footer', [ $this, 'wp_add_iframed_editor_assets_html' ], 20 );
 		add_filter( 'should_load_block_editor_scripts_and_styles', '__return_true' );
+		add_filter( 'tiny_mce_before_init', [ $this, 'tiny_mce_before_init' ] );
+	}
+
+	/**
+	 * Restrict TinyMCE to the basics
+	 *
+	 * @param array $settings TinyMCE settings.
+	 * @return array
+	 */
+	public function tiny_mce_before_init( $settings ) {
+		$settings['toolbar1'] = 'bold,italic,bullist,numlist,blockquote';
+		$settings['toolbar2'] = 'pastetext,removeformat,undo,redo';
+
+		return $settings;
 	}
 
 	/**

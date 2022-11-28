@@ -52,6 +52,12 @@ To enable back-end editing in bbPress:
 
 Or use the filter `blocks_everywhere_admin`. Back-end editing is restricted to users with the `manage_options` capability (can be changed with the `blocks_everywhere_admin_cap` filter).
 
+To enable conversion of blocks in email:
+
+`define( 'BLOCKS_EVERYWHERE_EMAIL', true );`
+
+Or use the filter `blocks_everywhere_email`.
+
 == Problems ==
 
 Gutenberg outputs HTML content and this may be affected by KSES (WordPress HTML sanitisation). The default sanitisation should work fine with the default blocks, however you may run into problems if you are using different blocks or have customised permission levels.
@@ -71,6 +77,9 @@ The plugin is simple to install:
 2. Gutenberg when editing a comment
 
 == Changelog ==
+
+= 1.10.0 =
+* Process blocks in bbPress notification emails
 
 = 1.9.0 =
 * Increase minimum editor size

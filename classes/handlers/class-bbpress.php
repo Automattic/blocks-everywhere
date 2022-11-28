@@ -38,6 +38,11 @@ class bbPress extends Handler {
 			8
 		);
 
+		$default_email = defined( 'BLOCKS_EVERYWHERE_EMAIL' ) ? BLOCKS_EVERYWHERE_EMAIL : false;
+		if ( apply_filters( 'blocks_everywhere_email', $default_email ) ) {
+			add_filter( 'bbp_subscription_mail_message', [ $this, 'remove_blocks_from_email' ], 10, 2 );
+		}
+
 		// Determine whether to show the bbPress CPT in the backend editor
 		$default_admin = defined( 'BLOCKS_EVERYWHERE_ADMIN' ) ? BLOCKS_EVERYWHERE_ADMIN : false;
 		if ( apply_filters( 'blocks_everywhere_admin', $default_admin ) ) {
@@ -51,6 +56,28 @@ class bbPress extends Handler {
 		}
 
 		add_action( 'bbp_head', [ $this, 'bbp_head' ] );
+	}
+
+	public function remove_blocks_from_email( $content, $reply_id ) {
+		// Get a decoded version of the content
+		$reply = wp_specialchars_decode( bbp_get_reply_content( $reply_id ) );
+
+		// Process blocks
+		$reply = $this->do_blocks( $reply, 'bbp_get_reply_content' );
+
+		// Do a bit of markdown-lite
+		$reply = preg_replace( '@<li>(.*?)</li>@', '<li>  - $1</li>', $reply );
+		$reply = preg_replace( '@<strong>(.*?)</strong>@', '*$1*', $reply );
+		$reply = preg_replace( '@<blockquote>.*?<p>(.*?)</p>.*?</blockquote>@s', '> $1', $reply );
+
+		// Remove a lot of the extra new lines
+		$reply = preg_replace( '/\n{2,}/', "\n\n", $reply );
+
+		// Convert to plain text
+		$reply = wp_specialchars_decode( strip_tags( $reply ), ENT_QUOTES );
+
+		// Replace the original message
+		return preg_replace( '@<!--.*-->@s', $reply, $content );
 	}
 
 	/**

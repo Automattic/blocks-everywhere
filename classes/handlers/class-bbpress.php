@@ -77,7 +77,7 @@ class bbPress extends Handler {
 		$reply = wp_specialchars_decode( strip_tags( $reply ), ENT_QUOTES );
 
 		// Replace the original message
-		return preg_replace( '@<!--.*-->@s', $reply, $content );
+		return preg_replace( '@<!--.*-->@s', trim( $reply ), $content );
 	}
 
 	/**

@@ -18,6 +18,19 @@ class Editor {
 	}
 
 	/**
+	 * Restrict TinyMCE to the basics
+	 *
+	 * @param array $settings TinyMCE settings.
+	 * @return array
+	 */
+	public function tiny_mce_before_init( $settings ) {
+		$settings['toolbar1'] = 'bold,italic,bullist,numlist,blockquote,pastetext,removeformat,undo,redo';
+		$settings['toolbar2'] = '';
+
+		return $settings;
+	}
+
+	/**
 	 * Load Gutenberg
 	 *
 	 * Based on wp-admin/edit-form-blocks.php
@@ -28,6 +41,9 @@ class Editor {
 		global $post;
 
 		$this->load_extra_blocks();
+
+		// Restrict tinymce buttons
+		add_filter( 'tiny_mce_before_init', [ $this, 'tiny_mce_before_init' ] );
 
 		// Gutenberg scripts
 		wp_enqueue_script( 'wp-block-library' );

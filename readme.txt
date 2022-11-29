@@ -46,6 +46,11 @@ To enable Blocks Everywhere you need to add the relevant `define` to `wp-config.
 
 You can also use the WordPress filter `blocks_everywhere_comments`, `blocks_everywhere_bbpress`, and `blocks_everywhere_buddypress`.
 
+To enable back-end editing in bbPress:
+
+`define( 'BLOCKS_EVERYWHERE_ADMIN', true );`
+
+Or use the filter `blocks_everywhere_admin`. Back-end editing is restricted to users with the `manage_options` capability (can be changed with the `blocks_everywhere_admin_cap` filter).
 
 == Problems ==
 

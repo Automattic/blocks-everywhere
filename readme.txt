@@ -3,7 +3,7 @@ Contributors: johnny5, automattic
 Tags: gutenberg, comments, bbpress, buddypress
 Requires at least: 5.8
 Tested up to: 6.1
-Stable tag: 1.8.0
+Stable tag: 1.9.0
 Requires PHP: 5.6
 License: GPLv3
 
@@ -72,6 +72,7 @@ The plugin is simple to install:
 * Prevent editor buttons accidentally triggering a page submit
 * Add filter to enable back-end editing
 * Fix inline code in bbPress replies
+* Fix minor size difference in bbPress lists
 
 = 1.8.0 =
 * Use .min in JS filename so it matches WP recommendations

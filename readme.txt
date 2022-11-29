@@ -71,6 +71,7 @@ The plugin is simple to install:
 * Increase minimum editor size
 * Prevent editor buttons accidentally triggering a page submit
 * Add filter to enable back-end editing
+* Fix inline code in bbPress replies
 
 = 1.8.0 =
 * Use .min in JS filename so it matches WP recommendations

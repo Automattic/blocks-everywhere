@@ -15,7 +15,6 @@ class Editor {
 
 		add_action( 'wp_footer', [ $this, 'wp_add_iframed_editor_assets_html' ], 20 );
 		add_filter( 'should_load_block_editor_scripts_and_styles', '__return_true' );
-		add_filter( 'tiny_mce_before_init', [ $this, 'tiny_mce_before_init' ] );
 	}
 
 	/**
@@ -25,8 +24,8 @@ class Editor {
 	 * @return array
 	 */
 	public function tiny_mce_before_init( $settings ) {
-		$settings['toolbar1'] = 'bold,italic,bullist,numlist,blockquote';
-		$settings['toolbar2'] = 'pastetext,removeformat,undo,redo';
+		$settings['toolbar1'] = 'bold,italic,bullist,numlist,blockquote,pastetext,removeformat,undo,redo';
+		$settings['toolbar2'] = '';
 
 		return $settings;
 	}
@@ -42,6 +41,9 @@ class Editor {
 		global $post;
 
 		$this->load_extra_blocks();
+
+		// Restrict tinymce buttons
+		add_filter( 'tiny_mce_before_init', [ $this, 'tiny_mce_before_init' ] );
 
 		// Gutenberg scripts
 		wp_enqueue_script( 'wp-block-library' );

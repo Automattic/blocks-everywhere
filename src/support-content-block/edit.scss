@@ -1,0 +1,44 @@
+@import "~@automattic/typography/styles/variables";
+@import "~@automattic/color-studio/dist/color-variables";
+
+.be-support-content-placeholder {
+  .components-placeholder__input[type="url"] {
+    margin: 0 8px 0 0 !important;
+  }
+
+  .components-notice-list .components-notice__content {
+    margin: 4px 25px 4px 0;
+  }
+}
+
+.be-support-content-confirm-anchor {
+  position: relative;
+}
+
+.be-support-content-confirm-content {
+  padding: 12px;
+  background: $studio-white;
+
+  button.is-tertiary {
+    padding: 6px 12px;
+  }
+
+  &__item {
+    font-family: "SF Pro Text", $sans !important;
+    font-weight: 400;
+    font-size: $font-body-small !important;
+    color: $studio-gray-60 !important;
+
+    &:hover {
+      box-shadow: inset 0 0 0 1px $studio-gray-60 !important;
+    }
+
+    &.is-destructive {
+      color: $studio-red-50 !important;
+
+      &:hover {
+        box-shadow: inset 0 0 0 1px $studio-red-50 !important;
+      }
+    }
+  }
+}

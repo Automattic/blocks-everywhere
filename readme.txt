@@ -24,6 +24,8 @@ The condition of the Gutenberg replacements are:
 - comments - alright
 - BuddyPress - needs a lot of work
 
+In addition, this plugin adds a new block type "Content Embed" for the Gutenberg editor, which allows you to embed a forum topic from any bbPress site or WordPress.com Support page.
+
 Blocks Everywhere is developed on Github at:
 
 [https://github.com/Automattic/blocks-everywhere](https://github.com/Automattic/blocks-everywhere)
@@ -32,7 +34,7 @@ Blocks Everywhere is developed on Github at:
 
 Gutenberg is placed directly on the page along with your post, forum, etc. This means the contents of the editor will look like the page they will appear on. However, it also means that styles from the page may affect the editor.
 
-Currently we don't have a perfect way of seperating these styles and it is possible that styles from the page or from Gutenberg may affect the other. If you are using this plugin then it is expected that you will be able to fix any differences as appropriate for your site.
+Currently, we don't have a perfect way of separating these styles and it is possible that styles from the page or from Gutenberg may affect the other. If you are using this plugin then it is expected that you will be able to fix any differences as appropriate for your site.
 
 The loading of Gutenberg will also increase the page size of any page it is loaded on. You should be aware of this and willing to accept this in the context of your site.
 
@@ -57,6 +59,27 @@ To enable conversion of blocks in email:
 `define( 'BLOCKS_EVERYWHERE_EMAIL', true );`
 
 Or use the filter `blocks_everywhere_email`.
+
+== Using Content Embed block ==
+
+Content Embed block uses REST API to fetch content to be embedded. This means that site contains bbPress topics to embed should have topic REST API enabled.
+Blocks Everywhere enables topic REST API on its own, so if the site with bbPress have this plugin installed and configured, its topics can be embedded.
+
+To enable Content Embed block in the editor, pass these settings to `blocks_everywhere_editor_settings` filter:
+```
+	add_filter( 'blocks_everywhere_editor_settings', function( $settings ) {
+        $settings['iso']['blocks']['allowBlocks'][] = 'blocks-everywhere/support-content';
+		return $settings;
+	} );
+```
+
+To enable REST API for forum topics, use next filters:
+```
+add_filter( 'blocks_everywhere_admin', '__return_true' );
+add_filter( 'blocks_everywhere_admin_cap', '__return_empty_string' );
+```
+
+REST API is only used when creating content embed and not used to view it. So `blocks_everywhere_admin_cap` can return specific capability to limit users who will have access to API.
 
 == Problems ==
 

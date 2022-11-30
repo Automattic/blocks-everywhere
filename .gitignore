@@ -5,3 +5,4 @@ vendor/
 /.DS_Store
 node_modules
 dist/
+.idea

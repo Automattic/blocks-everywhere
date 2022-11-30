@@ -24,6 +24,7 @@
 			list-style: inherit;
 			margin: inherit;
 			padding: inherit;
+			font-size: inherit;
 		}
 
 		.editor-styles-wrapper ul {
@@ -55,6 +56,8 @@ html:not(.interface-interface-skeleton__html-container) .bbp-the-content-wrapper
 
 /* Reset bbPress code style */
 body.page .bbp-topic-form,
+body.single-topic .bbp-reply-form,
+body.topic-edit .bbp-topic-form,
 body.single-forum .bbp-topic-form {
 	.editor-styles-wrapper code {
 		border: none;

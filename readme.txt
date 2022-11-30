@@ -3,7 +3,7 @@ Contributors: johnny5, automattic
 Tags: gutenberg, comments, bbpress, buddypress
 Requires at least: 5.8
 Tested up to: 6.1
-Stable tag: 1.8.0
+Stable tag: 1.9.0
 Requires PHP: 5.6
 License: GPLv3
 
@@ -48,6 +48,18 @@ To enable Blocks Everywhere you need to add the relevant `define` to `wp-config.
 
 You can also use the WordPress filter `blocks_everywhere_comments`, `blocks_everywhere_bbpress`, and `blocks_everywhere_buddypress`.
 
+To enable back-end editing in bbPress:
+
+`define( 'BLOCKS_EVERYWHERE_ADMIN', true );`
+
+Or use the filter `blocks_everywhere_admin`. Back-end editing is restricted to users with the `manage_options` capability (can be changed with the `blocks_everywhere_admin_cap` filter).
+
+To enable conversion of blocks in email:
+
+`define( 'BLOCKS_EVERYWHERE_EMAIL', true );`
+
+Or use the filter `blocks_everywhere_email`.
+
 == Using Content Embed block ==
 
 Content Embed block uses REST API to fetch content to be embedded. This means that site contains bbPress topics to embed should have topic REST API enabled.
@@ -89,10 +101,15 @@ The plugin is simple to install:
 
 == Changelog ==
 
+= 1.10.0 =
+* Process blocks in bbPress notification emails
+
 = 1.9.0 =
 * Increase minimum editor size
 * Prevent editor buttons accidentally triggering a page submit
 * Add filter to enable back-end editing
+* Fix inline code in bbPress replies
+* Fix minor size difference in bbPress lists
 
 = 1.8.0 =
 * Use .min in JS filename so it matches WP recommendations

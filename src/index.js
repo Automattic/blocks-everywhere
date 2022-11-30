@@ -124,8 +124,24 @@ function insulateForm( container ) {
 	}
 }
 
+function modifyBlocks( settings, name ) {
+	return {
+		...settings,
+		supports: {
+			...settings.supports,
+			customClassName: false,
+			anchor: false,
+			html: false,
+			color: false,
+		},
+	};
+}
+
 domReady( () => {
 	apiFetch.use( removeNullPostFromFileUploadMiddleware );
+
+	// Modify any blocks we need to
+	wp.hooks.addFilter( 'blocks.registerBlockType', 'blocks-everywhere/modify-blocks', modifyBlocks );
 
 	document.querySelectorAll( wpBlocksEverywhere.saveTextarea ).forEach( ( node ) => {
 		let container;

@@ -1,6 +1,7 @@
 import React from 'react';
 import './edit.scss';
 import { __experimentalElevation as Elevation, MenuItem, NavigableMenu, Popover } from '@wordpress/components';
+import { __ } from '@wordpress/i18n';
 
 export const ConfirmContent = ( { url, confirm, cancel } ) => {
 	return (
@@ -22,7 +23,7 @@ export const ConfirmContent = ( { url, confirm, cancel } ) => {
 									confirm();
 								} }
 							>
-								Create embed
+								{ __( 'Create embed', 'blocks-everywhere' ) }
 							</MenuItem>
 
 							<MenuItem
@@ -34,7 +35,7 @@ export const ConfirmContent = ( { url, confirm, cancel } ) => {
 									cancel();
 								} }
 							>
-								Dismiss
+								{ __( 'Dismiss', 'blocks-everywhere' ) }
 							</MenuItem>
 						</NavigableMenu>
 					</div>

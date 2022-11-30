@@ -56,6 +56,52 @@ class bbPress extends Handler {
 		}
 
 		add_action( 'bbp_head', [ $this, 'bbp_head' ] );
+
+		$this->setup_kses();
+	}
+
+	private function setup_kses() {
+		// Required to prevent code blocks being reverted from `<code>` to backtics in editor, breaking blocks.
+		// Also helps stop bbp_code_trick_reverse remove a trailing </p>
+		remove_filter( 'bbp_get_form_forum_content', 'bbp_code_trick_reverse' );
+		remove_filter( 'bbp_get_form_topic_content', 'bbp_code_trick_reverse' );
+		remove_filter( 'bbp_get_form_reply_content', 'bbp_code_trick_reverse' );
+
+		// Allow Block Comments in content
+		foreach (
+			[
+				'bbp_new_topic_pre_content',
+				'bbp_edit_topic_pre_content',
+				'bbp_new_reply_pre_content',
+				'bbp_edit_reply_pre_content',
+			] as $filter
+		) {
+			// just after bbp_encode_bad() would have run (if it ran)
+			add_filter( $filter, [ $this, 'allow_comments_in_bbp_encode_bad' ], 11 );
+		}
+
+		// Add the requisite tags for blocks
+		add_filter( 'bbp_kses_allowed_tags', [ $this, 'get_kses_for_allowed_blocks' ] );
+	}
+
+	/**
+	 * Replace encoded block markup with a decoded version
+	 *
+	 * @param string $content Content.
+	 * @return string
+	 */
+	public function allow_comments_in_bbp_encode_bad( $content ) {
+		$filter = current_filter();
+
+		// If not hooked, we have no need to alter anything.
+		if ( ! has_filter( $filter, 'bbp_encode_bad' ) ) {
+			return $content;
+		}
+
+		// HTML Comments have been escaped, we want to re-enable them.
+		$content = preg_replace( '~&lt;!--(.+?)--&gt;~i', '<!-- $1 -->', $content );
+
+		return $content;
 	}
 
 	public function remove_blocks_from_email( $content, $reply_id ) {

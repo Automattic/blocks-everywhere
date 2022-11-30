@@ -105,7 +105,7 @@ abstract class Handler {
 	 *
 	 * @return string[]
 	 */
-	private function get_allowed_blocks() {
+	protected function get_allowed_blocks() {
 		global $allowedtags;
 
 		$allowed = [ 'core/paragraph', 'core/list', 'core/code', 'core/list-item' ];
@@ -129,6 +129,88 @@ abstract class Handler {
 		}
 
 		return apply_filters( 'blocks_everywhere_allowed_blocks', array_unique( $allowed ), $this->get_editor_type() );
+	}
+
+	/**
+	 * Modify KSES filters to match the allowed blocks
+	 *
+	 * @param array $tags
+	 * @return void
+	 */
+	public function get_kses_for_allowed_blocks( array $tags ) {
+		$allowed = $this->get_allowed_blocks();
+
+		if ( in_array( 'core/paragraph', $allowed, true ) ) {
+			$tags['p'] = [
+				'class' => [
+					'has-text-align-center',
+					'has-text-align-left',
+					'has-text-align-right',
+				],
+			];
+		}
+
+		if ( in_array( 'core/code', $allowed, true ) ) {
+			if ( ! isset( $tags['pre'] ) ) {
+				$tags['pre'] = [];
+			}
+
+			$tags['pre']['class'] = [
+				'wp-block-code',
+			];
+		}
+
+		if ( in_array( 'core/quote', $allowed, true ) ) {
+			if ( ! isset( $tags['blockquote'] ) ) {
+				$tags['blockquote'] = [];
+			}
+
+			$tags['blockquote']['class'] = [
+				'wp-block-quote',
+				'is-style-plain',
+			];
+		}
+
+		if ( in_array( 'core/image', $allowed, true ) || in_array( 'core/quote', $allowed, true ) ) {
+			$tags['figure'] = [
+				'class' => [
+					'wp-block-image',
+					'size-large',
+					'size-medium',
+					'size-small',
+					'alignright',
+					'alignleft',
+					'aligncenter',
+					'is-resized',
+				],
+			];
+			$tags['figcaption'] = [
+				'class' => [
+					'wp-element-caption',
+				],
+			];
+		}
+
+		if ( in_array( 'core/embed', $allowed, true ) ) {
+			if ( ! isset( $tags['figure'] ) ) {
+				$tags['figure'] = [];
+			}
+
+			$tags['figure']['class'] = true;
+			$tags['div'] = [
+				'class' => 'wp-block-embed__wrapper',
+			];
+		}
+
+		// General formatting
+		$tags['strike'] = [];
+		$tags['cite'] = true;
+		$tags['kbd'] = true;
+		$tags['mark'] = [
+			'class' => true,
+		];
+
+		return $tags;
 	}
 
 	/**

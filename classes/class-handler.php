@@ -207,6 +207,17 @@ abstract class Handler {
 				'defaultPreferences' => [
 					'fixedToolbar' => true,
 				],
+				'allowEmbeds' => [
+					'youtube',
+					'vimeo',
+					'wordpress',
+					'wordpress-tv',
+					'videopress',
+					'crowdsignal',
+					'screencast',
+					'loom',
+					'imgur',
+				],
 			],
 			'saveTextarea' => $textarea,
 			'container' => $container,
@@ -224,7 +235,7 @@ abstract class Handler {
 			$settings
 		);
 
-		if ( in_array( 'blocks-everywhere/support-content', $settings['iso']['blocks']['allowBlocks'] ) ) {
+		if ( in_array( 'blocks-everywhere/support-content', $settings['iso']['blocks']['allowBlocks'], true ) ) {
 			$this->enqueue_assets(
 				'support-content-view',
 				'support-content-view.min.asset.php',
@@ -254,7 +265,6 @@ abstract class Handler {
 
 		wp_register_style( $name, plugins_url( 'build/' . $css_file, $plugin ), [], $version );
 		wp_enqueue_style( $name );
-
 
 		wp_localize_script( $name, 'wpBlocksEverywhere', $settings );
 	}

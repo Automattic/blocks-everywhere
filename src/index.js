@@ -126,6 +126,20 @@ function insulateForm( container ) {
 }
 
 function modifyBlocks( settings, name ) {
+	if ( name === 'core/embed' ) {
+		return {
+			...settings,
+			variations: settings.variations.filter( ( embed ) => wpBlocksEverywhere?.iso?.allowEmbeds.indexOf( embed.name ) !== -1 ),
+			supports: {
+				...settings.supports,
+				customClassName: false,
+				anchor: false,
+				html: false,
+				color: false,
+			},
+		};
+	}
+
 	return {
 		...settings,
 		supports: {

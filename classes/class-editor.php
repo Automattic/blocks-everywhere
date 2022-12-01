@@ -28,8 +28,26 @@ class Editor {
 			[
 				'version' => 2,
 				'settings' => [
+					'color' => [
+						'background' => false,
+						'custom' => false,
+						'customDuotone' => false,
+						'customGradient' => false,
+						'defaultGradients' => false,
+						'defaultPalette' => false,
+						'text' => false,
+					],
 					'typography' => [
+						'customFontSize' => false,
 						'dropCap' => false,
+						'fontStyle' => false,
+						'fontWeight' => false,
+						'letterSpacing' => false,
+						'lineHeight' => false,
+						'textDecoration' => false,
+						'textTransform' => false,
+						'fontSizes' => [],
+						'fontFamilies' => [],
 					],
 				],
 			]

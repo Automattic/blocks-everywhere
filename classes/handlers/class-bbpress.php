@@ -63,6 +63,15 @@ class bbPress extends Handler {
 		}
 	}
 
+	/**
+	 * Setup KSES filters for bbPress. This involves disabling bbp_code_trick_reverse, which mangles <code> into ticks.
+	 * Then each of the pre_content filters are hooked so that block markup comments are allowed. Finally, KSES is modified
+	 * to allow blocks and block attributes.
+	 *
+	 * This is not comprehensive. If you use different blocks you may need custom KSES.
+	 *
+	 * @return void
+	 */
 	private function setup_kses() {
 		// Required to prevent code blocks being reverted from `<code>` to backtics in editor, breaking blocks.
 		// Also helps stop bbp_code_trick_reverse remove a trailing </p>
@@ -70,7 +79,7 @@ class bbPress extends Handler {
 		remove_filter( 'bbp_get_form_topic_content', 'bbp_code_trick_reverse' );
 		remove_filter( 'bbp_get_form_reply_content', 'bbp_code_trick_reverse' );
 
-		// Allow Block Comments in content
+		// Allow block comments in content
 		foreach (
 			[
 				'bbp_new_topic_pre_content',
@@ -101,12 +110,19 @@ class bbPress extends Handler {
 			return $content;
 		}
 
-		// HTML Comments have been escaped, we want to re-enable them.
-		$content = preg_replace( '~&lt;!--(.+?)--&gt;~i', '<!-- $1 -->', $content );
+		// HTML comments have been escaped, we want to re-enable them.
+		$content = preg_replace( '~&lt;!--\w*(.+?):(.+?)\w*--&gt;~i', '<!-- $1:$2 -->', $content );
 
 		return $content;
 	}
 
+	/**
+	 * Remove blocks from email content, converting it markdown-lite
+	 *
+	 * @param string  $content Email content.
+	 * @param integer $reply_id Reply ID.
+	 * @return string
+	 */
 	public function remove_blocks_from_email( $content, $reply_id ) {
 		// Get a decoded version of the content
 		$reply = wp_specialchars_decode( bbp_get_reply_content( $reply_id ) );
@@ -123,7 +139,7 @@ class bbPress extends Handler {
 		$reply = preg_replace( '/\n{2,}/', "\n\n", $reply );
 
 		// Convert to plain text
-		$reply = wp_specialchars_decode( strip_tags( $reply ), ENT_QUOTES );
+		$reply = wp_specialchars_decode( wp_strip_all_tags( $reply ), ENT_QUOTES );
 
 		// Replace the original message
 		return preg_replace( '@<!--.*-->@s', trim( $reply ), $content );

@@ -68,10 +68,10 @@ Blocks Everywhere enables topic REST API on its own, so if the site with bbPress
 
 To enable Content Embed block in the editor, pass these settings to `blocks_everywhere_editor_settings` filter:
 ```
-	add_filter( 'blocks_everywhere_editor_settings', function( $settings ) {
-        $settings['iso']['blocks']['allowBlocks'][] = 'blocks-everywhere/support-content';
-		return $settings;
-	} );
+add_filter( 'blocks_everywhere_editor_settings', function( $settings ) {
+	$settings['iso']['blocks']['allowBlocks'][] = 'blocks-everywhere/support-content';
+	return $settings;
+} );
 ```
 
 To enable REST API for forum topics, use next filters:

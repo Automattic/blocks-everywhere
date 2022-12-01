@@ -57,7 +57,10 @@ class bbPress extends Handler {
 
 		add_action( 'bbp_head', [ $this, 'bbp_head' ] );
 
-		$this->setup_kses();
+		// If the user doesn't have unfiltered_html then we need to modify KSES to allow blocks
+		if ( ! current_user_can( 'unfiltered_html' ) ) {
+			$this->setup_kses();
+		}
 	}
 
 	private function setup_kses() {

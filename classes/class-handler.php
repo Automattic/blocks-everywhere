@@ -222,6 +222,7 @@ abstract class Handler {
 			'saveTextarea' => $textarea,
 			'container' => $container,
 			'editorType' => $this->get_editor_type(),
+			'pluginsUrl' => plugins_url()
 		];
 
 		$settings = apply_filters( 'blocks_everywhere_editor_settings', $default_settings );

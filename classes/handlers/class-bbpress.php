@@ -57,6 +57,12 @@ class bbPress extends Handler {
 
 		add_action( 'bbp_head', [ $this, 'bbp_head' ] );
 
+		// Required to prevent code blocks being reverted from `<code>` to backtics in editor, breaking blocks.
+		// Also helps stop bbp_code_trick_reverse remove a trailing </p>
+		remove_filter( 'bbp_get_form_forum_content', 'bbp_code_trick_reverse' );
+		remove_filter( 'bbp_get_form_topic_content', 'bbp_code_trick_reverse' );
+		remove_filter( 'bbp_get_form_reply_content', 'bbp_code_trick_reverse' );
+
 		// If the user doesn't have unfiltered_html then we need to modify KSES to allow blocks
 		if ( ! current_user_can( 'unfiltered_html' ) ) {
 			$this->setup_kses();
@@ -73,12 +79,6 @@ class bbPress extends Handler {
 	 * @return void
 	 */
 	private function setup_kses() {
-		// Required to prevent code blocks being reverted from `<code>` to backtics in editor, breaking blocks.
-		// Also helps stop bbp_code_trick_reverse remove a trailing </p>
-		remove_filter( 'bbp_get_form_forum_content', 'bbp_code_trick_reverse' );
-		remove_filter( 'bbp_get_form_topic_content', 'bbp_code_trick_reverse' );
-		remove_filter( 'bbp_get_form_reply_content', 'bbp_code_trick_reverse' );
-
 		// Allow block comments in content
 		foreach (
 			[

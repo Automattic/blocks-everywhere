@@ -141,13 +141,7 @@ abstract class Handler {
 		$allowed = $this->get_allowed_blocks();
 
 		if ( in_array( 'core/paragraph', $allowed, true ) ) {
-			$tags['p'] = [
-				'class' => [
-					'has-text-align-center',
-					'has-text-align-left',
-					'has-text-align-right',
-				],
-			];
+			$tags['p'] = [ 'class' => true ];
 		}
 
 		if ( in_array( 'core/code', $allowed, true ) ) {
@@ -155,9 +149,7 @@ abstract class Handler {
 				$tags['pre'] = [];
 			}
 
-			$tags['pre']['class'] = [
-				'wp-block-code',
-			];
+			$tags['pre']['class'] = true;
 		}
 
 		if ( in_array( 'core/quote', $allowed, true ) ) {
@@ -165,30 +157,12 @@ abstract class Handler {
 				$tags['blockquote'] = [];
 			}
 
-			$tags['blockquote']['class'] = [
-				'wp-block-quote',
-				'is-style-plain',
-			];
+			$tags['blockquote']['class'] = true;
 		}
 
 		if ( in_array( 'core/image', $allowed, true ) || in_array( 'core/quote', $allowed, true ) ) {
-			$tags['figure'] = [
-				'class' => [
-					'wp-block-image',
-					'size-large',
-					'size-medium',
-					'size-small',
-					'alignright',
-					'alignleft',
-					'aligncenter',
-					'is-resized',
-				],
-			];
-			$tags['figcaption'] = [
-				'class' => [
-					'wp-element-caption',
-				],
-			];
+			$tags['figure'] = [ 'class' => true ];
+			$tags['figcaption'] = [ 'class' => true ];
 		}
 
 		if ( in_array( 'core/embed', $allowed, true ) ) {
@@ -197,18 +171,14 @@ abstract class Handler {
 			}
 
 			$tags['figure']['class'] = true;
-			$tags['div'] = [
-				'class' => 'wp-block-embed__wrapper',
-			];
+			$tags['div'] = [ 'class' => true ];
 		}
 
 		// General formatting
 		$tags['strike'] = [];
 		$tags['cite'] = true;
 		$tags['kbd'] = true;
-		$tags['mark'] = [
-			'class' => true,
-		];
+		$tags['mark'] = [ 'class' => true ];
 
 		return $tags;
 	}
@@ -289,6 +259,12 @@ abstract class Handler {
 		wp_localize_script( $name, 'wpBlocksEverywhere', $settings );
 	}
 
+	/**
+	 * Callback to show admin editor
+	 *
+	 * @param string $hook Hook.
+	 * @return boolean
+	 */
 	public function can_show_admin_editor( $hook ) {
 		return false;
 	}

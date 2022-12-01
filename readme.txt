@@ -3,7 +3,7 @@ Contributors: johnny5, automattic
 Tags: gutenberg, comments, bbpress, buddypress
 Requires at least: 5.8
 Tested up to: 6.1
-Stable tag: 1.9.0
+Stable tag: 1.10.0
 Requires PHP: 5.6
 License: GPLv3
 
@@ -20,7 +20,7 @@ For extra security the list of available blocks is determined by the allowed tag
 Gutenberg is not bundled and instead is side-loaded from WordPress. For better compatibility you should use the plugin version of Gutenberg, which is typically several versions ahead of the one included in WordPress.
 
 The condition of the Gutenberg replacements are:
-- bbPress - pretty good (requires bbPress 2.6+)
+- bbPress - good (requires bbPress 2.6+)
 - comments - alright
 - BuddyPress - needs a lot of work
 
@@ -63,6 +63,7 @@ Or use the filter `blocks_everywhere_email`.
 == Using Content Embed block ==
 
 Content Embed block uses REST API to fetch content to be embedded. This means that site contains bbPress topics to embed should have topic REST API enabled.
+
 Blocks Everywhere enables topic REST API on its own, so if the site with bbPress have this plugin installed and configured, its topics can be embedded.
 
 To enable Content Embed block in the editor, pass these settings to `blocks_everywhere_editor_settings` filter:
@@ -81,9 +82,11 @@ add_filter( 'blocks_everywhere_admin_cap', '__return_empty_string' );
 
 REST API is only used when creating content embed and not used to view it. So `blocks_everywhere_admin_cap` can return specific capability to limit users who will have access to API.
 
-== Problems ==
+== KSES ==
 
-Gutenberg outputs HTML content and this may be affected by KSES (WordPress HTML sanitisation). The default sanitisation should work fine with the default blocks, however you may run into problems if you are using different blocks or have customised permission levels.
+Gutenberg outputs HTML content and this may be affected by KSES (WordPress HTML sanitisation) and other sanitisation.
+
+The plugin provides some modifications to this so it works fine with basic blocks. You may run into problems if you are using different blocks or have customised permission levels.
 
 == Installation ==
 
@@ -103,6 +106,8 @@ The plugin is simple to install:
 
 = 1.10.0 =
 * Process blocks in bbPress notification emails
+* Add a Content Embed block to allow embedding of forum posts and support pages
+* Provide basic bbPress KSES filtering so blocks can be added by lower capability users
 
 = 1.9.0 =
 * Increase minimum editor size

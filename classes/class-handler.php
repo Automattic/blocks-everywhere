@@ -105,7 +105,7 @@ abstract class Handler {
 	 *
 	 * @return string[]
 	 */
-	private function get_allowed_blocks() {
+	protected function get_allowed_blocks() {
 		global $allowedtags;
 
 		$allowed = [ 'core/paragraph', 'core/list', 'core/code', 'core/list-item' ];
@@ -129,6 +129,58 @@ abstract class Handler {
 		}
 
 		return apply_filters( 'blocks_everywhere_allowed_blocks', array_unique( $allowed ), $this->get_editor_type() );
+	}
+
+	/**
+	 * Modify KSES filters to match the allowed blocks
+	 *
+	 * @param array $tags
+	 * @return void
+	 */
+	public function get_kses_for_allowed_blocks( array $tags ) {
+		$allowed = $this->get_allowed_blocks();
+
+		if ( in_array( 'core/paragraph', $allowed, true ) ) {
+			$tags['p'] = [ 'class' => true ];
+		}
+
+		if ( in_array( 'core/code', $allowed, true ) ) {
+			if ( ! isset( $tags['pre'] ) ) {
+				$tags['pre'] = [];
+			}
+
+			$tags['pre']['class'] = true;
+		}
+
+		if ( in_array( 'core/quote', $allowed, true ) ) {
+			if ( ! isset( $tags['blockquote'] ) ) {
+				$tags['blockquote'] = [];
+			}
+
+			$tags['blockquote']['class'] = true;
+		}
+
+		if ( in_array( 'core/image', $allowed, true ) || in_array( 'core/quote', $allowed, true ) ) {
+			$tags['figure'] = [ 'class' => true ];
+			$tags['figcaption'] = [ 'class' => true ];
+		}
+
+		if ( in_array( 'core/embed', $allowed, true ) ) {
+			if ( ! isset( $tags['figure'] ) ) {
+				$tags['figure'] = [];
+			}
+
+			$tags['figure']['class'] = true;
+			$tags['div'] = [ 'class' => true ];
+		}
+
+		// General formatting
+		$tags['strike'] = [];
+		$tags['cite'] = true;
+		$tags['kbd'] = true;
+		$tags['mark'] = [ 'class' => true ];
+
+		return $tags;
 	}
 
 	/**
@@ -207,6 +259,12 @@ abstract class Handler {
 		wp_localize_script( $name, 'wpBlocksEverywhere', $settings );
 	}
 
+	/**
+	 * Callback to show admin editor
+	 *
+	 * @param string $hook Hook.
+	 * @return boolean
+	 */
 	public function can_show_admin_editor( $hook ) {
 		return false;
 	}

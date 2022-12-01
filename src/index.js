@@ -9,6 +9,7 @@ import { useDispatch } from '@wordpress/data';
 import { mediaUpload } from '@wordpress/editor';
 import IsolatedBlockEditor, { EditorLoaded } from '@automattic/isolated-block-editor';
 import apiFetch from '@wordpress/api-fetch';
+import { unregisterFormatType } from '@wordpress/rich-text';
 
 /**
  * Internal dependencies
@@ -142,6 +143,10 @@ domReady( () => {
 
 	// Modify any blocks we need to
 	wp.hooks.addFilter( 'blocks.registerBlockType', 'blocks-everywhere/modify-blocks', modifyBlocks );
+
+	// Remove some formatting options
+	unregisterFormatType( 'core/text-color' );
+	unregisterFormatType( 'core/image' );
 
 	document.querySelectorAll( wpBlocksEverywhere.saveTextarea ).forEach( ( node ) => {
 		let container;

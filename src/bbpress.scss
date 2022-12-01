@@ -2,6 +2,10 @@
 
 // bbPress
 .gutenberg-support {
+	iframe {
+		border: 0;
+	}
+
 	// No way to stop this HTML appearing through filters
 	.form-allowed-tags {
 		display: none;
@@ -38,7 +42,7 @@
 		}
 
 		// Clean up the link popup
-		fieldset.bbp-form .block-editor-link-control input {
+		fieldset.bbp-form .block-editor-link-control input[type="text"] {
 			padding: 11px 16px;
 			height: 100%;
 		}

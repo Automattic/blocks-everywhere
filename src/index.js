@@ -9,6 +9,7 @@ import { useDispatch } from '@wordpress/data';
 import { mediaUpload } from '@wordpress/editor';
 import IsolatedBlockEditor, { EditorLoaded } from '@automattic/isolated-block-editor';
 import apiFetch from '@wordpress/api-fetch';
+import { unregisterFormatType } from '@wordpress/rich-text';
 
 /**
  * Internal dependencies
@@ -125,6 +126,20 @@ function insulateForm( container ) {
 }
 
 function modifyBlocks( settings, name ) {
+	if ( name === 'core/embed' ) {
+		return {
+			...settings,
+			variations: settings.variations.filter( ( embed ) => wpBlocksEverywhere?.iso?.allowEmbeds.indexOf( embed.name ) !== -1 ),
+			supports: {
+				...settings.supports,
+				customClassName: false,
+				anchor: false,
+				html: false,
+				color: false,
+			},
+		};
+	}
+
 	return {
 		...settings,
 		supports: {
@@ -142,6 +157,10 @@ domReady( () => {
 
 	// Modify any blocks we need to
 	wp.hooks.addFilter( 'blocks.registerBlockType', 'blocks-everywhere/modify-blocks', modifyBlocks );
+
+	// Remove some formatting options
+	unregisterFormatType( 'core/text-color' );
+	unregisterFormatType( 'core/image' );
 
 	document.querySelectorAll( wpBlocksEverywhere.saveTextarea ).forEach( ( node ) => {
 		let container;

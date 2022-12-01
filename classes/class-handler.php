@@ -227,13 +227,14 @@ abstract class Handler {
 		$settings = apply_filters( 'blocks_everywhere_editor_settings', $default_settings );
 
 		// Enqueue assets
-		$this->enqueue_assets(
+		$version = $this->enqueue_assets(
 			'blocks-everywhere',
 			'index.min.asset.php',
 			'index.min.js',
-			'style-index.min.css',
-			$settings
+			'style-index.min.css'
 		);
+
+		wp_localize_script( 'blocks-everywhere', 'wpBlocksEverywhere', $settings );
 
 		if ( in_array( 'blocks-everywhere/support-content', $settings['iso']['blocks']['allowBlocks'], true ) ) {
 			$this->enqueue_assets(
@@ -251,13 +252,20 @@ abstract class Handler {
 				$settings
 			);
 		}
+
+		$theme_compat = defined( 'BLOCKS_EVERYWHERE_THEME_COMPAT' ) ? BLOCKS_EVERYWHERE_THEME_COMPAT : false;
+		if ( apply_filters( 'blocks_everywhere_theme_compat', $theme_compat ) ) {
+			$plugin = dirname( __DIR__ ) . '/blocks-everywhere.php';
+
+			wp_register_style( 'blocks-everywhere-compat', plugins_url( 'build/theme-compat.min.css', $plugin ), [ 'blocks-everywhere' ], $version );
+			wp_enqueue_style( 'blocks-everywhere-compat' );
+		}
 	}
 
-	private function enqueue_assets( $name, $asset_file, $js_file, $css_file, $settings ) {
+	private function enqueue_assets( $name, $asset_file, $js_file, $css_file ) {
 		$asset_file = dirname( __DIR__ ) . '/build/' . $asset_file;
 		$asset = file_exists( $asset_file ) ? require_once $asset_file : null;
 		$version = isset( $asset['version'] ) ? $asset['version'] : time();
-
 		$plugin = dirname( __DIR__ ) . '/blocks-everywhere.php';
 
 		wp_register_script( $name, plugins_url( 'build/' . $js_file, $plugin ), [], $version, true );
@@ -266,7 +274,7 @@ abstract class Handler {
 		wp_register_style( $name, plugins_url( 'build/' . $css_file, $plugin ), [], $version );
 		wp_enqueue_style( $name );
 
-		wp_localize_script( $name, 'wpBlocksEverywhere', $settings );
+		return $version;
 	}
 
 	/**

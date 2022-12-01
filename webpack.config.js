@@ -1,5 +1,6 @@
 const MiniCssExtractPlugin = require( 'mini-css-extract-plugin' );
 const defaultConfig = require( '@wordpress/scripts/config/webpack.config' );
+const RemovePlugin = require('remove-files-webpack-plugin');
 
 // update resource asset to have public path inside plugin
 // required for correctly serving assets in production
@@ -18,11 +19,21 @@ module.exports = {
 	},
 	entry: {
 		index: './src/index.js',
+		[ 'theme-compat' ]: './src/theme-compat.scss',
 		[ 'support-content-editor' ]: './src/support-content-block/index.tsx',
 		[ 'support-content-view' ]: './src/support-content-block/view.ts',
 	},
 	plugins: [
 		...defaultConfig.plugins.filter( ( item ) => ! ( item instanceof MiniCssExtractPlugin ) ),
 		new MiniCssExtractPlugin( { filename: '[name].min.css' } ),
+		new RemovePlugin( {
+			after: {
+				include: [
+					'./build/theme-compat.min.asset.php',
+					'./build/theme-compat.min.js',
+				],
+				trash: true,
+			}
+		})
 	],
 };

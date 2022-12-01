@@ -58,21 +58,23 @@ To enable conversion of blocks in email:
 
 Or use the filter `blocks_everywhere_email`.
 
-# Using Content Embed block
+### Using Content Embed block
 
 Content Embed block uses REST API to fetch content to be embedded. This means that site contains bbPress topics to embed should have topic REST API enabled.
 
 Blocks Everywhere enables topic REST API on its own, so if the site with bbPress have this plugin installed and configured, its topics can be embedded.
 
 To enable Content Embed block in the editor, pass these settings to `blocks_everywhere_editor_settings` filter:
+
 ```
-	add_filter( 'blocks_everywhere_editor_settings', function( $settings ) {
-        $settings['iso']['blocks']['allowBlocks'][] = 'blocks-everywhere/support-content';
-		return $settings;
-	} );
+add_filter( 'blocks_everywhere_editor_settings', function( $settings ) {
+	$settings['iso']['blocks']['allowBlocks'][] = 'blocks-everywhere/support-content';
+	return $settings;
+} );
 ```
 
 To enable REST API for forum topics, use next filters:
+
 ```
 add_filter( 'blocks_everywhere_admin', '__return_true' );
 add_filter( 'blocks_everywhere_admin_cap', '__return_empty_string' );
@@ -96,7 +98,7 @@ Or:
 
 `yarn build`
 
-## Releasing
+### Releasing
 
 Run:
 
@@ -104,7 +106,7 @@ Run:
 
 The plugin will be available in the `release` directory.
 
-## Distribution
+### Distribution
 
 Run:
 

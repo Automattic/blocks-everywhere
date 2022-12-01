@@ -3,7 +3,7 @@ Contributors: johnny5, automattic
 Tags: gutenberg, comments, bbpress, buddypress
 Requires at least: 5.8
 Tested up to: 6.1
-Stable tag: 1.9.0
+Stable tag: 1.10.0
 Requires PHP: 5.6
 License: GPLv3
 
@@ -106,6 +106,8 @@ The plugin is simple to install:
 
 = 1.10.0 =
 * Process blocks in bbPress notification emails
+* Add a Content Embed block to allow embedding of forum posts and support pages
+* Provide basic bbPress KSES filtering so blocks can be added by lower capability users
 
 = 1.9.0 =
 * Increase minimum editor size

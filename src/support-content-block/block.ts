@@ -126,6 +126,9 @@ export async function fetchForumTopicAttributes( url: string ): Promise< Support
 	};
 }
 
+/**
+ * Fetch author name via WP.com or WP REST API
+ */
 async function fetchForumTopicAuthor( userId: number, blog: string, isWpComApi: boolean ): Promise< string > {
 	const apiUrl = isWpComApi
 		? `https://public-api.wordpress.com/rest/v1.1/users/${ userId }`

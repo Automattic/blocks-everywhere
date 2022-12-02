@@ -52,7 +52,7 @@ export const SupportContentEmbed = ( props: {
 			const startedby = sprintf(
 				/* translators: Person who created forum topic, eg: "Started by davidgonzalezwp" */
 				__( 'Started by %s', 'blocks-everywhere' ),
-				props.attributes.minutesToRead
+				props.attributes.author
 			);
 
 			return (

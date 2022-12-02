@@ -1,14 +1,14 @@
 import React from 'react';
 import classnames from 'classnames';
-import rasterizedIcon from './wordpress.png';
+import icon from './wordpress.png';
 
 export const WordPressIcon = () => {
+	// req param required to avoid adding it automatically thus breaking block parsing
+	const imgUrl = wpBlocksEverywhere.pluginsUrl + icon + '?m=1';
+
 	return (
-		<>
-			<div className={ classnames( 'be-support-content-wordpress-icon' ) }>
-				{ /* req param required to avoid adding it automatically thus breaking block parsing */ }
-				<img alt="WP" src={ rasterizedIcon + '?m=1' } />
-			</div>
-		</>
+		<div className={ classnames( 'be-support-content-wordpress-icon' ) }>
+			<img alt="WP" src={ imgUrl } />
+		</div>
 	);
 };

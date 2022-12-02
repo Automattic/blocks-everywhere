@@ -7,7 +7,7 @@ const RemovePlugin = require('remove-files-webpack-plugin');
 defaultConfig.module.rules
 	.filter( ( r ) => r.type === 'asset/resource' )
 	.forEach( ( r ) => {
-		r.generator.publicPath = '/wp-content/plugins/blocks-everywhere/build/';
+		r.generator.publicPath = '/build/';
 	} );
 
 // Default @wordpress/scripts but output with .min in the filename

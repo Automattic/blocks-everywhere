@@ -31,7 +31,7 @@ export type SupportContentBlockAttributes = {
 	minutesToRead?: number | null;
 	likes?: number;
 	status?: string;
-	author?: number;
+	author?: string;
 	created?: string;
 };
 
@@ -93,7 +93,9 @@ export async function fetchSupportPageAttributes( url: string ): Promise< Suppor
 export async function fetchForumTopicAttributes( url: string ): Promise< SupportContentBlockAttributes > {
 	const { blog, slug } = getForumTopicSlugFromUrl( url );
 
-	const apiUrl = blog.endsWith( 'wordpress.com' )
+	let isWpComApi = blog.endsWith( 'wordpress.com' );
+
+	const apiUrl = isWpComApi
 		? `https://public-api.wordpress.com/wp/v2/sites/${ blog }/topic?slug=${ encodeURIComponent( slug ) }`
 		: `https://${ blog }/wp-json/wp/v2/topic?slug=${ encodeURIComponent( slug ) }`;
 	const response = await fetch( apiUrl );
@@ -117,10 +119,27 @@ export async function fetchForumTopicAttributes( url: string ): Promise< Support
 		isConfirmed: true,
 		content,
 		title,
+		author: topic.author ? await fetchForumTopicAuthor( topic.author, blog, isWpComApi ) : undefined,
 		source: 'WordPress.com Forums',
 		status: topic.status,
 		created: topic.date,
 	};
+}
+
+async function fetchForumTopicAuthor( userId: number, blog: string, isWpComApi: boolean ): Promise< string > {
+	const apiUrl = isWpComApi
+		? `https://public-api.wordpress.com/rest/v1.1/users/${ userId }`
+		: `https://${ blog }/wp-json/wp/v2/users/${ userId }`;
+
+	const response = await fetch( apiUrl );
+
+	if ( ! response.ok ) {
+		return null;
+	}
+
+	const user = await response.json();
+
+	return user.display_name || user.name;
 }
 
 /**

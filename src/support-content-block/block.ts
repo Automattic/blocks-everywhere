@@ -84,7 +84,7 @@ export async function fetchSupportPageAttributes( url: string ): Promise< Suppor
 		content = content.substring( 0, EMBED_CONTENT_MAXLENGTH );
 	}
 
-	return { url, isConfirmed: true, content, title, source: 'WordPress.com Guide', minutesToRead };
+	return { url, isConfirmed: true, content, title, source: 'WordPress.com Support', minutesToRead };
 }
 
 /**

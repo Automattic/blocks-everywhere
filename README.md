@@ -58,6 +58,22 @@ To enable conversion of blocks in email:
 
 Or use the filter `blocks_everywhere_email`.
 
+### Theme compatibility
+
+Gutenberg is placed directly on the page along with your post, forum, etc. This means the contents of the editor will look like the page they will appear on. However, it also means that styles from the page may affect the editor.
+
+We don't have a perfect way of separating these styles and it is possible that styles from the page or from Gutenberg may affect the other. If you are using this plugin then it is expected that you will be able to fix any differences as appropriate for your site.
+
+A theme compatibility option is provided which might help. You can use this with:
+
+`define( 'BLOCKS_EVERYWHERE_THEME_COMPAT', true );`
+
+Or using the filter `blocks_everywhere_email`.
+
+It provides some overrides for common theme issues. However, it is generally better not to require overrides so if you are able to modify your theme and make CSS more specific then that is the best route.
+
+For example, rather than defining a global button style (which would then affect Gutenberg), make the style specific to the areas where a button will be used.
+
 ### Using Content Embed block
 
 Content Embed block uses REST API to fetch content to be embedded. This means that site contains bbPress topics to embed should have topic REST API enabled.

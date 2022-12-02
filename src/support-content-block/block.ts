@@ -93,7 +93,7 @@ export async function fetchSupportPageAttributes( url: string ): Promise< Suppor
 export async function fetchForumTopicAttributes( url: string ): Promise< SupportContentBlockAttributes > {
 	const { blog, slug } = getForumTopicSlugFromUrl( url );
 
-	let isWpComApi = blog.endsWith( 'wordpress.com' );
+	const isWpComApi = blog.endsWith( 'wordpress.com' );
 
 	const apiUrl = isWpComApi
 		? `https://public-api.wordpress.com/wp/v2/sites/${ blog }/topic?slug=${ encodeURIComponent( slug ) }`
@@ -130,19 +130,23 @@ export async function fetchForumTopicAttributes( url: string ): Promise< Support
  * Fetch author name via WP.com or WP REST API
  */
 async function fetchForumTopicAuthor( userId: number, blog: string, isWpComApi: boolean ): Promise< string > {
-	const apiUrl = isWpComApi
-		? `https://public-api.wordpress.com/rest/v1.1/users/${ userId }`
-		: `https://${ blog }/wp-json/wp/v2/users/${ userId }`;
+	try {
+		const apiUrl = isWpComApi
+			? `https://public-api.wordpress.com/rest/v1.1/users/${ userId }`
+			: `https://${ blog }/wp-json/wp/v2/users/${ userId }`;
 
-	const response = await fetch( apiUrl );
+		const response = await fetch( apiUrl );
 
-	if ( ! response.ok ) {
-		return null;
+		if ( ! response.ok ) {
+			return null;
+		}
+
+		const user = await response.json();
+
+		return user.display_name || user.name;
+	} catch ( e ) {
+		return;
 	}
-
-	const user = await response.json();
-
-	return user.display_name || user.name;
 }
 
 /**

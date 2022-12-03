@@ -28,6 +28,7 @@ export type SupportContentBlockAttributes = {
 	title: string;
 	content: string;
 	source: string;
+	sourceURL: string;
 	minutesToRead?: number | null;
 	likes?: number;
 	status?: string;
@@ -84,7 +85,15 @@ export async function fetchSupportPageAttributes( url: string ): Promise< Suppor
 		content = content.substring( 0, EMBED_CONTENT_MAXLENGTH );
 	}
 
-	return { url, isConfirmed: true, content, title, source: 'WordPress.com Support', minutesToRead };
+	return {
+		url,
+		isConfirmed: true,
+		content,
+		title,
+		source: 'WordPress.com Support',
+		sourceURL: 'https://wordpress.com/support/',
+		minutesToRead,
+	};
 }
 
 /**
@@ -120,7 +129,8 @@ export async function fetchForumTopicAttributes( url: string ): Promise< Support
 		content,
 		title,
 		author: topic.author ? await fetchForumTopicAuthor( topic.author, blog, isWpComApi ) : undefined,
-		source: 'WordPress.com Forums',
+		source: isWpComApi ? 'WordPress.com Forums' : `${ blog } Forums`,
+		sourceURL: `https://${ blog }`,
 		status: topic.status,
 		created: topic.date,
 	};

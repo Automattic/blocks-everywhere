@@ -94,7 +94,7 @@ export const SupportContentEmbed = ( props: {
 					<div className="be-support-content__source">
 						<InlineSkeleton hidden loaded={ loaded }>
 							{ createInterpolateElement( source, {
-								a: <a className="be-support-content__link" href={ props.attributes.url } />,
+								a: <a className="be-support-content__link" href={ props.attributes.sourceURL } />,
 							} ) }
 						</InlineSkeleton>
 					</div>

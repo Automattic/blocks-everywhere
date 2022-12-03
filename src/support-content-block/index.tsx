@@ -39,6 +39,12 @@ registerBlockType( 'blocks-everywhere/support-content', {
 			source: 'text',
 			selector: '.be-support-content__link',
 		},
+		sourceURL: {
+			type: 'string',
+			source: 'attribute',
+			selector: '.be-support-content__link',
+			attribute: 'href',
+		},
 		minutesToRead: {
 			type: 'number',
 		},

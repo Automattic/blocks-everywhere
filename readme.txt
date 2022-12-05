@@ -68,7 +68,7 @@ A theme compatibility option is provided which might help. You can use this with
 
 `define( 'BLOCKS_EVERYWHERE_THEME_COMPAT', true );`
 
-Or using the filter `blocks_everywhere_email`.
+Or using the filter `blocks_everywhere_theme_compat`.
 
 It provides some overrides for common theme issues. However, it is generally better not to require overrides so if you are able to modify your theme and make CSS more specific then that is the best route.
 

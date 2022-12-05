@@ -48,7 +48,7 @@
 		font-size: 13px !important;
 	}
 
-	button:not(:hover):not(:active):not(.has-background):not(.block-editor-inserter__toggle):not(.is-primary) {
+	button:not(:hover):not(:active):not(.has-background):not(.block-editor-inserter__toggle):not(.is-primary):not(.is-pressed):not(.block-list-appender__toggle) {
 		background-color: none;
 		color: #1e1e1e;
 	}

@@ -220,7 +220,6 @@ abstract class Handler {
 					'videopress',
 					'crowdsignal',
 					'screencast',
-					'loom',
 					'imgur',
 				],
 			],

@@ -108,7 +108,7 @@ abstract class Handler {
 	protected function get_allowed_blocks() {
 		global $allowedtags;
 
-		$allowed = [ 'core/paragraph', 'core/list', 'core/code', 'core/list-item' ];
+		$allowed = [ 'core/paragraph', 'core/list', 'core/list-item', 'core/code', 'core/list-item' ];
 		$convert = [
 			'blockquote' => 'core/quote',
 			'h1' => 'core/heading',
@@ -176,7 +176,8 @@ abstract class Handler {
 		}
 
 		// General formatting
-		$tags['strike'] = [];
+		$tags['strike'] = true;
+		$tags['s'] = true;
 		$tags['cite'] = true;
 		$tags['kbd'] = true;
 		$tags['mark'] = [ 'class' => true ];
@@ -204,6 +205,9 @@ abstract class Handler {
 				'sidebar' => [
 					'inserter' => false,
 					'inspector' => false,
+				],
+				'toolbar' => [
+					'navigation' => true,
 				],
 				'defaultPreferences' => [
 					'fixedToolbar' => true,

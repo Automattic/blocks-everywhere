@@ -108,7 +108,7 @@ abstract class Handler {
 	protected function get_allowed_blocks() {
 		global $allowedtags;
 
-		$allowed = [ 'core/paragraph', 'core/list', 'core/list-item', 'core/code', 'core/list-item' ];
+		$allowed = [ 'core/paragraph', 'core/list', 'core/code', 'core/list-item' ];
 		$convert = [
 			'blockquote' => 'core/quote',
 			'h1' => 'core/heading',

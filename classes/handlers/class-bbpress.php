@@ -8,14 +8,9 @@ class bbPress extends Handler {
 	 * Constructor
 	 */
 	public function __construct() {
-		if ( ! is_admin() ) {
-			add_filter( 'the_editor', [ $this, 'the_editor' ] );
-			add_filter( 'wp_editor_settings', [ $this, 'wp_editor_settings' ], 10, 2 );
-		}
+		add_action( 'bbp_template_redirect', [ $this, 'bbp_template_redirect' ], 11 );
 
-		add_filter( 'bbp_get_the_content', [ $this, 'add_to_bbpress' ] );
-
-		// Ensure blocks are processed when displaying
+		// Ensure blocks are processed when displaying. This needs to run even if the editor isn't loaded
 		add_filter(
 			'bbp_get_forum_content',
 			function( $content ) {
@@ -38,10 +33,44 @@ class bbPress extends Handler {
 			8
 		);
 
+		// Apply block processing to email notifications
 		$default_email = defined( 'BLOCKS_EVERYWHERE_EMAIL' ) ? BLOCKS_EVERYWHERE_EMAIL : false;
 		if ( apply_filters( 'blocks_everywhere_email', $default_email ) ) {
 			add_filter( 'bbp_subscription_mail_message', [ $this, 'remove_blocks_from_email' ], 10, 2 );
 		}
+	}
+
+	public function bbp_template_redirect() {
+		// Decide whether we can load the editor
+		$can_load_editor = apply_filters( 'blocks_everywhere_bbpress_editor', true );
+
+		// If we can't load the editor then first check if we're editing a topic/reply that contains blocks
+		if ( ! $can_load_editor && ! $this->is_editing_blocks() ) {
+			// Nope, just return early so we leave KSES alone - plain text editor
+			return;
+		}
+
+		if ( ! is_admin() ) {
+			// Insert Gutenberg into the page
+			add_filter( 'the_editor', [ $this, 'the_editor' ] );
+
+			// Replace the editor settings
+			add_filter( 'wp_editor_settings', [ $this, 'wp_editor_settings' ], 10, 2 );
+		}
+
+		$this->load_editor( '.bbp-the-content', '.blocks-everywhere' );
+		add_action( 'bbp_head', [ $this, 'bbp_head' ] );
+
+		// If the user doesn't have unfiltered_html then we need to modify KSES to allow blocks
+		if ( ! current_user_can( 'unfiltered_html' ) ) {
+			$this->setup_kses();
+		}
+
+		// Required to prevent code blocks being reverted from `<code>` to backtics in editor, breaking blocks.
+		// Also helps stop bbp_code_trick_reverse remove a trailing </p>
+		remove_filter( 'bbp_get_form_forum_content', 'bbp_code_trick_reverse' );
+		remove_filter( 'bbp_get_form_topic_content', 'bbp_code_trick_reverse' );
+		remove_filter( 'bbp_get_form_reply_content', 'bbp_code_trick_reverse' );
 
 		// Determine whether to show the bbPress CPT in the backend editor
 		$default_admin = defined( 'BLOCKS_EVERYWHERE_ADMIN' ) ? BLOCKS_EVERYWHERE_ADMIN : false;
@@ -54,19 +83,24 @@ class bbPress extends Handler {
 				add_filter( 'bbp_register_forum_post_type', [ $this, 'support_gutenberg' ] );
 			}
 		}
+	}
 
-		add_action( 'bbp_head', [ $this, 'bbp_head' ] );
+	private function is_editing_blocks() {
+		if ( bbp_is_reply_edit() ) {
+			$reply = bbp_get_reply( bbp_get_reply_id() );
 
-		// Required to prevent code blocks being reverted from `<code>` to backtics in editor, breaking blocks.
-		// Also helps stop bbp_code_trick_reverse remove a trailing </p>
-		remove_filter( 'bbp_get_form_forum_content', 'bbp_code_trick_reverse' );
-		remove_filter( 'bbp_get_form_topic_content', 'bbp_code_trick_reverse' );
-		remove_filter( 'bbp_get_form_reply_content', 'bbp_code_trick_reverse' );
-
-		// If the user doesn't have unfiltered_html then we need to modify KSES to allow blocks
-		if ( ! current_user_can( 'unfiltered_html' ) ) {
-			$this->setup_kses();
+			if ( $reply ) {
+				return has_blocks( $reply->post_content );
+			}
 		}
+
+		if ( bbp_is_topic_edit() ) {
+			$topic = get_post_field( 'post_content', bbp_get_topic_id() );
+
+			return has_blocks( $topic );
+		}
+
+		return false;
 	}
 
 	/**
@@ -154,17 +188,6 @@ class bbPress extends Handler {
 	public function support_gutenberg( $args ) {
 		$args['show_in_rest'] = true;
 		return $args;
-	}
-
-	/**
-	 * Determine whether to load Gutenberg in this forum and then do that.
-	 *
-	 * @param string $content Content.
-	 * @return string Content/
-	 */
-	public function add_to_bbpress( $content ) {
-		$this->load_editor( '.bbp-the-content', '.blocks-everywhere' );
-		return $content;
 	}
 
 	/**

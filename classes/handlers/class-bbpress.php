@@ -40,6 +40,11 @@ class bbPress extends Handler {
 		}
 	}
 
+	/**
+	 * Loads the editor, if needed, after we know what kind of page to display
+	 *
+	 * @return void
+	 */
 	public function bbp_template_redirect() {
 		// Decide whether we can load the editor
 		$can_load_editor = apply_filters( 'blocks_everywhere_bbpress_editor', true );

@@ -54,7 +54,7 @@ class Blocks_Everywhere {
 	 * Constructor
 	 */
 	public function __construct() {
-		add_action( 'init', [ $this, 'load_handlers' ] );
+		add_action( 'plugins_loaded', [ $this, 'load_handlers' ] );
 
 		// Admin editors
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );

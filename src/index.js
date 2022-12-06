@@ -93,6 +93,8 @@ function createEditor( container, textarea, settings ) {
 	if ( settings?.editor?.hasUploadPermissions ) {
 		// Connect the media uploader if it's enabled
 		settings.editor.mediaUpload = mediaUpload;
+	} else {
+		settings.editor.mediaUpload = () => null;
 	}
 
 	render(

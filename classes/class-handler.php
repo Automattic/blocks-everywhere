@@ -7,6 +7,25 @@ require_once __DIR__ . '/handlers/class-buddypress.php';
 require_once __DIR__ . '/handlers/class-comments.php';
 
 abstract class Handler {
+	/**
+	 * Editor object
+	 *
+	 * @var Editor
+	 */
+	protected $editor = null;
+
+	/**
+	 * Editor settings
+	 *
+	 * @var array
+	 */
+	private $settings = [];
+
+	/**
+	 * Record the do_blocks hook
+	 *
+	 * @var string|null
+	 */
 	private $doing_hook = null;
 
 	/**
@@ -191,11 +210,11 @@ abstract class Handler {
 	 * @return void
 	 */
 	public function load_editor( $textarea, $container = null ) {
-		$this->gutenberg = new \Automattic\Blocks_Everywhere\Editor();
+		$this->editor = new \Automattic\Blocks_Everywhere\Editor();
 
 		// Settings for the editor
 		$default_settings = [
-			'editor' => $this->gutenberg->get_editor_settings(),
+			'editor' => $this->editor->get_editor_settings(),
 			'iso' => [
 				'blocks' => [
 					'allowBlocks' => $this->get_allowed_blocks(),
@@ -231,7 +250,8 @@ abstract class Handler {
 
 		$settings = apply_filters( 'blocks_everywhere_editor_settings', $default_settings );
 
-		$this->gutenberg->load( $settings );
+		$this->editor->load( $settings );
+		$this->settings = $settings;
 
 		// Enqueue assets
 		$version = $this->enqueue_assets(

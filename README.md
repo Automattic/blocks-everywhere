@@ -58,6 +58,12 @@ To enable conversion of blocks in email:
 
 Or use the filter `blocks_everywhere_email`.
 
+To enable Gutenberg when editing bbPress forums, topics, and replies you can use:
+
+`define( 'BLOCKS_EVERYWHERE_BBPRESS_ADMIN', true );`
+
+Or use `blocks_everywhere_bbpress_admin`
+
 ### Theme compatibility
 
 Gutenberg is placed directly on the page along with your post, forum, etc. This means the contents of the editor will look like the page they will appear on. However, it also means that styles from the page may affect the editor.

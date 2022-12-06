@@ -3,7 +3,7 @@ Contributors: johnny5, automattic
 Tags: gutenberg, comments, bbpress, buddypress
 Requires at least: 5.8
 Tested up to: 6.1
-Stable tag: 1.10.0
+Stable tag: 1.11.0
 Requires PHP: 5.6
 License: GPLv3
 
@@ -57,6 +57,12 @@ To enable conversion of blocks in email:
 `define( 'BLOCKS_EVERYWHERE_EMAIL', true );`
 
 Or use the filter `blocks_everywhere_email`.
+
+To enable Gutenberg when editing bbPress forums, topics, and replies you can use:
+
+`define( 'BLOCKS_EVERYWHERE_BBPRESS_ADMIN', true );`
+
+Or use `blocks_everywhere_bbpress_admin`
 
 == Theme compatibility ==
 
@@ -117,6 +123,10 @@ The plugin is simple to install:
 2. Gutenberg when editing a comment
 
 == Changelog ==
+
+= 1.11.0 =
+* Allow editor to be enabled/disabled on bbPress forum or user
+* Fix is-pressed style in editor
 
 = 1.10.0 =
 * Process blocks in bbPress notification emails

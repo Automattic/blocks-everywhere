@@ -8,7 +8,19 @@ class bbPress extends Handler {
 	 * Constructor
 	 */
 	public function __construct() {
+		// Load the editor when the page has been setup, allowing us to decide based on the content
 		add_action( 'bbp_template_redirect', [ $this, 'bbp_template_redirect' ], 11 );
+
+		$default_admin = defined( 'BLOCKS_EVERYWHERE_BBPRESS_ADMIN' ) ? BLOCKS_EVERYWHERE_BBPRESS_ADMIN : false;
+		if ( is_admin() && apply_filters( 'blocks_everywhere_bbpress_admin', $default_admin ) ) {
+			// Always load editor on topic/reply/forum admin pages
+			add_action(
+				'bbp_ready',
+				function() {
+					$this->enable_editor();
+				}
+			);
+		}
 
 		// Ensure blocks are processed when displaying. This needs to run even if the editor isn't loaded
 		add_filter(
@@ -55,15 +67,25 @@ class bbPress extends Handler {
 			return;
 		}
 
-		if ( ! is_admin() ) {
-			// Insert Gutenberg into the page
-			add_filter( 'the_editor', [ $this, 'the_editor' ] );
+		$this->enable_editor();
+	}
 
-			// Replace the editor settings
-			add_filter( 'wp_editor_settings', [ $this, 'wp_editor_settings' ], 10, 2 );
+	private function enable_editor() {
+		$area = '.bbp-the-content';
+
+		if ( is_admin() ) {
+			$area = '.wp-editor-area';
 		}
 
-		$this->load_editor( '.bbp-the-content', '.blocks-everywhere' );
+		// Insert Gutenberg into the page
+		add_filter( 'the_editor', [ $this, 'the_editor' ] );
+
+		// Replace the editor settings
+		add_filter( 'wp_editor_settings', [ $this, 'wp_editor_settings' ], 10, 2 );
+
+		$this->load_editor( $area, '.blocks-everywhere' );
+
+		// Modify the body class
 		add_action( 'bbp_head', [ $this, 'bbp_head' ] );
 
 		// If the user doesn't have unfiltered_html then we need to modify KSES to allow blocks
@@ -90,6 +112,11 @@ class bbPress extends Handler {
 		}
 	}
 
+	/**
+	 * Are we editing a topic or reply and does that topic or reply have blocks?
+	 *
+	 * @return boolean
+	 */
 	private function is_editing_blocks() {
 		if ( bbp_is_reply_edit() ) {
 			$reply = bbp_get_reply( bbp_get_reply_id() );

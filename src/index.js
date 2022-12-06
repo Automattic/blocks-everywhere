@@ -7,9 +7,11 @@ import { useEffect } from '@wordpress/element';
 import domReady from '@wordpress/dom-ready';
 import { useDispatch } from '@wordpress/data';
 import { mediaUpload } from '@wordpress/editor';
+import { addFilter } from '@wordpress/hooks';
 import IsolatedBlockEditor, { EditorLoaded } from '@automattic/isolated-block-editor';
 import apiFetch from '@wordpress/api-fetch';
 import { unregisterFormatType } from '@wordpress/rich-text';
+import { MediaUpload } from '@wordpress/media-utils';
 
 /**
  * Internal dependencies
@@ -93,6 +95,7 @@ function createEditor( container, textarea, settings ) {
 	if ( settings?.editor?.hasUploadPermissions ) {
 		// Connect the media uploader if it's enabled
 		settings.editor.mediaUpload = mediaUpload;
+		addFilter( 'editor.MediaUpload', 'blocks-everywhere/media-upload', () => MediaUpload );
 	}
 
 	render(
@@ -156,7 +159,7 @@ domReady( () => {
 	apiFetch.use( removeNullPostFromFileUploadMiddleware );
 
 	// Modify any blocks we need to
-	wp.hooks.addFilter( 'blocks.registerBlockType', 'blocks-everywhere/modify-blocks', modifyBlocks );
+	addFilter( 'blocks.registerBlockType', 'blocks-everywhere/modify-blocks', modifyBlocks );
 
 	// Remove some formatting options
 	unregisterFormatType( 'core/text-color' );

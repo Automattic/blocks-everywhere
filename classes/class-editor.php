@@ -7,6 +7,13 @@ namespace Automattic\Blocks_Everywhere;
  */
 class Editor {
 	/**
+	 * Can upload?
+	 *
+	 * @var boolean
+	 */
+	private $can_upload = false;
+
+	/**
 	 * Constructor
 	 */
 	public function __construct() {
@@ -74,11 +81,13 @@ class Editor {
 	 *
 	 * Based on wp-admin/edit-form-blocks.php
 	 *
+	 * @param array $settings Plugin settings.
 	 * @return void
 	 */
-	public function load() {
+	public function load( $settings ) {
 		global $post;
 
+		$this->can_upload = isset( $settings['editor']['hasUploadPermissions'] ) && $settings['editor']['hasUploadPermissions'];
 		$this->load_extra_blocks();
 
 		// Restrict tinymce buttons
@@ -261,6 +270,10 @@ class Editor {
 	 * @return void
 	 */
 	public function setup_media() {
+		if ( ! $this->can_upload ) {
+			return;
+		}
+
 		// If we've already loaded the media stuff then don't do it again
 		if ( did_action( 'wp_enqueue_media' ) > 0 ) {
 			return;

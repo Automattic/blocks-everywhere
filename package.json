@@ -24,19 +24,19 @@
 		"@wordpress/scripts": "^24.6.0",
 		"babel-plugin-emotion": "^11.0.0",
 		"babel-plugin-inline-json-import": "^0.3.2",
-		"eslint": "^8.28.0",
+		"eslint": "^8.29.0",
 		"eslint-config-wpcalypso": "^6.1.0",
 		"eslint-plugin-import": "^2.26.0",
 		"eslint-plugin-jsx-a11y": "^6.6.1",
 		"eslint-plugin-react": "^7.31.11",
 		"eslint-plugin-wpcalypso": "^6.1.0",
 		"precss": "^4.0.0",
-		"release-it": "^15.5.0",
+		"release-it": "^15.5.1",
 		"remove-files-webpack-plugin": "^1.5.0"
 	},
 	"dependencies": {
 		"@automattic/color-studio": "^2.5.0",
-		"@automattic/isolated-block-editor": "2.20.0",
+		"@automattic/isolated-block-editor": "2.21.0",
 		"@automattic/typography": "^1.0.0"
 	},
 	"release-it": {

@@ -192,7 +192,6 @@ abstract class Handler {
 	 */
 	public function load_editor( $textarea, $container = null ) {
 		$this->gutenberg = new \Automattic\Blocks_Everywhere\Editor();
-		$this->gutenberg->load();
 
 		// Settings for the editor
 		$default_settings = [
@@ -231,6 +230,8 @@ abstract class Handler {
 		];
 
 		$settings = apply_filters( 'blocks_everywhere_editor_settings', $default_settings );
+
+		$this->gutenberg->load( $settings );
 
 		// Enqueue assets
 		$version = $this->enqueue_assets(

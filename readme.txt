@@ -127,6 +127,8 @@ The plugin is simple to install:
 = 1.11.0 =
 * Allow editor to be enabled/disabled on bbPress forum or user
 * Fix is-pressed style in editor
+* Dont load editor if not logged in
+* Handle no upload permissions better in image block
 
 = 1.10.0 =
 * Process blocks in bbPress notification emails

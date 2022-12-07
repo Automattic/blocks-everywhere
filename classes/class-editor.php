@@ -185,9 +185,6 @@ class Editor {
 		$settings['availableLegacyWidgets']        = (object) [];
 		$settings['hasPermissionsToManageWidgets'] = false;
 
-		// Start with no patterns
-		$settings['__experimentalBlockPatterns'] = [];
-
 		return $settings;
 	}
 
@@ -214,8 +211,8 @@ class Editor {
 			'richEditingEnabled'                   => user_can_richedit(),
 			'postLock'                             => false,
 			'supportsLayout'                       => \WP_Theme_JSON_Resolver::theme_has_support(),
-			'__experimentalBlockPatterns'          => \WP_Block_Patterns_Registry::get_instance()->get_all_registered(),
-			'__experimentalBlockPatternCategories' => \WP_Block_Pattern_Categories_Registry::get_instance()->get_all_registered(),
+			'__experimentalBlockPatterns'          => [],
+			'__experimentalBlockPatternCategories' => [],
 			'supportsTemplateMode'                 => current_theme_supports( 'block-templates' ),
 			'enableCustomFields'                   => false,
 			'generateAnchors'                      => true,

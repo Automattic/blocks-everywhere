@@ -244,7 +244,11 @@ class bbPress extends Handler {
 	public function body_class( $classes ) {
 		$classes[] = 'gutenberg-support';
 
-		$can_upload = isset( $this->settings['editor']['hasUploadPermissions'] ) && $this->settings['editor']['hasUploadPermissions'];
+		$can_upload = false;
+		if ( isset( $this->settings['editor']['hasUploadPermissions'] ) && $this->settings['editor']['hasUploadPermissions'] ) {
+			$can_upload = true;
+		}
+
 		if ( $can_upload ) {
 			$classes[] = 'gutenberg-support-upload';
 		}

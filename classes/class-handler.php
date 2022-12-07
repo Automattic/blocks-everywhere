@@ -19,7 +19,7 @@ abstract class Handler {
 	 *
 	 * @var array
 	 */
-	private $settings = [];
+	protected $settings = [];
 
 	/**
 	 * Record the do_blocks hook

@@ -129,6 +129,8 @@ The plugin is simple to install:
 * Fix is-pressed style in editor
 * Dont load editor if not logged in
 * Handle no upload permissions better in image block
+* Improve appearance of patterns in block inserter
+* Hide upload button
 
 = 1.10.0 =
 * Process blocks in bbPress notification emails

@@ -200,6 +200,8 @@ abstract class Handler {
 		$tags['cite'] = true;
 		$tags['kbd'] = true;
 		$tags['mark'] = [ 'class' => true ];
+		$tags['sub'] = [];
+		$tags['sup'] = [];
 
 		return $tags;
 	}

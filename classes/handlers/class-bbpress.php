@@ -9,7 +9,7 @@ class bbPress extends Handler {
 	 */
 	public function __construct() {
 		// Load the editor when the page has been setup, allowing us to decide based on the content
-		add_action( 'bbp_template_redirect', [ $this, 'bbp_template_redirect' ], 11 );
+		add_action( 'bbp_template_redirect', [ $this, 'bbp_template_redirect' ], 8 );
 
 		$default_admin = defined( 'BLOCKS_EVERYWHERE_BBPRESS_ADMIN' ) ? BLOCKS_EVERYWHERE_BBPRESS_ADMIN : false;
 		if ( is_admin() && apply_filters( 'blocks_everywhere_bbpress_admin', $default_admin ) ) {

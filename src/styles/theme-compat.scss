@@ -175,6 +175,26 @@ body:not(.gutenberg-support-upload) {
 	}
 }
 
+body:not(.gutenberg-support-upload) {
+	// Hide this button until https://github.com/WordPress/gutenberg/issues/46326 is fixed
+	.block-editor-block-toolbar button[aria-label="Upload external image"] {
+		display: none;
+	}
+
+	.block-editor-media-placeholder .components-placeholder__instructions {
+		visibility: hidden;
+		position: relative;
+	}
+
+	.block-editor-media-placeholder .components-placeholder__instructions:after {
+		content: "Add an image with a URL.";
+		visibility: visible;
+		position: absolute;
+		top: 0;
+		left: 0;
+	}
+}
+
 .gutenberg-support #bbpress-forums fieldset.bbp-form .blocks-everywhere {
 	// Clean up the link popup
 	.block-editor-link-control input[type="text"] {

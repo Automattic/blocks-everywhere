@@ -181,7 +181,7 @@ class bbPress extends Handler {
 		}
 
 		// HTML comments have been escaped, we want to re-enable them.
-		$content = preg_replace( '~&lt;!--\w*(.+?):(.+?)\w*--&gt;~i', '<!-- $1:$2 -->', $content );
+		$content = preg_replace( '~&lt;!--\s*(.+?):(.+?)\s*--&gt;~i', '<!-- $1:$2 -->', $content );
 
 		return $content;
 	}

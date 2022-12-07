@@ -13,6 +13,7 @@ declare var wpBlocksEverywhere: {
 	saveTextarea: any;
 	pluginsUrl: string;
 	allowUrlEmbed: boolean;
+	editorType: string;
 	iso: Iso;
 	container: string;
 };

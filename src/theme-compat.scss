@@ -107,6 +107,11 @@
 	.block-editor-block-preview__container {
 		display: none;
 	}
+
+	.block-editor-inserter__search,
+	.block-editor-inserter__quick-inserter-results {
+		border: none;
+	}
 }
 
 .gutenberg-support .blocks-everywhere {

@@ -162,6 +162,9 @@ abstract class Handler {
 		if ( in_array( 'core/paragraph', $allowed, true ) ) {
 			$tags['p'] = [ 'class' => true ];
 			$tags['br'] = [];
+			$tags['s'] = [];
+			$tags['sub'] = [];
+			$tags['sup'] = [];
 		}
 
 		if ( in_array( 'core/code', $allowed, true ) ) {

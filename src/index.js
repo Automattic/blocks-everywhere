@@ -179,4 +179,6 @@ domReady( () => {
 		insulateForm( container );
 		createEditor( container, node, wpBlocksEverywhere );
 	} );
+
+	setTimeout( () => document.body.classList.add( 'gutenberg-support-loaded' ), 250 );
 } );

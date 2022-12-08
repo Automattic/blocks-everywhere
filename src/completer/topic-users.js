@@ -4,29 +4,10 @@ export default {
     triggerPrefix: '@',
 
     options: function() {
-        const seen = [];
-        const users = [];
-
-        document.querySelectorAll('.topic > .bbp-topic-author, .topic > .bbp-reply-author').forEach(function (element) {
-            let avatar = element.querySelector('img').src;
-            let name = element.querySelector('.bbp-author-name').innerText;
-            let slugElement = element.querySelector('.bbp-user-nicename');
-            let slug = slugElement ? slugElement.innerText.replace(/[(@)]/g, '') : name;
-
-            if (!seen.includes(slug)) {
-                seen.push(slug);
-                users.push({
-                    avatar: avatar,
-                    name: name,
-                    slug: slug
-                });
-            }
-        });
-
-        return users;
+        return wpBlocksEverywhere.topicUsers || [];
     },
     getOptionKeywords: function( user ) {
-        return [ user.slug ].concat( user.name.split( /\s+/ ) );
+        return [ user.login ].concat( user.nicename.split( /\s+/ ) );
     },
     getOptionLabel: function( user ) {
         return wp.element.concatChildren( [
@@ -34,7 +15,7 @@ export default {
                 'img',
                 {
                     className: 'editor-autocompleters__user-avatar',
-                    src: user.avatar
+                    src: user.avatarUrl
                 }
             ),
             wp.element.createElement(
@@ -42,18 +23,18 @@ export default {
                 {
                     className: 'editor-autocompleters__user-name'
                 },
-                user.name
+                user.nicename
             ),
             wp.element.createElement(
                 'span',
                 {
                     className: 'editor-autocompleters__user-slug'
                 },
-                user.slug
+                user.login
             )
         ] );
     },
     getOptionCompletion: function( user ) {
-        return `@${ user.slug } `;
+        return `@${ user.login } `;
     },
 };

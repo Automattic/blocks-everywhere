@@ -320,6 +320,6 @@ class bbPress extends Handler {
 		}
 
 		// Return an array of user data for each user ID
-		return array_map( [$this, 'get_user_data'], $users );
+		return array_map( [ $this, 'get_user_data' ], $users );
 	}
 }

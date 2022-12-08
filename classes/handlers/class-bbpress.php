@@ -26,6 +26,7 @@ class bbPress extends Handler {
 		add_filter(
 			'bbp_get_forum_content',
 			function( $content ) {
+				$content = $GLOBALS['wp_embed']->autoembed( $content );
 				return $this->do_blocks( $content, 'bbp_get_forum_content' );
 			},
 			8
@@ -33,6 +34,7 @@ class bbPress extends Handler {
 		add_filter(
 			'bbp_get_topic_content',
 			function( $content ) {
+				$content = $GLOBALS['wp_embed']->autoembed( $content );
 				return $this->do_blocks( $content, 'bbp_get_topic_content' );
 			},
 			8
@@ -40,6 +42,7 @@ class bbPress extends Handler {
 		add_filter(
 			'bbp_get_reply_content',
 			function( $content ) {
+				$content = $GLOBALS['wp_embed']->autoembed( $content );
 				return $this->do_blocks( $content, 'bbp_get_reply_content' );
 			},
 			8

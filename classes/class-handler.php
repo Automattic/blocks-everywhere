@@ -239,7 +239,6 @@ abstract class Handler {
 					'wordpress-tv',
 					'videopress',
 					'crowdsignal',
-					'screencast',
 					'imgur',
 				],
 			],

@@ -16,6 +16,10 @@ function disableSupports( supports ) {
 }
 
 export default function modifyBlocks( settings, name ) {
+	if ( name === 'core/paragraph' ) {
+		return customizeParagraph( disableSupports( settings ) );
+	}
+
 	if ( name === 'core/embed' ) {
 		return customizeEmbed( disableSupports( settings ) );
 	}

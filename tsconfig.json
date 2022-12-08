@@ -5,6 +5,7 @@
   "compilerOptions": {
     "allowJs": true,
     "esModuleInterop": true,
-    "jsx": "react"
+    "jsx": "react-jsx",
+    "lib": ["dom", "esnext"]
   }
 }

@@ -18,8 +18,8 @@ module.exports = {
 		filename: '[name].min.js',
 	},
 	entry: {
-		index: './src/index.js',
-		[ 'theme-compat' ]: './src/theme-compat.scss',
+		index: './src/index.tsx',
+		[ 'theme-compat' ]: './src/styles/theme-compat.scss',
 		[ 'support-content-editor' ]: './src/support-content-block/index.tsx',
 		[ 'support-content-view' ]: './src/support-content-block/view.ts',
 	},

@@ -63,6 +63,15 @@ class bbPress extends Handler {
 	}
 
 	/**
+	 * This editor is for bbPress
+	 *
+	 * @return string
+	 */
+	public function get_editor_type() {
+		return 'bbPress';
+	}
+
+	/**
 	 * Loads the editor, if needed, after we know what kind of page to display
 	 *
 	 * @return void

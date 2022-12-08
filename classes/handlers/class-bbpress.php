@@ -301,25 +301,25 @@ class bbPress extends Handler {
 			return [];
 		}
 
-		$users = [];
+		$users = [ bbp_get_topic_author_id( $topic_id ) ];
 
-		$user_id = bbp_get_topic_author_id();
-		$users[] = $this->get_user_data( $user_id );
-
+		// Get an array of replies for the topic
 		$replies = get_posts( [
 			'post_parent' => $topic_id,
 			'post_type'   => bbp_get_reply_post_type(),
 			'post_status' => bbp_get_public_status_id(),
 		] );
 
+		// Loop through the replies and get the user IDs
 		foreach ( $replies as $reply_id ) {
 			$user_id = bbp_get_reply_author_id( $reply_id );
 			// Add the user ID to the array if it's not already there
 			if ( ! in_array( $user_id, $users ) ) {
-				$users[] = $this->get_user_data( $user_id );
+				$users[] = $user_id;
 			}
 		}
 
-		return $users;
+		// Return an array of user data for each user ID
+		return array_map( [$this, 'get_user_data'], $users );
 	}
 }

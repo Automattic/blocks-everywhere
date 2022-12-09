@@ -131,6 +131,8 @@ The plugin is simple to install:
 * Handle no upload permissions better in image block
 * Improve appearance of patterns in block inserter
 * Hide upload button
+* Add option to disable auto-embed of URLs, defaulting to off
+* Improve paste handling
 
 = 1.10.0 =
 * Process blocks in bbPress notification emails

@@ -12,6 +12,7 @@ declare interface Iso {
 declare var wpBlocksEverywhere: {
 	saveTextarea: any;
 	pluginsUrl: string;
+	allowUrlEmbed: boolean;
 	iso: Iso;
 	container: string;
 };

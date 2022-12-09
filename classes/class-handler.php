@@ -246,6 +246,7 @@ abstract class Handler {
 			'saveTextarea' => $textarea,
 			'container' => $container,
 			'editorType' => $this->get_editor_type(),
+			'allowUrlEmbed' => true,
 			'pluginsUrl' => plugins_url( '', __DIR__ ),
 			'version' => \Automattic\Blocks_Everywhere\Blocks_Everywhere::VERSION,
 		];

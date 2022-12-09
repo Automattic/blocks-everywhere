@@ -4,6 +4,12 @@
 
 import { createBlock } from '@wordpress/blocks';
 
+/**
+ * Internal dependencies
+ */
+
+import edit from './edit';
+
 export default function customizeParagraph( settings ) {
 	const hasHeading = wpBlocksEverywhere.iso.blocks.allowBlocks.indexOf( 'core/heading' ) !== -1;
 	const boldNodes = [ 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7' ];
@@ -15,6 +21,7 @@ export default function customizeParagraph( settings ) {
 
 	return {
 		...settings,
+		edit,
 		transforms: {
 			...settings.transforms,
 			from: [

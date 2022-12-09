@@ -304,8 +304,10 @@ class bbPress extends Handler {
 		$users = [ bbp_get_topic_author_id( $topic_id ) ];
 
 		// Get an array of replies for the topic
-		$replies = get_posts(
+		$replies_ids = get_posts(
 			[
+				'fields'      => 'ids',
+				'numberposts' => 100,
 				'post_parent' => $topic_id,
 				'post_type'   => bbp_get_reply_post_type(),
 				'post_status' => bbp_get_public_status_id(),
@@ -313,7 +315,7 @@ class bbPress extends Handler {
 		);
 
 		// Loop through the replies and get the user IDs
-		foreach ( $replies as $reply_id ) {
+		foreach ( $replies_ids as $reply_id ) {
 			$user_id = bbp_get_reply_author_id( $reply_id );
 			// Add the user ID to the array if it's not already there
 			if ( ! in_array( $user_id, $users ) ) {

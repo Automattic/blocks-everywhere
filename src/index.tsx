@@ -13,6 +13,7 @@ import { unregisterFormatType } from '@wordpress/rich-text';
 
 import createEditor from './editor';
 import customBlocks from './block-customization';
+import topicUsersCompleter from './completer/topic-users';
 import './styles/style.scss';
 
 const removeNullPostFromFileUploadMiddleware = ( options, next ) => {
@@ -40,6 +41,18 @@ domReady( () => {
 	// Remove some formatting options
 	unregisterFormatType( 'core/text-color' );
 	unregisterFormatType( 'core/image' );
+
+	if ( wpBlocksEverywhere.editorType === 'bbpress' ) {
+		addFilter(
+			'editor.Autocomplete.completers',
+			'blocks-everywhere/autocompleters',
+			( completers = [] ) => {
+				return completers
+					.filter( ( filter ) => filter.name !== 'users' )
+					.concat( [ topicUsersCompleter ] );
+			}
+		);
+	}
 
 	// Add the editor
 	document.querySelectorAll( wpBlocksEverywhere.saveTextarea ).forEach( createEditor );

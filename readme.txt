@@ -141,6 +141,7 @@ The plugin is simple to install:
 * Hide upload button
 * Add option to disable auto-embed of URLs, defaulting to off
 * Improve paste handling
+* Include user autocompleter for bbPress, restricted to people in the topic
 
 = 1.10.0 =
 * Process blocks in bbPress notification emails

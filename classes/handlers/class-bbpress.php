@@ -47,12 +47,28 @@ class bbPress extends Handler {
 			},
 			8
 		);
+		add_filter(
+			'blocks_everywhere_editor_settings',
+			function( $settings ) {
+				$settings['topicUsers'] = $this->get_topic_users();
+				return $settings;
+			}
+		);
 
 		// Apply block processing to email notifications
 		$default_email = defined( 'BLOCKS_EVERYWHERE_EMAIL' ) ? BLOCKS_EVERYWHERE_EMAIL : false;
 		if ( apply_filters( 'blocks_everywhere_email', $default_email ) ) {
 			add_filter( 'bbp_subscription_mail_message', [ $this, 'remove_blocks_from_email' ], 10, 2 );
 		}
+	}
+
+	/**
+	 * This editor is for bbPress
+	 *
+	 * @return string
+	 */
+	public function get_editor_type() {
+		return 'bbpress';
 	}
 
 	/**
@@ -257,5 +273,55 @@ class bbPress extends Handler {
 		}
 
 		return $classes;
+	}
+
+	/**
+	 * Given a $user_id return the data needed for completers
+	 *
+	 * @param $user_id
+	 * @return array
+	 */
+	private function get_user_data( $user_id ) {
+		$user = get_userdata( $user_id );
+		return [
+			'nicename'   => $user->user_nicename,
+			'login'   => $user->user_login,
+			'avatarUrl' => get_avatar_url( $user_id ),
+		];
+	}
+
+	/**
+	 * Returns all the users involved in the current topic.
+	 *
+	 * @return array
+	 */
+	public function get_topic_users( $topic_id = 0 ) {
+		$topic_id = bbp_get_topic_id( $topic_id );
+		if ( empty( $topic_id ) ) {
+			return [];
+		}
+
+		$users = [ bbp_get_topic_author_id( $topic_id ) ];
+
+		// Get an array of replies for the topic
+		$replies = get_posts(
+			[
+				'post_parent' => $topic_id,
+				'post_type'   => bbp_get_reply_post_type(),
+				'post_status' => bbp_get_public_status_id(),
+			]
+		);
+
+		// Loop through the replies and get the user IDs
+		foreach ( $replies as $reply_id ) {
+			$user_id = bbp_get_reply_author_id( $reply_id );
+			// Add the user ID to the array if it's not already there
+			if ( ! in_array( $user_id, $users ) ) {
+				$users[] = $user_id;
+			}
+		}
+
+		// Return an array of user data for each user ID
+		return array_map( [ $this, 'get_user_data' ], $users );
 	}
 }

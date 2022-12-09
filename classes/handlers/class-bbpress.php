@@ -68,7 +68,7 @@ class bbPress extends Handler {
 	 * @return string
 	 */
 	public function get_editor_type() {
-		return 'bbPress';
+		return 'bbpress';
 	}
 
 	/**
@@ -286,7 +286,7 @@ class bbPress extends Handler {
 		return [
 			'nicename'   => $user->user_nicename,
 			'login'   => $user->user_login,
-			'avatarUrl' => get_avatar_url( $user_id )
+			'avatarUrl' => get_avatar_url( $user_id ),
 		];
 	}
 
@@ -304,11 +304,13 @@ class bbPress extends Handler {
 		$users = [ bbp_get_topic_author_id( $topic_id ) ];
 
 		// Get an array of replies for the topic
-		$replies = get_posts( [
-			'post_parent' => $topic_id,
-			'post_type'   => bbp_get_reply_post_type(),
-			'post_status' => bbp_get_public_status_id(),
-		] );
+		$replies = get_posts(
+			[
+				'post_parent' => $topic_id,
+				'post_type'   => bbp_get_reply_post_type(),
+				'post_status' => bbp_get_public_status_id(),
+			]
+		);
 
 		// Loop through the replies and get the user IDs
 		foreach ( $replies as $reply_id ) {

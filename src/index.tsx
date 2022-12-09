@@ -42,7 +42,7 @@ domReady( () => {
 	unregisterFormatType( 'core/text-color' );
 	unregisterFormatType( 'core/image' );
 
-	if ( wpBlocksEverywhere.editorType === 'bbPress' ) {
+	if ( wpBlocksEverywhere.editorType === 'bbpress' ) {
 		addFilter(
 			'editor.Autocomplete.completers',
 			'blocks-everywhere/autocompleters',

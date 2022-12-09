@@ -64,6 +64,14 @@ To enable Gutenberg when editing bbPress forums, topics, and replies you can use
 
 Or use `blocks_everywhere_bbpress_admin`
 
+== Settings ==
+
+Some settings are available through the settings object, which is filterable with `blocks_everywhere_editor_settings`.
+
+`allowUrlEmbed` - Enable or disable auto-embed for URLs
+`iso.allowEmbeds` - List of enabled embeds
+`iso.blocks.allowBlocks` - List of enabled blocks
+
 == Theme compatibility ==
 
 Gutenberg is placed directly on the page along with your post, forum, etc. This means the contents of the editor will look like the page they will appear on. However, it also means that styles from the page may affect the editor.

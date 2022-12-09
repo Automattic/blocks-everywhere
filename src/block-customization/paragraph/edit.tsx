@@ -160,6 +160,7 @@ function ParagraphBlock( { attributes, mergeBlocks, onReplace, onRemove, setAttr
 				data-custom-placeholder={ placeholder ? true : undefined }
 				__unstableEmbedURLOnPaste
 				__unstableAllowPrefixTransformations
+				__unstablePastePlainText={ wpBlocksEverywhere?.pastePlainText ?? false }
 			/>
 		</>
 	);

@@ -195,10 +195,10 @@ abstract class Handler {
 		}
 
 		// General formatting
-		$tags['strike'] = true;
-		$tags['s'] = true;
-		$tags['cite'] = true;
-		$tags['kbd'] = true;
+		$tags['strike'] = [];
+		$tags['s'] = [];
+		$tags['cite'] = [];
+		$tags['kbd'] = [];
 		$tags['mark'] = [ 'class' => true ];
 		$tags['sub'] = [];
 		$tags['sup'] = [];

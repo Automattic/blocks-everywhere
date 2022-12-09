@@ -7,7 +7,7 @@ export default {
         return wpBlocksEverywhere.topicUsers || [];
     },
     getOptionKeywords: function( user ) {
-        return [ user.login ].concat( user.nicename.split( /\s+/ ) );
+        return user.nicename.split( /\s+/ );
     },
     getOptionLabel: function( user ) {
         return wp.element.concatChildren( [
@@ -25,16 +25,9 @@ export default {
                 },
                 user.nicename
             ),
-            wp.element.createElement(
-                'span',
-                {
-                    className: 'editor-autocompleters__user-slug'
-                },
-                user.login
-            )
         ] );
     },
     getOptionCompletion: function( user ) {
-        return `@${ user.login } `;
+        return `@${ user.nicename } `;
     },
 };

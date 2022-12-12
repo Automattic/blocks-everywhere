@@ -281,12 +281,10 @@ class bbPress extends Handler {
 	 * @param $user_id
 	 * @return array
 	 */
-	private function get_user_data( $user_id ) {
-		$user = get_userdata( $user_id );
+	private function get_user_data( $user_id, $reply_id ) {
 		return [
-			'nicename'   => $user->user_nicename,
-			'login'   => $user->user_login,
-			'avatarUrl' => get_avatar_url( $user_id ),
+			'nicename'  => bbp_get_user_nicename( $user_id ),
+			'avatarUrl' => apply_filters( 'bbp_get_reply_author_avatar_url', get_avatar_url( $user_id ), $reply_id ),
 		];
 	}
 
@@ -301,10 +299,12 @@ class bbPress extends Handler {
 			return [];
 		}
 
-		$users = [ bbp_get_topic_author_id( $topic_id ) ];
+		$user_id = bbp_get_topic_author_id( $topic_id );
+		$users = [ $user_id ];
+		$users_formatted = [ $this->get_user_data( $user_id, $topic_id ) ];
 
 		// Get an array of replies for the topic
-		$replies_ids = get_posts(
+		$replies = get_posts(
 			[
 				'fields'      => 'ids',
 				'numberposts' => 100,
@@ -315,15 +315,15 @@ class bbPress extends Handler {
 		);
 
 		// Loop through the replies and get the user IDs
-		foreach ( $replies_ids as $reply_id ) {
+		foreach ( $replies as $reply_id ) {
 			$user_id = bbp_get_reply_author_id( $reply_id );
 			// Add the user ID to the array if it's not already there
 			if ( ! in_array( $user_id, $users ) ) {
 				$users[] = $user_id;
+				$users_formatted[] = $this->get_user_data( $user_id, $reply_id );
 			}
 		}
 
-		// Return an array of user data for each user ID
-		return array_map( [ $this, 'get_user_data' ], $users );
+		return $users_formatted;
 	}
 }

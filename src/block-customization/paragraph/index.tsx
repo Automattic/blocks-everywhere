@@ -12,6 +12,7 @@ import edit from './edit';
 
 export default function customizeParagraph( settings ) {
 	const hasHeading = wpBlocksEverywhere.iso.blocks.allowBlocks.indexOf( 'core/heading' ) !== -1;
+	const replaceParagraph = wpBlocksEverywhere?.replaceParagraphCode ?? false;
 	const boldNodes = [ 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7' ];
 	const plainNodes = [ 'table' ];
 
@@ -21,7 +22,7 @@ export default function customizeParagraph( settings ) {
 
 	return {
 		...settings,
-		edit,
+		edit: replaceParagraph ? edit : settings.edit,
 		transforms: {
 			...settings.transforms,
 			from: [

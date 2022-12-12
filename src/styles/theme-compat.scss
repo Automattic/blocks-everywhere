@@ -88,7 +88,7 @@
 		}
 	}
 
-	.block-editor-inserter__block-patterns-tabs  {
+	.block-editor-inserter__block-patterns-tabs {
 		min-height: 500px;
 	}
 
@@ -164,7 +164,7 @@
 	}
 
 	.editor-styles-wrapper ol.wp-block-list {
-		margin-left: 10px
+		margin-left: 10px;
 	}
 }
 
@@ -227,4 +227,8 @@ body:not(.gutenberg-support-upload) {
 
 .wp-block-embed {
 	overflow: scroll;
+}
+
+.wporg-support.gutenberg-support .block-editor-block-contextual-toolbar.is-fixed {
+	top: 122px;
 }

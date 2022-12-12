@@ -20,6 +20,18 @@ export default function customizeParagraph( settings ) {
 			from: [
 				...settings.transforms.from,
 
+				// Ensure that shortcodes on a single line dont break
+				{
+					type: 'shortcode',
+					tag: '[a-z][a-z0-9_-]*',
+					transform: ( node, match ) => {
+						return createBlock( 'core/paragraph', {
+							content: match.content,
+						} );
+					},
+					priority: 20,
+				},
+
 				// This removes backticks when pasted on their own. This is typically when copy/pasting site health
 				{
 					type: 'raw',

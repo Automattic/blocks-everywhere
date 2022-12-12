@@ -3,7 +3,7 @@ Contributors: johnny5, automattic
 Tags: gutenberg, comments, bbpress, buddypress
 Requires at least: 5.8
 Tested up to: 6.1
-Stable tag: 1.11.0
+Stable tag: 1.12.0
 Requires PHP: 5.6
 License: GPLv3
 
@@ -69,6 +69,8 @@ Or use `blocks_everywhere_bbpress_admin`
 Some settings are available through the settings object, which is filterable with `blocks_everywhere_editor_settings`.
 
 `allowUrlEmbed` - Enable or disable auto-embed for URLs
+`replaceParagraphCode` - Enable the custom paragraph that converts HTML and PHP code into a code block
+`pastePlainText` - Convert all pasted content to plain text
 `iso.allowEmbeds` - List of enabled embeds
 `iso.blocks.allowBlocks` - List of enabled blocks
 
@@ -95,18 +97,20 @@ Content Embed block uses REST API to fetch content to be embedded. This means th
 Blocks Everywhere enables topic REST API on its own, so if the site with bbPress have this plugin installed and configured, its topics can be embedded.
 
 To enable Content Embed block in the editor, pass these settings to `blocks_everywhere_editor_settings` filter:
-```
+
+`
 add_filter( 'blocks_everywhere_editor_settings', function( $settings ) {
 	$settings['iso']['blocks']['allowBlocks'][] = 'blocks-everywhere/support-content';
 	return $settings;
 } );
-```
+`
 
 To enable REST API for forum topics, use next filters:
-```
+
+`
 add_filter( 'blocks_everywhere_admin', '__return_true' );
 add_filter( 'blocks_everywhere_admin_cap', '__return_empty_string' );
-```
+`
 
 REST API is only used when creating content embed and not used to view it. So `blocks_everywhere_admin_cap` can return specific capability to limit users who will have access to API.
 
@@ -131,6 +135,11 @@ The plugin is simple to install:
 2. Gutenberg when editing a comment
 
 == Changelog ==
+
+= 1.12.0 =
+* Add option to auto-detect HTML and PHP code paste
+* Fix pasting of shortcodes
+* Fix inline code on reply page
 
 = 1.11.0 =
 * Allow editor to be enabled/disabled on bbPress forum or user

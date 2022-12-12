@@ -246,6 +246,8 @@ abstract class Handler {
 			'container' => $container,
 			'editorType' => $this->get_editor_type(),
 			'allowUrlEmbed' => false,
+			'pastePlainText' => false,
+			'replaceParagraphCode' => false,
 			'pluginsUrl' => plugins_url( '', __DIR__ ),
 			'version' => \Automattic\Blocks_Everywhere\Blocks_Everywhere::VERSION,
 		];

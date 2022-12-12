@@ -16,4 +16,6 @@ declare var wpBlocksEverywhere: {
 	editorType: string;
 	iso: Iso;
 	container: string;
+	pastePlainText: boolean;
+	replaceParagraphCode: boolean;
 };

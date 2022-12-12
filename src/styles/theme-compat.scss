@@ -176,11 +176,6 @@ body:not(.gutenberg-support-upload) {
 }
 
 body:not(.gutenberg-support-upload) {
-	// Hide this button until https://github.com/WordPress/gutenberg/issues/46326 is fixed
-	.block-editor-block-toolbar button[aria-label="Upload external image"] {
-		display: none;
-	}
-
 	.block-editor-media-placeholder .components-placeholder__instructions {
 		visibility: hidden;
 		position: relative;

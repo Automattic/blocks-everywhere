@@ -156,6 +156,16 @@
 	.editor-styles-wrapper {
 		background-color: white;
 	}
+
+	.editor-styles-wrapper code {
+		background-color: #f0f0f0 !important;
+		padding-left: 5px !important;
+		padding-right: 5px !important;
+	}
+
+	.editor-styles-wrapper ol.wp-block-list {
+		margin-left: 10px
+	}
 }
 
 body:not(.gutenberg-support-upload) {
@@ -198,4 +208,8 @@ body:not(.gutenberg-support-upload) {
 	top: 0;
 	width: 100%;
 	border: none;
+}
+
+.wp-block-embed {
+	overflow: scroll;
 }

@@ -115,12 +115,13 @@ add_filter( 'blocks_everywhere_admin_cap', '__return_empty_string' );
 REST API is only used when creating content embed and not used to view it. So `blocks_everywhere_admin_cap` can return specific capability to limit users who will have access to API.
 
 In order for Content Embed block from Blocks Everywhere to load post authors, it is required to enable author data in the topic REST API. To do it, use this filter
-```
+
+`
 add_action( 'bbp_get_topic_post_type_supports', function( $supports ) {
 	$supports[] = 'author';
 	return $supports;
 } );
-```
+`
 
 == KSES ==
 

@@ -199,8 +199,12 @@ class bbPress extends Handler {
 			return $content;
 		}
 
-		// HTML comments have been escaped, we want to re-enable them.
-		$content = preg_replace( '~&lt;!--\s*(.+?):(.+?)\s*--&gt;~i', '<!-- $1:$2 -->', $content );
+		// HTML comments have been escaped, we want to re-enable them. We need to handle:
+		//   <!-- namesapce:name {"somejson"} -->
+		//   <!-- namespace:name {"somejson"} /-->
+		//   <!-- namespace:name -->
+		//   <!-- namespace:name /-->
+		$content = preg_replace( '~&lt;!--\s*(.+?):(.+?)\s*(\{.*?\}\s*)?\s*(/)*--&gt;~', '<!-- $1:$2 $3$4-->', $content );
 
 		return $content;
 	}

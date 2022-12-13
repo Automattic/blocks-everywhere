@@ -116,6 +116,21 @@
 	.components-tab-panel__tabs {
 		border: none;
 	}
+
+	.block-editor-list-view-tree {
+		width: 100%;
+
+		button {
+			padding: 0;
+
+			&:hover,
+			&:focus {
+				box-shadow: inset 0 0 0 var(--wp-admin-border-width-focus) #fff;
+				background-color: transparent;
+				color: #fff;
+			}
+		}
+	}
 }
 
 .gutenberg-support .blocks-everywhere {
@@ -123,7 +138,7 @@
 		font-size: 13px !important;
 	}
 
-	button:not(:hover):not(:active):not(.has-background):not(.block-editor-inserter__toggle):not(.is-primary):not(.is-pressed):not(.block-list-appender__toggle) {
+	button:not(:hover):not(:active):not(.block-editor-list-view-block__menu):not(.has-background):not(.block-editor-inserter__toggle):not(.is-primary):not(.is-pressed):not(.block-list-appender__toggle) {
 		background-color: none;
 		color: #1e1e1e;
 	}
@@ -230,5 +245,11 @@ body:not(.gutenberg-support-upload) {
 }
 
 .wporg-support.gutenberg-support .block-editor-block-contextual-toolbar.is-fixed {
-	top: 122px;
+	top: 40px;
+}
+
+@media (min-width: 890px) {
+	.wporg-support.gutenberg-support .block-editor-block-contextual-toolbar.is-fixed {
+		top: 122px;
+	}
 }

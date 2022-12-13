@@ -53,6 +53,28 @@
 		top: 32px;
 		z-index: 101;
 	}
+
+	#bbp-new-topic #new-post fieldset.bbp-form,
+	#bbpress-forums fieldset.bbp-form  {
+		.block-editor-block-navigation__container p {
+			margin-bottom: 0.5em;
+		}
+
+		.block-editor-list-view-tree {
+			width: 100%;
+
+			button {
+				padding: 0;
+
+				&:hover,
+				&:focus {
+					box-shadow: inset 0 0 0 var(--wp-admin-border-width-focus) #fff;
+					background-color: transparent;
+					color: #fff;
+				}
+			}
+		}
+	}
 }
 
 // Loading animation until JS is loaded

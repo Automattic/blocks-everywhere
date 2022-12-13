@@ -28,10 +28,11 @@ export type SupportContentBlockAttributes = {
 	title: string;
 	content: string;
 	source: string;
+	sourceURL: string;
 	minutesToRead?: number | null;
 	likes?: number;
 	status?: string;
-	author?: number;
+	author?: string;
 	created?: string;
 };
 
@@ -84,7 +85,15 @@ export async function fetchSupportPageAttributes( url: string ): Promise< Suppor
 		content = content.substring( 0, EMBED_CONTENT_MAXLENGTH );
 	}
 
-	return { url, isConfirmed: true, content, title, source: 'WordPress.com Guide', minutesToRead };
+	return {
+		url,
+		isConfirmed: true,
+		content,
+		title,
+		source: 'WordPress.com Support',
+		sourceURL: 'https://wordpress.com/support/',
+		minutesToRead,
+	};
 }
 
 /**
@@ -93,7 +102,9 @@ export async function fetchSupportPageAttributes( url: string ): Promise< Suppor
 export async function fetchForumTopicAttributes( url: string ): Promise< SupportContentBlockAttributes > {
 	const { blog, slug } = getForumTopicSlugFromUrl( url );
 
-	const apiUrl = blog.endsWith( 'wordpress.com' )
+	const isWpComApi = blog.endsWith( 'wordpress.com' );
+
+	const apiUrl = isWpComApi
 		? `https://public-api.wordpress.com/wp/v2/sites/${ blog }/topic?slug=${ encodeURIComponent( slug ) }`
 		: `https://${ blog }/wp-json/wp/v2/topic?slug=${ encodeURIComponent( slug ) }`;
 	const response = await fetch( apiUrl );
@@ -117,10 +128,35 @@ export async function fetchForumTopicAttributes( url: string ): Promise< Support
 		isConfirmed: true,
 		content,
 		title,
-		source: 'WordPress.com Forums',
+		author: topic.author ? await fetchForumTopicAuthor( topic.author, blog, isWpComApi ) : undefined,
+		source: isWpComApi ? 'WordPress.com Forums' : `${ blog } Forums`,
+		sourceURL: `https://${ blog }`,
 		status: topic.status,
 		created: topic.date,
 	};
+}
+
+/**
+ * Fetch author name via WP.com or WP REST API
+ */
+async function fetchForumTopicAuthor( userId: number, blog: string, isWpComApi: boolean ): Promise< string > {
+	try {
+		const apiUrl = isWpComApi
+			? `https://public-api.wordpress.com/rest/v1.1/users/${ userId }`
+			: `https://${ blog }/wp-json/wp/v2/users/${ userId }`;
+
+		const response = await fetch( apiUrl );
+
+		if ( ! response.ok ) {
+			return null;
+		}
+
+		const user = await response.json();
+
+		return user.display_name || user.name;
+	} catch ( e ) {
+		return;
+	}
 }
 
 /**

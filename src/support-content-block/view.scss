@@ -21,6 +21,7 @@
 	padding: 29px 30px;
 	cursor: pointer;
 
+	position: relative;
 	display: flex;
 	gap: 16px;
 	flex-direction: column;
@@ -117,7 +118,7 @@
 }
 
 // Override bbPress styles
-.bbp-reply-content a.be-support-content__link {
+.bbp-reply-content .be-support-content a.be-support-content__link {
 	text-decoration: none !important;
 
 	&:hover {

@@ -148,6 +148,7 @@ The plugin is simple to install:
 * Add option to auto-detect HTML and PHP code paste
 * Fix pasting of shortcodes
 * Fix inline code on reply page
+* Fix content embed block styles
 * Improve name shown in bbPress autocompleter
 
 = 1.11.0 =

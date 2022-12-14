@@ -145,6 +145,11 @@ The plugin is simple to install:
 
 == Changelog ==
 
+= 1.13.0 =
+* Improve the `replaceParagraphCode` function to better detect code
+* Improve bbPress KSES handling
+* Fix error when drag/dropping or pasting an image and upload has been disabled
+
 = 1.12.0 =
 * Add option to auto-detect HTML and PHP code paste
 * Fix pasting of shortcodes

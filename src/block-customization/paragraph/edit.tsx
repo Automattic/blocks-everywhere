@@ -46,10 +46,30 @@ function hasDropCapDisabled( align ) {
 }
 
 function isPossiblyCode( blocks ) {
-	if ( blocks.length > 2 ) {
-		return blocks[ 0 ].attributes?.content.startsWith( '&lt;' );
+	const paragraphs = blocks.filter( ( block ) => block.name === 'core/paragraph' );
+
+	// If we have blocks other than paragraphs then it's rich text - dont convert
+	if ( paragraphs.length !== blocks.length ) {
+		return false;
 	}
 
+	// A lot of paragraph blocks? Probably code
+	if ( paragraphs.length > 10 ) {
+		return true;
+	}
+
+	// First block starts with < - code
+	if ( blocks.length > 0 && blocks[ 0 ].attributes?.content.startsWith( '&lt;' ) ) {
+		return true;
+	}
+
+	// Count the number of lines within the blocks
+	const lineLength = paragraphs.reduce( ( total, block ) =>( block.attributes?.content.split( '<br>' ).length ?? 1 ) + total, 0 );
+	if ( lineLength > 20 ) {
+		return true;
+	}
+
+	// Not code
 	return false;
 }
 
@@ -76,7 +96,7 @@ function ParagraphBlock( { attributes, mergeBlocks, onReplace, onRemove, setAttr
 
 	function hijackedReplace( values ) {
 		if ( isPossiblyCode( values ) ) {
-			const content = values.map( ( block ) => block.attributes.content ).join( '\n' );
+			const content = values.map( ( block ) => block.attributes.content ).join( '\n\n' );
 			const block = createBlock( 'core/code', { content } );
 
 			onReplace( [ block ] );

@@ -199,8 +199,23 @@ class bbPress extends Handler {
 			return $content;
 		}
 
-		// HTML comments have been escaped, we want to re-enable them.
-		$content = preg_replace( '~&lt;!--\s*(.+?):(.+?)\s*--&gt;~i', '<!-- $1:$2 -->', $content );
+		// HTML comments have been escaped, we want to re-enable them. We need to handle:
+		//   <!-- wp:namespace/name {"somejson"} -->
+		//   <!-- wp:namespace/name {"somejson"} /-->
+		//   <!-- wp:namespace/name -->
+		//   <!-- wp:namespace/name /-->
+		$block_syntax = 'wp:[a-z0-9-/]+';
+		$content = preg_replace(
+			'@&lt;!--(' .
+				// Opening blocks, supporting a self-closing block
+				"(?:\s*{$block_syntax}\s*(?:\{.*?\}\s*)?[/]?)" .
+				'|' .
+				// Closing block
+				"(?:\s*[/]{$block_syntax}\s*)" .
+			')--&gt;@',
+			'<!--$1-->',
+			$content
+		);
 
 		return $content;
 	}

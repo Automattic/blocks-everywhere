@@ -10,7 +10,8 @@
 		"dist": "yarn release && rm -rf dist && mkdir dist && mv release blocks-everywhere && zip blocks-everywhere.zip -r blocks-everywhere && mv blocks-everywhere release && mv blocks-everywhere.zip dist && release-it",
 		"lint:css": "wp-scripts lint-style",
 		"lint:js": "wp-scripts lint-js",
-		"lint:php": "composer run-script lint"
+		"lint:php": "composer run-script lint",
+		"test:php": "composer run-script test"
 	},
 	"author": "Automattic",
 	"license": "GPL-2.0-or-later",

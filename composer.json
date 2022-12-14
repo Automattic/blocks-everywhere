@@ -11,7 +11,8 @@
 		"sirbrillig/phpcs-no-get-current-user": "1.1.0",
 		"phpcsstandards/phpcsextra": "1.0.0-alpha3",
 		"vimeo/psalm": "4.23.0",
-		"php-stubs/wordpress-stubs": "5.9.3"
+		"php-stubs/wordpress-stubs": "5.9.3",
+        "phpunit/phpunit": "^9.5"
 	},
     "minimum-stability": "dev",
 	"prefer-stable": true,
@@ -23,6 +24,7 @@
 	},
 	"scripts": {
 		"lint": "./vendor/bin/phpcs -s",
-		"psalm-check":"./vendor/bin/psalm --show-info=false"
+		"psalm-check":"./vendor/bin/psalm --show-info=false",
+		"test": "./vendor/bin/phpunit"
 	}
 }

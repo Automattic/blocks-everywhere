@@ -58,10 +58,10 @@ export const EmbedPlaceHolder = ( props: EmbedPlaceHolderProps ) => {
 						{ _x( 'Embed', 'button label', 'blocks-everywhere' ) }
 					</Button>
 				</form>
+				<div className="be-support-content-placeholder__search-slot">
+					<SearchResults search={ search } />
+				</div>
 			</Placeholder>
-			<div>
-				<SearchResults search={ search } />
-			</div>
 		</div>
 	);
 };

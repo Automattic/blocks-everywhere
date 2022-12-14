@@ -39,7 +39,7 @@ export const SearchResults = ( props: SearchResultsProps ) => {
 	}
 
 	return (
-		<Popover variant="unstyled" offset={ -16 } placement="bottom-start">
+		<Popover variant="unstyled" offset={ 16 } placement="bottom-start">
 			<div>
 				<Elevation value={ 3 } />
 

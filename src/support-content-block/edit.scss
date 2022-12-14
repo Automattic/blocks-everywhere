@@ -9,6 +9,10 @@
   .components-notice-list .components-notice__content {
     margin: 4px 25px 4px 0;
   }
+
+  &__search-slot {
+    flex-basis: 100%;
+  }
 }
 
 .be-support-content-confirm-anchor {

@@ -5,13 +5,16 @@
 import customizeEmbed from "./embed";
 import customizeParagraph from "./paragraph";
 
-function disableSupports( supports ) {
+function disableSupports( settings ) {
 	return {
-		...supports,
-		customClassName: false,
-		anchor: false,
-		html: false,
-		color: false,
+		...settings,
+		supports: {
+			...settings.supports,
+			customClassName: false,
+			anchor: false,
+			html: false,
+			color: false,
+		}
 	}
 }
 
@@ -26,6 +29,6 @@ export default function modifyBlocks( settings, name ) {
 
 	return {
 		...settings,
-		supports: disableSupports( settings.supports ),
+		supports: disableSupports( settings ),
 	};
 }

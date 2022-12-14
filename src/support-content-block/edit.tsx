@@ -26,7 +26,7 @@ export const Edit = compose( withNotices )( ( props: EditProps ) => {
 
 	const instructions = __( 'Embed a Support doc or a forum topic.', 'blocks-everywhere' );
 	const mismatchErrorMessage = __( 'It does not look like a Support doc or a forum topic URL.', 'blocks-everywhere' );
-	const placeholder = __( 'Enter URL to embed here…', 'blocks-everywhere' );
+	const placeholder = __( 'Search or insert URL', 'blocks-everywhere' );
 
 	const [ isConfirmed, setIsConfirmed ] = useState( props.attributes.isConfirmed );
 	const [ isEditing, setIsEditing ] = useState( false );

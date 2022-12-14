@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Button, Placeholder } from '@wordpress/components';
 import { _x } from '@wordpress/i18n';
 import classnames from 'classnames';
 import './edit.scss';
+import { useState } from '@wordpress/element';
+import { debounce } from '@wordpress/compose';
+import { SearchResults } from './search-results';
 
 type EmbedPlaceHolderProps = {
 	icon: JSX.Element;
@@ -20,6 +23,13 @@ type EmbedPlaceHolderProps = {
  * UI for configuring the embed
  */
 export const EmbedPlaceHolder = ( props: EmbedPlaceHolderProps ) => {
+	const [ search, setSearch ] = useState( null );
+
+	const updateSearch = useCallback(
+		debounce( ( search ) => setSearch( search ), 1000 ),
+		[]
+	);
+
 	return (
 		<div className={ classnames( 'be-support-content-placeholder', props.className ) }>
 			<Placeholder
@@ -39,13 +49,19 @@ export const EmbedPlaceHolder = ( props: EmbedPlaceHolderProps ) => {
 						value={ props.url }
 						className="components-placeholder__input"
 						placeholder={ props.placeholder }
-						onChange={ ( event ) => props.updateUrl( event.target.value ) }
+						onChange={ ( event ) => {
+							props.updateUrl( event.target.value );
+							updateSearch( event.target.value );
+						} }
 					/>
 					<Button isPrimary type="submit">
 						{ _x( 'Embed', 'button label', 'blocks-everywhere' ) }
 					</Button>
 				</form>
 			</Placeholder>
+			<div>
+				<SearchResults search={ search } />
+			</div>
 		</div>
 	);
 };

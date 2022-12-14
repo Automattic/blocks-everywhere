@@ -46,8 +46,8 @@ function hasDropCapDisabled( align ) {
 }
 
 function isPossiblyCode( blocks ) {
-	if ( blocks.length > 2 ) {
-		return blocks[ 0 ].attributes?.content.startsWith( '&lt;' );
+	if ( blocks.length > 20 ) {
+		return true;
 	}
 
 	return false;

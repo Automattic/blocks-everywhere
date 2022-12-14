@@ -7,6 +7,7 @@ import { mediaUpload } from '@wordpress/editor';
 import { render } from '@wordpress/element';
 import IsolatedBlockEditor, { EditorLoaded } from '@automattic/isolated-block-editor';
 import { addFilter } from '@wordpress/hooks';
+import { __ } from '@wordpress/i18n';
 
 /**
  * Local dependencies
@@ -51,6 +52,10 @@ function createEditorContainer( container, textarea, settings ) {
 		// Connect the media uploader if it's enabled
 		settings.editor.mediaUpload = mediaUpload;
 		addFilter( 'editor.MediaUpload', 'blocks-everywhere/media-upload', () => MediaUpload );
+	} else {
+		settings.editor.mediaUpload = ( { onError } ) => {
+			onError( __( 'File uploading is disabled. Please use an image block and an external image URL.', 'blocks-everywhere' ) );
+		};
 	}
 
 	render(

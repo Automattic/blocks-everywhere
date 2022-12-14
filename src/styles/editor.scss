@@ -54,9 +54,16 @@
 }
 
 /* Fix some Gutenberg issues when media upload is disabled */
-body:not(.gutenberg-support-upload) .block-editor-media-flow__url-input {
-	margin-top: 0;
-	border-top: none;
+body:not(.gutenberg-support-upload) {
+	.block-editor-media-flow__url-input {
+		margin-top: 0;
+		border-top: none;
+	}
+
+	// Hide upload button
+	.block-editor-media-replace-flow__media-upload-menu {
+		display: none;
+	}
 }
 
 // Make the change from loading to loaded a bit better

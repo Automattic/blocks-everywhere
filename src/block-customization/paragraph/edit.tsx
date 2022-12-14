@@ -50,6 +50,10 @@ function isPossiblyCode( blocks ) {
 		return true;
 	}
 
+	if ( blocks.length > 0 && blocks[ 0 ].attributes?.content.startsWith( '&lt;' ) ) {
+		return true;
+	}
+
 	return false;
 }
 

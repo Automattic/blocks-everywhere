@@ -39,17 +39,17 @@ export const SearchResults = ( props: SearchResultsProps ) => {
 	}
 
 	return (
-		<Popover variant="unstyled" offset={ 16 } placement="bottom-start">
-			<div>
-				<Elevation value={ 3 } />
-
+		<div className="be-support-content-search-results">
+			<div className="be-support-content-search-results__list">
 				{ results.map( ( result ) => (
-					<div>
-						<div>{ result.title }</div>
-						<a href={ result.url } target="_blank"></a>
+					<div className="be-support-content-search-results__item">
+						<div className="be-support-content-search-results__title">{ result.title }</div>
+						<a className="be-support-content-search-results__link" href={ result.url } target="_blank">
+							{ result.url }
+						</a>
 					</div>
 				) ) }
 			</div>
-		</Popover>
+		</div>
 	);
 };

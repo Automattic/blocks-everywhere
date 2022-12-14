@@ -12,6 +12,7 @@
 
   &__search-slot {
     flex-basis: 100%;
+    position: relative;
   }
 }
 
@@ -44,5 +45,48 @@
         box-shadow: inset 0 0 0 1px $studio-red-50 !important;
       }
     }
+  }
+}
+
+.be-support-content-search-results {
+  padding: 10px;
+  background-color: $studio-white;
+
+  border: 1px solid #D8DBDD;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  border-radius: 2px;
+
+  position: absolute;
+  left: 0;
+  top: 12px;
+  width: 100%;
+
+  z-index: 10000;
+
+  &__list {
+  }
+
+  &__item {
+    padding: 20px 10px;
+
+    &:hover {
+        background-color: $studio-gray-0;
+    }
+  }
+
+  &__title {
+    font-family: "SF Pro Text", $sans;
+    font-style: normal;
+    font-weight: 500;
+    font-size: $font-body;
+    line-height: 24px;
+  }
+
+  &__link {
+    font-family: "SF Pro Text", $sans;
+    font-style: normal;
+    font-weight: 400;
+    font-size: $font-body-small;
+    line-height: 20px;
   }
 }

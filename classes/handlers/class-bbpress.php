@@ -175,10 +175,13 @@ class bbPress extends Handler {
 				'bbp_edit_topic_pre_content',
 				'bbp_new_reply_pre_content',
 				'bbp_edit_reply_pre_content',
+				'bbp_new_forum_pre_content',
+				'bbp_edit_forum_pre_content',
 			] as $filter
 		) {
 			// just after bbp_encode_bad() would have run (if it ran)
-			add_filter( $filter, [ $this, 'allow_comments_in_bbp_encode_bad' ], 11 );
+			add_filter( $filter, [ $this, 'allow_comments_in_bbp_encode_bad_pre' ], 9 );
+			add_filter( $filter, [ $this, 'allow_comments_in_bbp_encode_bad_post' ], 11 );
 		}
 
 		// Add the requisite tags for blocks
@@ -186,36 +189,62 @@ class bbPress extends Handler {
 	}
 
 	/**
-	 * Replace encoded block markup with a decoded version
+	 * The main regex. It consists of a [prefix]!--[blockmarkup]--[suffix].
+	 *
+	 * The block markup allows for these forms (shown with prefix as < and postfix as >)
+	 *   <!-- wp:namespace/name {"somejson"} -->
+	 *   <!-- wp:namespace/name {"somejson"} /-->
+	 *   <!-- wp:namespace/name -->
+	 *   <!-- wp:namespace/name /-->
+	 * @param string $prefix Prefix.
+	 * @param string $suffix Suffix.
+	 * @return string
+	 */
+	private function get_markup_regex( $prefix, $suffix ) {
+		$block_syntax = 'wp:[a-z0-9-/]+';
+
+		return "@{$prefix}!--(" .
+			// Opening blocks, supporting a self-closing block
+			"(?:\s*{$block_syntax}\s*(?:\{.*?\}\s*)?[/]?)" .
+			'|' .
+			// Closing block
+			"(?:\s*[/]{$block_syntax}\s*)" .
+			")--{$suffix}@";
+	}
+
+	/**
+	 * Runs before bbPress and converts all the encoded block markup &lt;!-- wp:something --&gt; into a special [[!-- wp:somthing --]]. This
+	 * takes it out of action from the rest of bbPress, and will be restored later.
 	 *
 	 * @param string $content Content.
 	 * @return string
 	 */
-	public function allow_comments_in_bbp_encode_bad( $content ) {
+	public function allow_comments_in_bbp_encode_bad_pre( $content ) {
+		// Convert encoded markup into a square bracket version - this is if someone is typing markup as content, not as markup
+		$content = preg_replace( $this->get_markup_regex( '&lt;', '(?:&gt;|>)' ), '[[!--$1--]]', $content );
+
+		return $content;
+	}
+
+	/**
+	 * Runs after bbPress. At this point bbPress has encoded all the block markup so we need to unencoded it. We also need to convert
+	 * the [!-- wp:markup --] back into encoded markup. If anyone does happen to use [[!-- wp:markup --]] in their content then it will also
+	 * be replaced with a (safe) encoded <!-- wp:markup --> version
+	 *
+	 * @param string $content Content
+	 * @return string
+	 */
+	public function allow_comments_in_bbp_encode_bad_post( $content ) {
 		$filter = current_filter();
 
-		// If not hooked, we have no need to alter anything.
-		if ( ! has_filter( $filter, 'bbp_encode_bad' ) ) {
-			return $content;
+		// If bbp_encode_bad is active then we need to unencoded block markup
+		if ( has_filter( $filter, 'bbp_encode_bad' ) ) {
+			// HTML comments have been escaped, we want to re-enable them. We need to handle:
+			$content = preg_replace( $this->get_markup_regex( '&lt;', '&gt;' ), '<!--$1-->', $content );
 		}
 
-		// HTML comments have been escaped, we want to re-enable them. We need to handle:
-		//   <!-- wp:namespace/name {"somejson"} -->
-		//   <!-- wp:namespace/name {"somejson"} /-->
-		//   <!-- wp:namespace/name -->
-		//   <!-- wp:namespace/name /-->
-		$block_syntax = 'wp:[a-z0-9-/]+';
-		$content = preg_replace(
-			'@&lt;!--(' .
-				// Opening blocks, supporting a self-closing block
-				"(?:\s*{$block_syntax}\s*(?:\{.*?\}\s*)?[/]?)" .
-				'|' .
-				// Closing block
-				"(?:\s*[/]{$block_syntax}\s*)" .
-			')--&gt;@',
-			'<!--$1-->',
-			$content
-		);
+		// Convert the [[]] format back to encoded
+		$content = preg_replace( $this->get_markup_regex( '\[\[', '\]\]' ), '&lt;!--$1--&gt;', $content );
 
 		return $content;
 	}

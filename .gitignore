@@ -6,3 +6,4 @@ vendor/
 node_modules
 dist/
 .idea
+/.phpunit.result.cache

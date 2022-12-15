@@ -1,4 +1,4 @@
-import {useEffect, useState} from '@wordpress/element';
+import { useEffect, useState } from '@wordpress/element';
 import React from 'react';
 
 type SearchResultsProps = {
@@ -17,23 +17,30 @@ type SearchResult = {
 export const SearchResults = ( props: SearchResultsProps ) => {
 	const [ results, setResults ] = useState< SearchResult[] >( [] );
 
+	const [ loading, setLoading ] = useState( false );
+
 	useEffect( () => {
 		let cancelled = false;
 
-		if (!props.search || props.search.length <= 3 || props.search.startsWith('https://') || props.search.startsWith('http://')) {
-			setResults([]);
+		if (
+			! props.search ||
+			props.search.length <= 3 ||
+			props.search.startsWith( 'https://' ) ||
+			props.search.startsWith( 'http://' )
+		) {
+			setResults( [] );
 		} else {
-			setResults([]);
+			setResults( [] );
 
-			getSearchResults(props.search).then((newResults) => {
-				if (!cancelled) {
-					setResults(newResults);
+			getSearchResults( props.search ).then( ( newResults ) => {
+				if ( ! cancelled ) {
+					setResults( newResults );
 				}
-			});
+			} );
 		}
 		return () => {
 			cancelled = true;
-		}
+		};
 	}, [ props.search ] );
 
 	if ( results.length === 0 ) {
@@ -59,7 +66,9 @@ export const SearchResults = ( props: SearchResultsProps ) => {
 const MAX_RESULTS = 5;
 
 async function getSearchResults( search: string ): Promise< SearchResult[] > {
-	const apiUrl = `https://public-api.wordpress.com/wp/v2/sites/en.support.wordpress.com/pages?search=${ encodeURIComponent( search ) }`;
+	const apiUrl = `https://public-api.wordpress.com/wp/v2/sites/en.support.wordpress.com/pages?search=${ encodeURIComponent(
+		search
+	) }`;
 
 	const response = await fetch( apiUrl );
 
@@ -70,13 +79,13 @@ async function getSearchResults( search: string ): Promise< SearchResult[] > {
 	const pages = await response.json();
 
 	const results = pages.map( ( page ) => ( {
-		title: page.title.rendered.replace("&nbsp;", " "),
+		title: page.title.rendered.replace( '&nbsp;', ' ' ),
 		url: page.link,
-	}));
+	} ) );
 
 	if ( results.length > MAX_RESULTS ) {
 		return results.slice( 0, MAX_RESULTS );
 	}
 
-	return results
+	return results;
 }

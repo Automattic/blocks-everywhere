@@ -80,6 +80,11 @@
     font-weight: 500;
     font-size: $font-body;
     line-height: 24px;
+
+    overflow: hidden;
+    display: block;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   &__link {
@@ -88,5 +93,10 @@
     font-weight: 400;
     font-size: $font-body-small;
     line-height: 20px;
+
+    overflow: hidden;
+    display: block;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }

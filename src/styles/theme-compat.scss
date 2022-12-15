@@ -131,6 +131,12 @@
 			}
 		}
 	}
+
+	.blocks-everywhere .components-search-control__input {
+		border: none;
+		margin: 0 0 8px;
+		padding: 16px 48px 16px 16px;
+	}
 }
 
 .gutenberg-support .blocks-everywhere {

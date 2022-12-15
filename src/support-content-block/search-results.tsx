@@ -23,6 +23,8 @@ export const SearchResults = ( props: SearchResultsProps ) => {
 		if (!props.search || props.search.length <= 3 || props.search.startsWith('https://') || props.search.startsWith('http://')) {
 			setResults([]);
 		} else {
+			setResults([]);
+
 			getSearchResults(props.search).then((newResults) => {
 				if (!cancelled) {
 					setResults(newResults);
@@ -54,10 +56,27 @@ export const SearchResults = ( props: SearchResultsProps ) => {
 	);
 };
 
+const MAX_RESULTS = 5;
+
 async function getSearchResults( search: string ): Promise< SearchResult[] > {
-	// https://public-api.wordpress.com/wp/v2/sites/9619154/pages?search=change%20domain
-	return [
-		{ title: 'Domains » Change a Domain Name', url: 'https://wordpress.com/support/domains/change-a-domain/' },
-		{ title: 'How do I change a Domain Name', url: 'https://wordpress.com/forums/topic/change-domain-name-266/' },
-	];
+	const apiUrl = `https://public-api.wordpress.com/wp/v2/sites/en.support.wordpress.com/pages?search=${ encodeURIComponent( search ) }`;
+
+	const response = await fetch( apiUrl );
+
+	if ( ! response.ok ) {
+		return [];
+	}
+
+	const pages = await response.json();
+
+	const results = pages.map( ( page ) => ( {
+		title: page.title.rendered.replace("&nbsp;", " "),
+		url: page.link,
+	}));
+
+	if ( results.length > MAX_RESULTS ) {
+		return results.slice( 0, MAX_RESULTS );
+	}
+
+	return results
 }

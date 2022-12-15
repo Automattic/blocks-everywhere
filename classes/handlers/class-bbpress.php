@@ -58,7 +58,8 @@ class bbPress extends Handler {
 		// Apply block processing to email notifications
 		$default_email = defined( 'BLOCKS_EVERYWHERE_EMAIL' ) ? BLOCKS_EVERYWHERE_EMAIL : false;
 		if ( apply_filters( 'blocks_everywhere_email', $default_email ) ) {
-			add_filter( 'bbp_subscription_mail_message', [ $this, 'remove_blocks_from_email' ], 10, 2 );
+			add_filter( 'bbp_subscription_mail_message', [ $this, 'remove_blocks_from_reply' ], 10, 2 );
+			add_filter( 'bbp_forum_subscription_mail_message', [ $this, 'remove_blocks_from_topic' ], 10, 2 );
 		}
 	}
 
@@ -250,32 +251,66 @@ class bbPress extends Handler {
 	}
 
 	/**
-	 * Remove blocks from email content, converting it markdown-lite
+	 * Remove blocks from reply emails
+	 *
+	 * @param string $content Content.
+	 * @param integer $reply_id Reply ID.
+	 * @return string
+	 */
+	public function remove_blocks_from_reply( $content, $reply_id ) {
+		$new_content = bbp_get_reply_content( $reply_id );
+		return $this->remove_blocks_from_email( $new_content, $content );
+	}
+
+	/**
+	 * Remove blocks from topic emails
+	 *
+	 * @param string $content Content.
+	 * @param integer $reply_id Topic ID.
+	 * @return string
+	 */
+	public function remove_blocks_from_topic( $content, $topic_id ) {
+		$new_content = bbp_get_topic_content( $topic_id );
+		return $this->remove_blocks_from_email( $new_content, $content );
+	}
+
+	/**
+	 * Remove blocks from email content, converting it markdown-lite.
+	 *
+	 * We are given the original new content (taken directly from the topic or reply) and the existing email. We then
+	 * process blocks, try and convert some common HTML, and splice it back into the email.
 	 *
 	 * @param string  $content Email content.
 	 * @param integer $reply_id Reply ID.
 	 * @return string
 	 */
-	public function remove_blocks_from_email( $content, $reply_id ) {
+	public function remove_blocks_from_email( $new_content, $old_email ) {
 		// Get a decoded version of the content
-		$reply = wp_specialchars_decode( bbp_get_reply_content( $reply_id ) );
+		$new_content = wp_specialchars_decode( $new_content );
 
 		// Process blocks
-		$reply = $this->do_blocks( $reply, 'bbp_get_reply_content' );
+		$new_content = $this->do_blocks( $new_content, 'bbp_get_new_content_content' );
 
 		// Do a bit of markdown-lite
-		$reply = preg_replace( '@<li[^>]*>(.*?)</li>@', '<li>  - $2</li>', $reply );
-		$reply = preg_replace( '@<strong>(.*?)</strong>@', '*$1*', $reply );
-		$reply = preg_replace( '@<blockquote>.*?<p>(.*?)</p>.*?</blockquote>@s', '> $1', $reply );
-
-		// Remove a lot of the extra new lines
-		$reply = preg_replace( '/\n{2,}/', "\n\n", $reply );
+		$new_content = preg_replace( '@<li[^>]*>(.*?)<@s', ' - $1<', $new_content );
+		$new_content = preg_replace( '@<strong[^>]*>(.*?)</strong>@', '*$1*', $new_content );
+		$new_content = preg_replace( '@<blockquote[^>]*>.*?<p>(.*?)</p>.*?</blockquote>@s', '> $1', $new_content );
 
 		// Convert to plain text
-		$reply = wp_specialchars_decode( wp_strip_all_tags( $reply ), ENT_QUOTES );
+		$new_content = wp_specialchars_decode( wp_strip_all_tags( $new_content ), ENT_QUOTES );
 
-		// Replace the original message
-		return preg_replace( '@<!--.*-->@s', trim( $reply ), $content );
+		// Remove a lot of the extra new lines
+		$new_content = preg_replace( '/\n{2,}/', "\n\n", $new_content );
+
+		// Get the scalpel out. Makes big assumptions about the existing email
+		$lines = explode( "\n", $old_email );
+		$lines = array_merge(
+			array_slice( $lines, 0, 2 ),
+			explode( "\n", $new_content ),
+			array_slice( $lines, -8 )
+		);
+
+		return implode( "\n", $lines );
 	}
 
 	/**

@@ -264,7 +264,7 @@ class bbPress extends Handler {
 		$reply = $this->do_blocks( $reply, 'bbp_get_reply_content' );
 
 		// Do a bit of markdown-lite
-		$reply = preg_replace( '@<li>(.*?)</li>@', '<li>  - $1</li>', $reply );
+		$reply = preg_replace( '@<li[^>]*>(.*?)</li>@', '<li>  - $2</li>', $reply );
 		$reply = preg_replace( '@<strong>(.*?)</strong>@', '*$1*', $reply );
 		$reply = preg_replace( '@<blockquote>.*?<p>(.*?)</p>.*?</blockquote>@s', '> $1', $reply );
 

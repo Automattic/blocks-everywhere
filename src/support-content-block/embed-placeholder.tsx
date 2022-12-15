@@ -59,7 +59,13 @@ export const EmbedPlaceHolder = ( props: EmbedPlaceHolderProps ) => {
 					</Button>
 				</form>
 				<div className="be-support-content-placeholder__search-slot">
-					<SearchResults search={ search } />
+					<SearchResults
+						search={ search }
+						setUrl={ ( url ) => {
+							props.updateUrl( url );
+							setSearch( url );
+						} }
+					/>
 				</div>
 			</Placeholder>
 		</div>

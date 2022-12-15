@@ -63,11 +63,16 @@
 
   z-index: 10000;
 
+  &__loading {
+    display: flex;
+  }
+
   &__list {
   }
 
   &__item {
     padding: 10px 20px;
+    cursor: pointer;
 
     &:hover {
         background-color: $studio-gray-0;

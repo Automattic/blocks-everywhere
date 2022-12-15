@@ -1,8 +1,11 @@
 import { useEffect, useState } from '@wordpress/element';
+import { Spinner } from '@wordpress/components';
 import React from 'react';
+import { __ } from '@wordpress/i18n';
 
 type SearchResultsProps = {
 	search: string;
+	setUrl( url: string ): void;
 };
 
 type SearchResult = {
@@ -22,20 +25,22 @@ export const SearchResults = ( props: SearchResultsProps ) => {
 	useEffect( () => {
 		let cancelled = false;
 
+		setResults( [] );
+
 		if (
-			! props.search ||
-			props.search.length <= 3 ||
-			props.search.startsWith( 'https://' ) ||
-			props.search.startsWith( 'http://' )
+			props.search &&
+			props.search.length > 3 &&
+			! props.search.startsWith( 'https://' ) &&
+			! props.search.startsWith( 'http://' )
 		) {
-			setResults( [] );
-		} else {
-			setResults( [] );
+			setLoading( true );
 
 			getSearchResults( props.search ).then( ( newResults ) => {
 				if ( ! cancelled ) {
 					setResults( newResults );
 				}
+
+				setLoading( false );
 			} );
 		}
 		return () => {
@@ -43,15 +48,25 @@ export const SearchResults = ( props: SearchResultsProps ) => {
 		};
 	}, [ props.search ] );
 
-	if ( results.length === 0 ) {
+	if ( ! loading && results.length === 0 ) {
 		return null;
 	}
 
 	return (
 		<div className="be-support-content-search-results">
 			<div className="be-support-content-search-results__list">
+				{ loading && (
+					<div className="be-support-content-search-results__loading">
+						<Spinner />
+						<span>{ __( 'Loading content suggestions...', 'blocks-everywhere' ) }</span>
+					</div>
+				) }
+
 				{ results.map( ( result ) => (
-					<div className="be-support-content-search-results__item">
+					<div
+						className="be-support-content-search-results__item"
+						onClick={ () => props.setUrl( result.url ) }
+					>
 						<div className="be-support-content-search-results__title">{ result.title }</div>
 						<a className="be-support-content-search-results__link" href={ result.url } target="_blank">
 							{ result.url }
@@ -80,7 +95,7 @@ async function getSearchResults( search: string ): Promise< SearchResult[] > {
 
 	const results = pages.map( ( page ) => ( {
 		title: page.title.rendered.replace( '&nbsp;', ' ' ),
-		url: page.link,
+		url: page.link.replace( 'en.support.wordpress.com', 'wordpress.com/support' ),
 	} ) );
 
 	if ( results.length > MAX_RESULTS ) {

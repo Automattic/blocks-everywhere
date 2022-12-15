@@ -1,7 +1,5 @@
-import { useEffect, useState } from '@wordpress/element';
-import { __ } from '@wordpress/i18n';
+import {useEffect, useState} from '@wordpress/element';
 import React from 'react';
-import { __experimentalElevation as Elevation, MenuItem, NavigableMenu, Popover } from '@wordpress/components';
 
 type SearchResultsProps = {
 	search: string;
@@ -17,22 +15,24 @@ type SearchResult = {
  * props.search is the search string, should be debounced.
  */
 export const SearchResults = ( props: SearchResultsProps ) => {
-	const [ results, setResults ] = useState< SearchResult[] >( [
-		{ title: 'Domains » Change a Domain Name', url: 'https://wordpress.com/support/domains/change-a-domain/' },
-		{ title: 'How do I change a Domain Name', url: 'https://wordpress.com/forums/topic/change-domain-name-266/' },
-	] );
+	const [ results, setResults ] = useState< SearchResult[] >( [] );
 
 	useEffect( () => {
-		// start fetching
+		let cancelled = false;
+
+		if (!props.search || props.search.length <= 3 || props.search.startsWith('https://') || props.search.startsWith('http://')) {
+			setResults([]);
+		} else {
+			getSearchResults(props.search).then((newResults) => {
+				if (!cancelled) {
+					setResults(newResults);
+				}
+			});
+		}
+		return () => {
+			cancelled = true;
+		}
 	}, [ props.search ] );
-
-	if ( ! props.search || props.search.length < 3 ) {
-		return null;
-	}
-
-	if ( props.search.startsWith( 'https://' ) || props.search.startsWith( 'http://' ) ) {
-		return null;
-	}
 
 	if ( results.length === 0 ) {
 		return null;
@@ -53,3 +53,11 @@ export const SearchResults = ( props: SearchResultsProps ) => {
 		</div>
 	);
 };
+
+async function getSearchResults( search: string ): Promise< SearchResult[] > {
+	// https://public-api.wordpress.com/wp/v2/sites/9619154/pages?search=change%20domain
+	return [
+		{ title: 'Domains » Change a Domain Name', url: 'https://wordpress.com/support/domains/change-a-domain/' },
+		{ title: 'How do I change a Domain Name', url: 'https://wordpress.com/forums/topic/change-domain-name-266/' },
+	];
+}

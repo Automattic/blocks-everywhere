@@ -112,6 +112,9 @@ class bbPress extends Handler {
 		// Modify the body class
 		add_action( 'bbp_head', [ $this, 'bbp_head' ] );
 
+		// We don't want an empty block
+		$this->setup_empty_content();
+
 		// If the user doesn't have unfiltered_html then we need to modify KSES to allow blocks
 		if ( ! current_user_can( 'unfiltered_html' ) ) {
 			$this->setup_kses();
@@ -160,6 +163,22 @@ class bbPress extends Handler {
 	}
 
 	/**
+	 * Get all the bbPress content filters - forums, topics, replies
+	 *
+	 * @return array
+	 */
+	private function get_content_filters() {
+		return [
+			'bbp_new_topic_pre_content',
+			'bbp_edit_topic_pre_content',
+			'bbp_new_reply_pre_content',
+			'bbp_edit_reply_pre_content',
+			'bbp_new_forum_pre_content',
+			'bbp_edit_forum_pre_content',
+		];
+	}
+
+	/**
 	 * Setup KSES filters for bbPress. This involves disabling bbp_code_trick_reverse, which mangles <code> into ticks.
 	 * Then each of the pre_content filters are hooked so that block markup comments are allowed. Finally, KSES is modified
 	 * to allow blocks and block attributes.
@@ -170,16 +189,7 @@ class bbPress extends Handler {
 	 */
 	private function setup_kses() {
 		// Allow block comments in content
-		foreach (
-			[
-				'bbp_new_topic_pre_content',
-				'bbp_edit_topic_pre_content',
-				'bbp_new_reply_pre_content',
-				'bbp_edit_reply_pre_content',
-				'bbp_new_forum_pre_content',
-				'bbp_edit_forum_pre_content',
-			] as $filter
-		) {
+		foreach ( $this->get_content_filters() as $filter ) {
 			// just after bbp_encode_bad() would have run (if it ran)
 			add_filter( $filter, [ $this, 'allow_comments_in_bbp_encode_bad_pre' ], 9 );
 			add_filter( $filter, [ $this, 'allow_comments_in_bbp_encode_bad_post' ], 11 );
@@ -187,6 +197,38 @@ class bbPress extends Handler {
 
 		// Add the requisite tags for blocks
 		add_filter( 'bbp_kses_allowed_tags', [ $this, 'get_kses_for_allowed_blocks' ] );
+	}
+
+	/**
+	 * Setup the empty content checks
+	 *
+	 * @return void
+	 */
+	private function setup_empty_content() {
+		foreach ( $this->get_content_filters() as $filter ) {
+			add_filter( $filter, [ $this, 'no_empty_block_content' ] );
+		}
+	}
+
+	/**
+	 * Filter bbPress content and check for an empty block. Replace it with empty content so bbPress can detect it.
+	 *
+	 * @param string $content Content.
+	 * @return string
+	 */
+	public function no_empty_block_content( $content ) {
+		// Convert blocks to content
+		$remove_blocks = do_blocks( $content );
+		$remove_blocks = wp_strip_all_tags( $remove_blocks );
+		$remove_blocks = trim( $remove_blocks );
+
+		// Do we have any content?
+		if ( empty( $remove_blocks ) ) {
+			// After block markup is removed then we have no content - return no content so bbPress can handle it
+			return '';
+		}
+
+		return $content;
 	}
 
 	/**

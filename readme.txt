@@ -3,7 +3,7 @@ Contributors: johnny5, automattic
 Tags: gutenberg, comments, bbpress, buddypress
 Requires at least: 5.8
 Tested up to: 6.1
-Stable tag: 1.13.1
+Stable tag: 1.13.2
 Requires PHP: 5.6
 License: GPLv3
 
@@ -144,6 +144,9 @@ The plugin is simple to install:
 2. Gutenberg when editing a comment
 
 == Changelog ==
+
+= 1.13.2 =
+* Fix empty bbPress content
 
 = 1.13.1 =
 * Add class to image KSES

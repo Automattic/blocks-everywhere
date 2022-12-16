@@ -206,7 +206,7 @@ class bbPress extends Handler {
 	 */
 	private function setup_empty_content() {
 		foreach ( $this->get_content_filters() as $filter ) {
-			add_filter( $filter, [ $this, 'no_empty_block_content' ] );
+			add_filter( $filter, [ $this, 'no_empty_block_content' ], 12 );
 		}
 	}
 

@@ -211,7 +211,7 @@ abstract class Handler {
 
 			$tags['ul']['class'] = true;
 			$tags['ol']['class'] = true;
-			$tags['ll']['class'] = true;
+			$tags['li']['class'] = true;
 		}
 
 		// General formatting

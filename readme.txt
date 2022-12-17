@@ -145,6 +145,10 @@ The plugin is simple to install:
 
 == Changelog ==
 
+= 1.13.3 =
+* Fix plain content in bbPress notification emails
+* Fix list block KSES filter
+
 = 1.13.2 =
 * Fix empty bbPress content
 

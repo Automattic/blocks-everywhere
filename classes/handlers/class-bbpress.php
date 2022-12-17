@@ -327,6 +327,11 @@ class bbPress extends Handler {
 	 * @return string
 	 */
 	public function remove_blocks_from_email( $new_content, $old_email ) {
+		// Don't do anything if not blocks
+		if ( ! has_blocks( $new_content ) ) {
+			return $old_email;
+		}
+
 		// Get a decoded version of the content
 		$new_content = wp_specialchars_decode( $new_content );
 
@@ -344,15 +349,41 @@ class bbPress extends Handler {
 		// Remove a lot of the extra new lines
 		$new_content = preg_replace( '/\n{2,}/', "\n\n", $new_content );
 
-		// Get the scalpel out. Makes big assumptions about the existing email
+		// Get the scalpel out. Makes some assumptions about the existing email format
 		$lines = explode( "\n", $old_email );
 		$lines = array_merge(
-			array_slice( $lines, 0, 2 ),
-			explode( "\n", $new_content ),
-			array_slice( $lines, -8 )
+			array_slice( $lines, 0, 2 ),          // Email intro
+			explode( "\n", $new_content ),        // Our content
+			$this->get_email_signature( $lines ), // Signature
 		);
 
+		// Package it all back up
 		return implode( "\n", $lines );
+	}
+
+	/**
+	 * Get the bbPress email signature. Ideally we wouldn't need to mess around like this
+	 *
+	 * @param string[] $lines Lines of email.
+	 * @return string[]
+	 */
+	private function get_email_signature( $lines ) {
+		$found_marker = false;
+
+		// Go backwards through the email so we match on the real signature and not user content
+		for ( $pos = count( $lines ) - 1; $pos >= 0; $pos-- ) {
+			if ( str_starts_with( $lines[ $pos ], '----------' ) ) {
+				$found_marker = true;
+			}
+
+			if ( $found_marker && preg_match( '@^.*?: https?://.*$@', $lines[ $pos ], $matches ) > 0 ) {
+				// Found the signature marker and the post link
+				return array_merge( [ '' ], array_slice( $lines, $pos ) );
+			}
+		}
+
+		// Something's gone wrong by this point
+		return [];
 	}
 
 	/**

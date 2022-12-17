@@ -372,7 +372,7 @@ class bbPress extends Handler {
 
 		// Go backwards through the email so we match on the real signature and not user content
 		for ( $pos = count( $lines ) - 1; $pos >= 0; $pos-- ) {
-			if ( substr( $lines[ $pos ], 0, 10 ) === '----------' ) {
+			if ( str_starts_with( $lines[ $pos ], '----------' ) ) {
 				$found_marker = true;
 			}
 

@@ -113,7 +113,7 @@ class bbPress extends Handler {
 		add_action( 'bbp_head', [ $this, 'bbp_head' ] );
 
 		// We don't want an empty block
-		$this->setup_empty_content();
+		$this->setup_content_filters();
 
 		// If the user doesn't have unfiltered_html then we need to modify KSES to allow blocks
 		if ( ! current_user_can( 'unfiltered_html' ) ) {
@@ -219,10 +219,23 @@ class bbPress extends Handler {
 	 *
 	 * @return void
 	 */
-	private function setup_empty_content() {
+	private function setup_content_filters() {
 		foreach ( $this->get_content_filters() as $filter ) {
 			add_filter( $filter, [ $this, 'no_empty_block_content' ], 12 );
+			add_filter( $filter, [ $this, 'convert_pasted_images' ], 12 );
 		}
+	}
+
+	/**
+	 * WP Emoji modifies pasted emoji into <img></img>, but Gutenberg expects <img/>. This cleans up the emoji img so it doesnt break Gutenberg
+	 *
+	 * The ></img should never appear by any other normal Gutenberg means
+	 *
+	 * @param [type] $content
+	 * @return void
+	 */
+	public function convert_pasted_images( $content ) {
+		return preg_replace( '@></img>@', '/>', $content );
 	}
 
 	/**

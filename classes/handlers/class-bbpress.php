@@ -145,16 +145,32 @@ class bbPress extends Handler {
 	 * @return boolean
 	 */
 	private function is_editing_blocks() {
-		if ( bbp_is_reply_edit() ) {
-			$reply = bbp_get_reply( bbp_get_reply_id() );
+		$topic_id = 0;
+		$reply_id = 0;
+
+		if ( bbp_is_post_request() && ! empty( $_POST['action'] ) ) {
+			$action = $_POST['action'];
+			if ( 'bbp-edit-reply' === $action ) {
+				$reply_id = $_POST['bbp_reply_id'];
+			} elseif ( 'bbp-edit-topic' === $action ) {
+				$topic_id = $_POST['bbp_topic_id'];
+			}
+		} elseif ( bbp_is_reply_edit() ) {
+			$reply_id = bbp_get_reply_id();
+		} elseif ( bbp_is_topic_edit() ) {
+			$topic_id = bbp_get_topic_id();
+		}
+
+		if ( $reply_id ) {
+			$reply = bbp_get_reply( $reply_id );
 
 			if ( $reply ) {
 				return has_blocks( $reply->post_content );
 			}
 		}
 
-		if ( bbp_is_topic_edit() ) {
-			$topic = get_post_field( 'post_content', bbp_get_topic_id() );
+		if ( $topic_id ) {
+			$topic = get_post_field( 'post_content', $topic_id );
 
 			return has_blocks( $topic );
 		}

@@ -204,7 +204,7 @@ class Editor {
 			'disablePostFormats'                   => ! current_theme_supports( 'post-formats' ),
 			/** This filter is documented in wp-admin/edit-form-advanced.php */
 			// phpcs:ignore
-			'titlePlaceholder'                     => apply_filters( 'enter_title_here', __( 'Add title' ), $post ),
+			'titlePlaceholder'                     => apply_filters( 'enter_title_here', __( 'Add title', 'blocks-everywhere' ), $post ),
 			'bodyPlaceholder'                      => $body_placeholder,
 			'autosaveInterval'                     => AUTOSAVE_INTERVAL,
 			'styles'                               => get_block_editor_theme_styles(),

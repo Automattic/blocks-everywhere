@@ -149,10 +149,9 @@ class bbPress extends Handler {
 		$reply_id = 0;
 
 		if ( bbp_is_post_request() && ! empty( $_POST['action'] ) ) {
-			$action = $_POST['action'];
-			if ( 'bbp-edit-reply' === $action ) {
+			if ( 'bbp-edit-reply' === $_POST['action'] ) {
 				$reply_id = $_POST['bbp_reply_id'];
-			} elseif ( 'bbp-edit-topic' === $action ) {
+			} elseif ( 'bbp-edit-topic' === $_POST['action'] ) {
 				$topic_id = $_POST['bbp_topic_id'];
 			}
 		} elseif ( bbp_is_reply_edit() ) {

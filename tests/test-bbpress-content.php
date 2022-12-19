@@ -70,8 +70,15 @@ class bbPress_Content_Test extends TestCase {
 	}
 
 	public function testSquareBrackets() {
-		$content = '<!-- wp:paragraph --><p>[[!-- wp:paragraph --]]</p><!-- /wp:paragraph -->';
+		$content = '<!-- wp:paragraph --><p>[[lt;!-- wp:paragraph --gt;]]</p><!-- /wp:paragraph -->';
 		$expected = '<!-- wp:paragraph --><p>&lt;!-- wp:paragraph --&gt;</p><!-- /wp:paragraph -->';
+
+		$this->assertEquals( $expected, $this->process_content( $content ) );
+	}
+
+	public function testCodeInCode() {
+		$content = '<!-- wp:code --><pre class="wp-block-code"><code>$link = \' &lt;a href="\' . $url . \'" alt="\' . $alt . \'" title="\' . $title . \'">\' . $linktext . \'&lt;/a> \';</code></pre><!-- /wp:code -->';
+		$expected = '<!-- wp:code --><pre class="wp-block-code"><code>$link = \' &lt;a href="\' . $url . \'" alt="\' . $alt . \'" title="\' . $title . \'"&gt;\' . $linktext . \'&lt;/a&gt; \';</code></pre><!-- /wp:code -->';
 
 		$this->assertEquals( $expected, $this->process_content( $content ) );
 	}

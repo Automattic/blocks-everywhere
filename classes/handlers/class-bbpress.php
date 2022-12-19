@@ -284,23 +284,24 @@ class bbPress extends Handler {
 	}
 
 	/**
-	 * Runs before bbPress and converts all the encoded block markup &lt;!-- wp:something --&gt; into a special [[!-- wp:somthing --]]. This
-	 * takes it out of action from the rest of bbPress, and will be restored later.
+	 * Runs before bbPress and converts all &lt; and &gt; into a special square bracket format [[lt; and gt;]]. This
+	 * takes it out of action from further encoding/decoding with the rest of bbPress. It will be restored later.
 	 *
 	 * @param string $content Content.
 	 * @return string
 	 */
 	public function allow_comments_in_bbp_encode_bad_pre( $content ) {
 		// Convert encoded markup into a square bracket version - this is if someone is typing markup as content, not as markup
-		$content = preg_replace( $this->get_markup_regex( '&lt;', '(?:&gt;|>)' ), '[[!--$1--]]', $content );
+		$content = str_replace( '&lt;', '[[lt;', $content );
+		$content = str_replace( '&gt;', 'gt;]]', $content );
 
 		return $content;
 	}
 
 	/**
 	 * Runs after bbPress. At this point bbPress has encoded all the block markup so we need to unencoded it. We also need to convert
-	 * the [!-- wp:markup --] back into encoded markup. If anyone does happen to use [[!-- wp:markup --]] in their content then it will also
-	 * be replaced with a (safe) encoded <!-- wp:markup --> version
+	 * the square bracket format back into encoded markup. If anyone does happen to use this in their content it will get replaced with
+	 * encoded &lt;/&gt; (harmless if annoying)
 	 *
 	 * @param string $content Content
 	 * @return string
@@ -315,7 +316,8 @@ class bbPress extends Handler {
 		}
 
 		// Convert the [[]] format back to encoded
-		$content = preg_replace( $this->get_markup_regex( '\[\[', '\]\]' ), '&lt;!--$1--&gt;', $content );
+		$content = str_replace( '[[lt;', '&lt;', $content );
+		$content = str_replace( 'gt;]]', '&gt;', $content );
 
 		return $content;
 	}

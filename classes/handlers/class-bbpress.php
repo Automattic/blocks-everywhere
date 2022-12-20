@@ -148,11 +148,19 @@ class bbPress extends Handler {
 		$topic_id = 0;
 		$reply_id = 0;
 
+		// phpcs:ignore
 		if ( bbp_is_post_request() && ! empty( $_POST['action'] ) ) {
-			if ( 'bbp-edit-reply' === $_POST['action'] ) {
-				$reply_id = $_POST['bbp_reply_id'];
-			} elseif ( 'bbp-edit-topic' === $_POST['action'] ) {
-				$topic_id = $_POST['bbp_topic_id'];
+			// phpcs:ignore
+			$action = $_POST['action'];
+
+			// phpcs:ignore
+			if ( 'bbp-edit-reply' === $action && isset( $_POST['bbp_reply_id'] ) ) {
+				// phpcs:ignore
+				$reply_id = intval( $_POST['bbp_reply_id'], 10 );
+				// phpcs:ignore
+			} elseif ( 'bbp-edit-topic' === $action && isset( $_POST['bbp_topic_id'] ) ) {
+				// phpcs:ignore
+				$topic_id = intval( $_POST['bbp_topic_id'], 10 );
 			}
 		} elseif ( bbp_is_reply_edit() ) {
 			$reply_id = bbp_get_reply_id();

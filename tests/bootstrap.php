@@ -30,6 +30,8 @@ function bbp_kses_allowed_tags() {
 		'div' => true,
 		'blockquote' => true,
 		'p' => true,
+		'pre' => true,
+		'code' => true,
 	];
 }
 

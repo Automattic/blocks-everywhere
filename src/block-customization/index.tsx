@@ -29,6 +29,6 @@ export default function modifyBlocks( settings, name ) {
 
 	return {
 		...settings,
-		supports: disableSupports( settings ),
+		...disableSupports( settings ),
 	};
 }

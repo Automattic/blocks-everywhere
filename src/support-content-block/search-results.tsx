@@ -40,10 +40,6 @@ export const SearchResults = ( props: SearchResultsProps ) => {
 		return null;
 	}
 
-	if ( ! results.length ) {
-		return;
-	}
-
 	return (
 		<div className="be-support-content-search-results">
 			<div className="be-support-content-search-results__list">

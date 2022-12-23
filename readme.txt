@@ -3,7 +3,7 @@ Contributors: johnny5, automattic
 Tags: gutenberg, comments, bbpress, buddypress
 Requires at least: 5.8
 Tested up to: 6.1
-Stable tag: 1.12.0
+Stable tag: 1.13.4
 Requires PHP: 5.6
 License: GPLv3
 
@@ -145,10 +145,27 @@ The plugin is simple to install:
 
 == Changelog ==
 
+= 1.13.4 =
+* Fix block supports modifications incorrectly applied
+* Fix HTML in code block
+
+= 1.13.3 =
+* Fix plain content in bbPress notification emails
+* Fix list block KSES filter
+
+= 1.13.2 =
+* Fix empty bbPress content
+
+= 1.13.1 =
+* Add class to image KSES
+* Minor tweaks for theme compat
+
 = 1.13.0 =
 * Improve the `replaceParagraphCode` function to better detect code
 * Improve bbPress KSES handling
 * Fix error when drag/dropping or pasting an image and upload has been disabled
+* Fix problem with invalid list blocks
+* Fix email notifications
 
 = 1.12.0 =
 * Add option to auto-detect HTML and PHP code paste

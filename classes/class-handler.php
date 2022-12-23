@@ -180,6 +180,10 @@ abstract class Handler {
 			$tags['blockquote']['class'] = true;
 		}
 
+		if ( in_array( 'core/image', $allowed, true ) ) {
+			$tags['img']['class'] = true;
+		}
+
 		if ( in_array( 'core/image', $allowed, true ) || in_array( 'core/quote', $allowed, true ) ) {
 			$tags['figure'] = [ 'class' => true ];
 			$tags['figcaption'] = [ 'class' => true ];
@@ -192,6 +196,22 @@ abstract class Handler {
 
 			$tags['figure']['class'] = true;
 			$tags['div'] = [ 'class' => true ];
+		}
+
+		if ( in_array( 'core/list', $allowed, true ) ) {
+			if ( ! isset( $tags['ul'] ) ) {
+				$tags['ul'] = [];
+			}
+			if ( ! isset( $tags['ol'] ) ) {
+				$tags['ol'] = [];
+			}
+			if ( ! isset( $tags['li'] ) ) {
+				$tags['li'] = [];
+			}
+
+			$tags['ul']['class'] = true;
+			$tags['ol']['class'] = true;
+			$tags['li']['class'] = true;
 		}
 
 		// General formatting

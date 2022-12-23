@@ -1,7 +1,7 @@
 import { useEffect, useState } from '@wordpress/element';
 import { Spinner } from '@wordpress/components';
-import React from 'react';
 import { __ } from '@wordpress/i18n';
+import { useDebounce } from 'use-debounce';
 
 type SearchResultsProps = {
 	search: string;
@@ -22,34 +22,26 @@ export const SearchResults = ( props: SearchResultsProps ) => {
 
 	const [ loading, setLoading ] = useState( false );
 
+	const [ debouncedSearch ] = useDebounce( props.search, 1000 );
+
 	useEffect( () => {
-		let cancelled = false;
-
 		setResults( [] );
-
-		if (
-			props.search &&
-			props.search.length > 3 &&
-			! props.search.startsWith( 'https://' ) &&
-			! props.search.startsWith( 'http://' )
-		) {
-			setLoading( true );
-
-			getSearchResults( props.search ).then( ( newResults ) => {
-				if ( ! cancelled ) {
-					setResults( newResults );
-				}
-
-				setLoading( false );
-			} );
-		}
-		return () => {
-			cancelled = true;
-		};
+		setLoading( true );
 	}, [ props.search ] );
+
+	useEffect( () => {
+		getSearchResults( debouncedSearch ).then( ( newResults ) => {
+			setResults( newResults );
+			setLoading( false );
+		} );
+	}, [ debouncedSearch ] );
 
 	if ( ! loading && results.length === 0 ) {
 		return null;
+	}
+
+	if ( ! results ) {
+		return;
 	}
 
 	return (

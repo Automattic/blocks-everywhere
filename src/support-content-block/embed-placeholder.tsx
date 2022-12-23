@@ -1,10 +1,10 @@
-import React, { useCallback } from 'react';
+import React from 'react';
+import { useEffect } from '@wordpress/element';
 import { Button, Placeholder } from '@wordpress/components';
 import { _x } from '@wordpress/i18n';
 import classnames from 'classnames';
 import './edit.scss';
 import { useState } from '@wordpress/element';
-import { debounce } from '@wordpress/compose';
 import { SearchResults } from './search-results';
 
 type EmbedPlaceHolderProps = {
@@ -24,11 +24,16 @@ type EmbedPlaceHolderProps = {
  */
 export const EmbedPlaceHolder = ( props: EmbedPlaceHolderProps ) => {
 	const [ search, setSearch ] = useState( null );
+	const isUrl = props.url?.startsWith( 'http://' ) || props.url?.startsWith( 'https://' );
+	const isSearchable = ! isUrl && props.url?.length > 3;
 
-	const updateSearch = useCallback(
-		debounce( ( search ) => setSearch( search ), 1000 ),
-		[]
-	);
+	useEffect( () => {
+		if ( isSearchable ) {
+			setSearch( props.url );
+		} else {
+			setSearch( null );
+		}
+	}, [ props.url, isSearchable ] );
 
 	return (
 		<div className={ classnames( 'be-support-content-placeholder', props.className ) }>
@@ -49,24 +54,23 @@ export const EmbedPlaceHolder = ( props: EmbedPlaceHolderProps ) => {
 						value={ props.url }
 						className="components-placeholder__input"
 						placeholder={ props.placeholder }
-						onChange={ ( event ) => {
-							props.updateUrl( event.target.value );
-							updateSearch( event.target.value );
-						} }
+						onChange={ ( event ) => props.updateUrl( event.target.value ) }
 					/>
-					<Button isPrimary type="submit">
+					<Button isPrimary type="submit" disabled={ ! isUrl } aria-disabled={ ! isUrl }>
 						{ _x( 'Embed', 'button label', 'blocks-everywhere' ) }
 					</Button>
 				</form>
-				<div className="be-support-content-placeholder__search-slot">
-					<SearchResults
-						search={ search }
-						setUrl={ ( url ) => {
-							props.updateUrl( url );
-							setSearch( url );
-						} }
-					/>
-				</div>
+				{ isSearchable && (
+					<div className="be-support-content-placeholder__search-slot">
+						<SearchResults
+							search={ search }
+							setUrl={ ( url ) => {
+								props.updateUrl( url );
+								setSearch( url );
+							} }
+						/>
+					</div>
+				) }
 			</Placeholder>
 		</div>
 	);

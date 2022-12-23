@@ -40,7 +40,7 @@ export const SearchResults = ( props: SearchResultsProps ) => {
 		return null;
 	}
 
-	if ( ! results ) {
+	if ( ! results.length ) {
 		return;
 	}
 

@@ -38,7 +38,8 @@
 	"dependencies": {
 		"@automattic/color-studio": "^2.5.0",
 		"@automattic/isolated-block-editor": "2.21.0",
-		"@automattic/typography": "^1.0.0"
+		"@automattic/typography": "^1.0.0",
+		"use-debounce": "^9.0.2"
 	},
 	"release-it": {
 		"github": {

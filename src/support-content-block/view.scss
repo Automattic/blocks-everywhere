@@ -8,6 +8,9 @@
 	&:not(:last-child) {
 		margin-bottom: 28px;
 	}
+	.components-notice.is-error.is-dismissible {
+		padding-right: 0;
+	}
 }
 
 .be-support-content {

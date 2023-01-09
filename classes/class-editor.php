@@ -297,27 +297,19 @@ class Editor {
 
 		foreach ( $block_registry->get_all_registered() as $block_type ) {
 			if ( ! empty( $block_type->style ) ) {
-				$style_handles[] = $block_type->style;
+				$style_handles = array_merge( $style_handles, (array) $block_type->style );
 			}
 
 			if ( ! empty( $block_type->editor_style ) ) {
-				$style_handles[] = $block_type->editor_style;
+				$style_handles = array_merge( $style_handles, (array) $block_type->editor_style );
 			}
 
 			if ( ! empty( $block_type->script ) ) {
-				$script_handles[] = $block_type->script;
+				$script_handles = array_merge( $script_handles, (array) $block_type->script );
 			}
 		}
 
 		$style_handles = apply_filters( 'blocks_everywhere_editor_styles', $style_handles );
-
-		// Make sure there are only strings in this array
-		$style_handles = array_filter(
-			$style_handles,
-			function( $handle ) {
-				return is_string( $handle );
-			}
-		);
 		$style_handles = array_unique( $style_handles );
 		$done          = wp_styles()->done;
 

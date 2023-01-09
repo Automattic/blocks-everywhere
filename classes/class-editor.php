@@ -307,6 +307,10 @@ class Editor {
 			if ( ! empty( $block_type->script ) ) {
 				$script_handles = array_merge( $script_handles, (array) $block_type->script );
 			}
+
+			if ( ! empty( $block_type->view_script ) ) {
+				$script_handles = array_merge( $script_handles, (array) $block_type->view_script );
+			}
 		}
 
 		$style_handles = apply_filters( 'blocks_everywhere_editor_styles', $style_handles );

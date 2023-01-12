@@ -16,7 +16,7 @@
 	"author": "Automattic",
 	"license": "GPL-2.0-or-later",
 	"devDependencies": {
-		"@babel/core": "^7.20.7",
+		"@babel/core": "^7.20.12",
 		"@babel/preset-env": "^7.20.2",
 		"@babel/preset-react": "^7.18.6",
 		"@types/eslint": "^8.4.10",
@@ -27,9 +27,9 @@
 		"babel-plugin-inline-json-import": "^0.3.2",
 		"eslint": "^8.31.0",
 		"eslint-config-wpcalypso": "^6.1.0",
-		"eslint-plugin-import": "^2.26.0",
-		"eslint-plugin-jsx-a11y": "^6.6.1",
-		"eslint-plugin-react": "^7.31.11",
+		"eslint-plugin-import": "^2.27.4",
+		"eslint-plugin-jsx-a11y": "^6.7.1",
+		"eslint-plugin-react": "^7.32.0",
 		"eslint-plugin-wpcalypso": "^6.1.0",
 		"precss": "^4.0.0",
 		"release-it": "^15.6.0",
@@ -37,7 +37,7 @@
 	},
 	"dependencies": {
 		"@automattic/color-studio": "^2.5.0",
-		"@automattic/isolated-block-editor": "2.22.0",
+		"@automattic/isolated-block-editor": "2.23.1",
 		"@automattic/typography": "^1.0.0",
 		"use-debounce": "^9.0.2"
 	},

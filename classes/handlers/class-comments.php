@@ -45,7 +45,7 @@ class Comments extends Handler {
 	/**
 	 * Get the HTML that the editor uses on the page
 	 *
-	 * @return string
+	 * @return void
 	 */
 	public function add_to_comments() {
 		$this->load_editor( '#comment', '.blocks-everywhere' );

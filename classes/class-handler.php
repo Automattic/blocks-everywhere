@@ -2,6 +2,8 @@
 
 namespace Automattic\Blocks_Everywhere\Handler;
 
+use Automattic\Blocks_Everywhere\Editor;
+
 require_once __DIR__ . '/handlers/class-bbpress.php';
 require_once __DIR__ . '/handlers/class-buddypress.php';
 require_once __DIR__ . '/handlers/class-comments.php';
@@ -10,7 +12,7 @@ abstract class Handler {
 	/**
 	 * Editor object
 	 *
-	 * @var Editor
+	 * @var Editor|null
 	 */
 	protected $editor = null;
 
@@ -292,15 +294,13 @@ abstract class Handler {
 				'support-content-view',
 				'support-content-view.min.asset.php',
 				'support-content-view.min.js',
-				'support-content-view.min.css',
-				$settings
+				'support-content-view.min.css'
 			);
 			$this->enqueue_assets(
 				'support-content-editor',
 				'support-content-editor.min.asset.php',
 				'support-content-editor.min.js',
-				'support-content-editor.min.css',
-				$settings
+				'support-content-editor.min.css'
 			);
 		}
 

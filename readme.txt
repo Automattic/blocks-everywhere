@@ -1,7 +1,7 @@
 === Plugin Name ===
 Contributors: johnny5, automattic
 Tags: gutenberg, comments, bbpress, buddypress
-Requires at least: 5.8
+Requires at least: 6.1
 Tested up to: 6.1
 Stable tag: 1.14.0
 Requires PHP: 5.6
@@ -35,6 +35,8 @@ Blocks Everywhere is developed on Github at:
 The loading of Gutenberg will also increase the page size of any page it is loaded on. You should be aware of this and willing to accept this in the context of your site.
 
 This doesn't yet work on block-based themes - it must be a 'classic' theme.
+
+You should use the latest version of the Gutenberg plugin.
 
 == Usage ==
 

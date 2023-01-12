@@ -26,14 +26,14 @@ class Blocks_Everywhere {
 	/**
 	 * Gutenberg editor
 	 *
-	 * @var IsoEditor_Gutenberg|null
+	 * @var Blocks_Everywhere|null
 	 */
 	private $gutenberg = null;
 
 	/**
 	 * Gutenberg handlers
 	 *
-	 * @var Gutenberg_Handler[]
+	 * @var Handler\Handler[]
 	 */
 	private $handlers = [];
 

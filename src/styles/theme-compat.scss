@@ -47,6 +47,10 @@
 		margin-bottom: calc(4px * 2);
 	}
 
+	.block-editor-link-control__setting :last-child {
+		margin-bottom: 0;
+	}
+
 	.is-opened .components-panel__body-title {
 		margin: -16px -16px 5px;
 	}
@@ -141,6 +145,11 @@
 	.block-editor-inserter__patterns-category-panel {
 		margin-left: -100%;
 	}
+
+	.block-editor-link-control__field .components-base-control__label {
+		margin-bottom: 0;
+		margin-right: 16px;
+	}
 }
 
 .gutenberg-support .blocks-everywhere {
@@ -220,6 +229,7 @@ body:not(.gutenberg-support-upload) {
 	.block-editor-link-control input[type="text"] {
 		padding: 11px 16px;
 		height: 100%;
+		border: 1px solid #ddd;
 	}
 }
 

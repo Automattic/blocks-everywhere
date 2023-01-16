@@ -2,7 +2,7 @@
     "name": "automattic/blocks-everywhere",
 	"description": "Puts Gutenberg everywhere it can - bbPress, comments, and BuddyPress.",
     "require": {
-		"php": "7.4.*"
+		"php": "7.4.* || 8.*"
 	},
 	"require-dev": {
 		"dealerdirect/phpcodesniffer-composer-installer": "0.7.2",

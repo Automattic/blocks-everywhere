@@ -10,9 +10,10 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns="https://getpsalm.org/schema/config"
     xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
+   	autoloader="bin/psalm.php"
 >
     <projectFiles>
-        <file name="gutenberg-comments" />
+        <file name="blocks-everywhere.php" />
         <directory name="classes" />
         <ignoreFiles>
             <directory name="vendor" />
@@ -22,6 +23,12 @@
         <var name="wpdb" type="object" />
     </globals>
     <issueHandlers>
+    	<TooManyArguments>
+            <errorLevel type="suppress">
+                <referencedFunction name="apply_filters"/>
+            </errorLevel>
+        </TooManyArguments>
+
         <LessSpecificReturnType errorLevel="info" />
 
         <!-- level 3 issues - slightly lazy code writing, but provably low false-negatives -->
@@ -44,7 +51,6 @@
         <MissingReturnType errorLevel="info" />
         <MissingPropertyType errorLevel="info" />
         <InvalidDocblock errorLevel="info" />
-        <MisplacedRequiredParam errorLevel="info" />
 
         <PropertyNotSetInConstructor errorLevel="info" />
         <MissingConstructor errorLevel="info" />

@@ -1,9 +1,9 @@
 === Plugin Name ===
 Contributors: johnny5, automattic
 Tags: gutenberg, comments, bbpress, buddypress
-Requires at least: 5.8
+Requires at least: 6.1
 Tested up to: 6.1
-Stable tag: 1.14.0
+Stable tag: 1.14.1
 Requires PHP: 5.6
 License: GPLv3
 
@@ -35,6 +35,8 @@ Blocks Everywhere is developed on Github at:
 The loading of Gutenberg will also increase the page size of any page it is loaded on. You should be aware of this and willing to accept this in the context of your site.
 
 This doesn't yet work on block-based themes - it must be a 'classic' theme.
+
+You should use the latest version of the Gutenberg plugin.
 
 == Usage ==
 
@@ -144,6 +146,12 @@ The plugin is simple to install:
 2. Gutenberg when editing a comment
 
 == Changelog ==
+
+= 1.14.1 =
+* Fix problem with block styles being loaded
+* Fix z-index issue with popovers
+* Improve link editor style
+* Show links in notification email
 
 = 1.14.0 =
 * Add search to content embed block

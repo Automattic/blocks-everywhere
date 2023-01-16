@@ -19,7 +19,6 @@ class Editor {
 	public function __construct() {
 		add_action( 'template_redirect', [ $this, 'setup_media' ] );
 		add_filter( 'block_editor_settings_all', [ $this, 'block_editor_settings_all' ] );
-		add_action( 'wp_footer', [ $this, 'wp_add_iframed_editor_assets_html' ], 20 );
 		add_filter( 'should_load_block_editor_scripts_and_styles', '__return_true' );
 		add_filter( 'wp_theme_json_data_theme', [ $this, 'wp_theme_json_data_theme' ] );
 	}
@@ -219,6 +218,8 @@ class Editor {
 			'canLockBlocks'                        => false,
 		);
 
+		$editor_settings['__unstableResolvedAssets'] = $this->wp_get_iframed_editor_assets();
+
 		$block_editor_context = new \WP_Block_Editor_Context( array( 'post' => $post ) );
 		return get_block_editor_settings( $editor_settings, $block_editor_context );
 	}
@@ -284,14 +285,17 @@ class Editor {
 		wp_enqueue_media();
 	}
 
-	public function wp_add_iframed_editor_assets_html() {
+	public function wp_get_iframed_editor_assets() {
 		$script_handles = array();
 		$style_handles  = array(
 			'wp-block-editor',
 			'wp-block-library',
-			'wp-block-library-theme',
 			'wp-edit-blocks',
 		);
+
+		if ( current_theme_supports( 'wp-block-styles' ) ) {
+			$style_handles[] = 'wp-block-library-theme';
+		}
 
 		$block_registry = \WP_Block_Type_Registry::get_instance();
 
@@ -337,14 +341,11 @@ class Editor {
 
 		$scripts = ob_get_clean();
 
-		$editor_assets = wp_json_encode(
-			array(
+		return wp_json_encode(
+			[
 				'styles'  => $styles,
 				'scripts' => $scripts,
-			)
+			]
 		);
-
-		// phpcs:ignore
-		echo "<script>window.__editorAssets = $editor_assets</script>";
 	}
 }

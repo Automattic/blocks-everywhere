@@ -239,8 +239,8 @@ class bbPress extends Handler {
 	 *
 	 * The ></img should never appear by any other normal Gutenberg means
 	 *
-	 * @param [type] $content
-	 * @return void
+	 * @param string $content Content.
+	 * @return string
 	 */
 	public function convert_pasted_images( $content ) {
 		return preg_replace( '@></img>@', '/>', $content );
@@ -380,6 +380,7 @@ class bbPress extends Handler {
 		$new_content = preg_replace( '@<li[^>]*>(.*?)<@s', ' - $1<', $new_content );
 		$new_content = preg_replace( '@<strong[^>]*>(.*?)</strong>@', '*$1*', $new_content );
 		$new_content = preg_replace( '@<blockquote[^>]*>.*?<p>(.*?)</p>.*?</blockquote>@s', '> $1', $new_content );
+		$new_content = preg_replace( '@<a.*?href="(.*?)"[^>]*>(.*?)</a>@s', '$2 ( $1 )', $new_content );
 
 		// Convert to plain text
 		$new_content = wp_specialchars_decode( wp_strip_all_tags( $new_content ), ENT_QUOTES );

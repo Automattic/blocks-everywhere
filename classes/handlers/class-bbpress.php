@@ -243,7 +243,8 @@ class bbPress extends Handler {
 	 * @return string
 	 */
 	public function convert_pasted_images( $content ) {
-		return preg_replace( '@></img>@', '/>', $content );
+		$content = str_replace( '/>&lt;/img&gt;', '/>', $content );
+		return str_replace( '></img>', '/>', $content );
 	}
 
 	/**

@@ -4,10 +4,6 @@ namespace Automattic\Blocks_Everywhere\Handler;
 
 use Automattic\Blocks_Everywhere\Editor;
 
-require_once __DIR__ . '/handlers/class-bbpress.php';
-require_once __DIR__ . '/handlers/class-buddypress.php';
-require_once __DIR__ . '/handlers/class-comments.php';
-
 abstract class Handler {
 	/**
 	 * Editor object

@@ -3,7 +3,7 @@ Contributors: johnny5, automattic
 Tags: gutenberg, comments, bbpress, buddypress
 Requires at least: 6.1
 Tested up to: 6.1
-Stable tag: 1.14.2
+Stable tag: 1.14.3
 Requires PHP: 5.6
 License: GPLv3
 
@@ -73,6 +73,7 @@ Some settings are available through the settings object, which is filterable wit
 `allowUrlEmbed` - Enable or disable auto-embed for URLs
 `replaceParagraphCode` - Enable the custom paragraph that converts HTML and PHP code into a code block
 `pastePlainText` - Convert all pasted content to plain text
+`patchEmoji` - set to `true` to stop twemoji from affecting the editor
 `iso.allowEmbeds` - List of enabled embeds
 `iso.blocks.allowBlocks` - List of enabled blocks
 
@@ -146,6 +147,10 @@ The plugin is simple to install:
 2. Gutenberg when editing a comment
 
 == Changelog ==
+
+= 1.14.3 =
+* Improve PHP 8.1 compatibility
+* Add experimental `patchEmoji` option to stop twemoji affecting the editor
 
 = 1.14.2 =
 * Fix problem with site header offset on compat sites

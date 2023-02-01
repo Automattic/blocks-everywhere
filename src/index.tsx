@@ -54,6 +54,18 @@ domReady( () => {
 		);
 	}
 
+	if ( wpBlocksEverywhere?.patchEmoji && window?.twemoji?.parse ) {
+		const original = window.twemoji.parse;
+
+		window.twemoji.parse = ( object, args ) => {
+			if ( object.closest( '.blocks-everywhere' ) ) {
+				return object;
+			}
+
+			return original( object, args );
+		}
+	}
+
 	// Add the editor
 	document.querySelectorAll( wpBlocksEverywhere.saveTextarea ).forEach( createEditor );
 

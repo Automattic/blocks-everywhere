@@ -3,7 +3,7 @@ Contributors: johnny5, automattic
 Tags: gutenberg, comments, bbpress, buddypress
 Requires at least: 6.1
 Tested up to: 6.1
-Stable tag: 1.14.2
+Stable tag: 1.14.3
 Requires PHP: 5.6
 License: GPLv3
 
@@ -146,6 +146,9 @@ The plugin is simple to install:
 2. Gutenberg when editing a comment
 
 == Changelog ==
+
+= 1.14.3 =
+* Improve PHP 8.1 compatibility
 
 = 1.14.2 =
 * Fix problem with site header offset on compat sites

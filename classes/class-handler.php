@@ -266,6 +266,7 @@ abstract class Handler {
 			'allowUrlEmbed' => false,
 			'pastePlainText' => false,
 			'replaceParagraphCode' => false,
+			'patchEmoji' => false,
 			'pluginsUrl' => plugins_url( '', __DIR__ ),
 			'version' => \Automattic\Blocks_Everywhere\Blocks_Everywhere::VERSION,
 		];

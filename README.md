@@ -71,6 +71,7 @@ Some settings are available through the settings object, which is filterable wit
 `allowUrlEmbed` - Enable or disable auto-embed for URLs
 `replaceParagraphCode` - Enable the custom paragraph that converts HTML and PHP code into a code block
 `pastePlainText` - Convert all pasted content to plain text
+`patchEmoji` - set to `true` to stop twemoji from affecting the editor
 `iso.allowEmbeds` - List of enabled embeds
 `iso.blocks.allowBlocks` - List of enabled blocks
 

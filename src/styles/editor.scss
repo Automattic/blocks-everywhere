@@ -39,6 +39,10 @@
 		ul {
 			margin-top: 0.5em;
 			margin-bottom: 0.5em;
+
+			ul {
+				margin-top: 5px;
+			}
 		}
 
 		li {
@@ -49,6 +53,12 @@
 	.block-editor-writing-flow {
 		ul > li > ul {
 			margin-left: 0;
+		}
+	}
+
+	.edit-post-sidebar__panel-tabs {
+		button {
+			padding: 0;
 		}
 	}
 }

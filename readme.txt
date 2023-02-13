@@ -148,6 +148,9 @@ The plugin is simple to install:
 
 == Changelog ==
 
+= 1.15.0 =
+* Support Gutenberg 15.1.0
+
 = 1.14.3 =
 * Improve PHP 8.1 compatibility
 * Add experimental `patchEmoji` option to stop twemoji affecting the editor

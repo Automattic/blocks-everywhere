@@ -53,8 +53,20 @@
 		top: 32px;
 	}
 
+	.bbp-reply-form fieldset.bbp-form,
 	#bbp-new-topic #new-post fieldset.bbp-form,
-	#bbpress-forums fieldset.bbp-form  {
+	#bbpress-forums fieldset.bbp-form {
+		.components-tools-panel-item legend {
+			font-size: 11px;
+			font-weight: 500;
+			display: inline-block;
+			padding: 0;
+		}
+
+		button.has-icon {
+			padding: 0;
+		}
+
 		.block-editor-block-navigation__container p {
 			margin-bottom: 0.5em;
 		}

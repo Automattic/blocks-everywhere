@@ -7,8 +7,7 @@
 
 	.components-dropdown__content button,
 	.block-editor-block-switcher__popover button {
-		padding-left: 8px;
-		padding-right: 8px;
+		padding: 6px 8px 6px 8px !important;
 	}
 
 	fieldset legend {
@@ -174,10 +173,6 @@
 		padding: 12px 10px !important;
 	}
 
-	.components-tools-panel .components-button {
-		padding: 10px 12px !important;
-	}
-
 	.components-tools-panel .components-dropdown-menu__toggle {
 		padding: 0px !important;
 	}
@@ -230,6 +225,21 @@ body:not(.gutenberg-support-upload) {
 		padding: 11px 16px;
 		height: 100%;
 		border: 1px solid #ddd;
+	}
+
+	.block-editor-link-control button {
+		padding: 6px 12px;
+	}
+
+	.xblock-editor-link-control__search-submit:hover {
+		background-color: var(--wp-components-color-accent,var(--wp-admin-theme-color,#007cba));
+	}
+
+	.components-button.is-secondary,
+	.components-button.is-tertiary {
+		background: transparent;
+		color: var(--wp-components-color-accent, var(--wp-admin-theme-color, #007cba));
+		white-space: nowrap;
 	}
 }
 

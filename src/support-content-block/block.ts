@@ -1,6 +1,6 @@
 import { __ } from '@wordpress/i18n';
 
-export const SUPPORT_PAGE_PATTERN = /^https?:\/\/wordpress\.com\/((?<lang>[a-z]{2})\/)?support\/(?<slug>\S+)$/i;
+export const SUPPORT_PAGE_PATTERN = /^https?:\/\/wordpress\.com\/((?<lang>[a-z]{2})\/)?support\/(?<slug>[^# ]+)/i
 /*
 Forum Pattern cases
 

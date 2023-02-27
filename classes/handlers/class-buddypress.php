@@ -7,6 +7,8 @@ class BuddyPress extends Handler {
 	 * Constructor
 	 */
 	public function __construct() {
+		parent::__construct();
+
 		add_action( 'bp_after_activity_post_form', [ $this, 'load_editor_buddypress' ] );
 
 		// Ensure blocks are processed when displaying

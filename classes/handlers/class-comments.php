@@ -7,6 +7,8 @@ class Comments extends Handler {
 	 * Constructor
 	 */
 	public function __construct() {
+		parent::__construct();
+
 		add_action( 'comment_form_after', [ $this, 'add_to_comments' ] );
 		add_filter( 'comment_form_defaults', [ $this, 'comment_form_defaults' ] );
 		add_filter( 'pre_comment_content', [ $this, 'remove_blocks' ] );

@@ -27,6 +27,13 @@ abstract class Handler {
 	private $doing_hook = null;
 
 	/**
+ 	* Constructor
+ 	*/
+	function __construct() {
+		$this->editor = new \Automattic\Blocks_Everywhere\Editor();
+	}
+
+	/**
 	 * Direct copy of core `do_blocks`, but for comments.
 	 *
 	 * This also has the benefit that we don't run `wpautop` on block transformed comments, potentially breaking them.
@@ -230,48 +237,7 @@ abstract class Handler {
 	 * @return void
 	 */
 	public function load_editor( $textarea, $container = null ) {
-		$this->editor = new \Automattic\Blocks_Everywhere\Editor();
-
-		// Settings for the editor
-		$default_settings = [
-			'editor' => $this->editor->get_editor_settings(),
-			'iso' => [
-				'blocks' => [
-					'allowBlocks' => $this->get_allowed_blocks(),
-				],
-				'moreMenu' => false,
-				'sidebar' => [
-					'inserter' => false,
-					'inspector' => false,
-				],
-				'toolbar' => [
-					'navigation' => true,
-				],
-				'defaultPreferences' => [
-					'fixedToolbar' => true,
-				],
-				'allowEmbeds' => [
-					'youtube',
-					'vimeo',
-					'wordpress',
-					'wordpress-tv',
-					'videopress',
-					'crowdsignal',
-					'imgur',
-				],
-			],
-			'saveTextarea' => $textarea,
-			'container' => $container,
-			'editorType' => $this->get_editor_type(),
-			'allowUrlEmbed' => false,
-			'pastePlainText' => false,
-			'replaceParagraphCode' => false,
-			'patchEmoji' => false,
-			'pluginsUrl' => plugins_url( '', __DIR__ ),
-			'version' => \Automattic\Blocks_Everywhere\Blocks_Everywhere::VERSION,
-		];
-
-		$settings = apply_filters( 'blocks_everywhere_editor_settings', $default_settings );
+		$settings = $this->settings();
 
 		$this->editor->load( $settings );
 		$this->settings = $settings;
@@ -288,16 +254,11 @@ abstract class Handler {
 
 		if ( in_array( 'blocks-everywhere/support-content', $settings['iso']['blocks']['allowBlocks'], true ) ) {
 			$this->enqueue_assets(
-				'support-content-view',
-				'support-content-view.min.asset.php',
-				'support-content-view.min.js',
-				'support-content-view.min.css'
-			);
-			$this->enqueue_assets(
 				'support-content-editor',
 				'support-content-editor.min.asset.php',
 				'support-content-editor.min.js',
-				'support-content-editor.min.css'
+				'support-content-editor.min.css',
+				$settings
 			);
 		}
 
@@ -323,6 +284,66 @@ abstract class Handler {
 		wp_enqueue_style( $name );
 
 		return $version;
+	}
+
+	public function load_view_assets() {
+		$settings = $this->settings();
+
+		if ( in_array( 'blocks-everywhere/support-content', $settings['iso']['blocks']['allowBlocks'], true ) ) {
+			$this->enqueue_assets(
+				'support-content-view',
+				'support-content-view.min.asset.php',
+				'support-content-view.min.js',
+				'support-content-view.min.css',
+				$settings
+			);
+		}
+	}
+
+	/**
+	 * Get configuration settings
+	 * @return mixed Array of settings
+	 */
+	private function settings() {
+				// Settings for the editor
+				$default_settings = [
+					'editor' => $this->editor->get_editor_settings(),
+					'iso' => [
+						'blocks' => [
+							'allowBlocks' => $this->get_allowed_blocks(),
+						],
+						'moreMenu' => false,
+						'sidebar' => [
+							'inserter' => false,
+							'inspector' => false,
+						],
+						'toolbar' => [
+							'navigation' => true,
+						],
+						'defaultPreferences' => [
+							'fixedToolbar' => true,
+						],
+						'allowEmbeds' => [
+							'youtube',
+							'vimeo',
+							'wordpress',
+							'wordpress-tv',
+							'videopress',
+							'crowdsignal',
+							'imgur',
+						],
+					],
+					'saveTextarea' => $textarea,
+					'container' => $container,
+					'editorType' => $this->get_editor_type(),
+					'allowUrlEmbed' => false,
+					'pastePlainText' => false,
+					'replaceParagraphCode' => false,
+					'pluginsUrl' => plugins_url( '', __DIR__ ),
+					'version' => \Automattic\Blocks_Everywhere\Blocks_Everywhere::VERSION,
+				];
+
+				return apply_filters( 'blocks_everywhere_editor_settings', $default_settings );
 	}
 
 	/**

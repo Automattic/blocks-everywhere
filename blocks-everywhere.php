@@ -61,6 +61,9 @@ class Blocks_Everywhere {
 
 		// Admin editors
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
+
+		// View assets
+		add_action( 'wp_enqueue_scripts', [ $this, 'view_enqueue_scripts' ] );
 	}
 
 	/**
@@ -116,6 +119,17 @@ class Blocks_Everywhere {
 
 				break;
 			}
+		}
+	}
+
+	/**
+	 * Load view assets
+	 *
+	 * @return void
+	 */
+	public function view_enqueue_scripts () {
+		foreach ( $this->handlers as $handler ) {
+			$handler->load_view_assets();
 		}
 	}
 }

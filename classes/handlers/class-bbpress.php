@@ -78,6 +78,8 @@ class bbPress extends Handler {
 	 * @return void
 	 */
 	public function bbp_template_redirect() {
+		$this->load_view_assets();
+
 		if ( ! is_user_logged_in() ) {
 			return;
 		}

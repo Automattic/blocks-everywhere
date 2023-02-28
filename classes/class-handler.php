@@ -329,6 +329,12 @@ abstract class Handler {
 				'support-content-editor.min.js',
 				'support-content-editor.min.css'
 			);
+			$this->enqueue_assets(
+				'support-content-view',
+				'support-content-view.min.asset.php',
+				'support-content-view.min.js',
+				'support-content-view.min.css'
+			);
 		}
 
 		$theme_compat = defined( 'BLOCKS_EVERYWHERE_THEME_COMPAT' ) ? BLOCKS_EVERYWHERE_THEME_COMPAT : false;

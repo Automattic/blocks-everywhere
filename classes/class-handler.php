@@ -80,7 +80,7 @@ abstract class Handler {
 	public function the_editor( $editor ) {
 		$editor = preg_replace( '@.*?(<textarea.*?</textarea>).*@', '$1', $editor );
 
-		return '<div class="blocks-everywhere iso-editor__loading">' . $editor . '</div>';
+		return '<div class="blocks-everywhere iso-editor__loading wp-exclude-emoji">' . $editor . '</div>';
 	}
 
 	public function wp_editor_settings( $settings ) {

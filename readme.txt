@@ -3,7 +3,7 @@ Contributors: johnny5, automattic
 Tags: gutenberg, comments, bbpress, buddypress
 Requires at least: 6.1
 Tested up to: 6.1
-Stable tag: 1.14.3
+Stable tag: 1.16.0
 Requires PHP: 5.6
 License: GPLv3
 
@@ -147,6 +147,10 @@ The plugin is simple to install:
 2. Gutenberg when editing a comment
 
 == Changelog ==
+
+= 1.16.0 =
+* Add wp-exclude-emoji to the editor
+* Content embed block view assets loaded for everyone (when enabled)
 
 = 1.15.0 =
 * Support Gutenberg 15.1.0

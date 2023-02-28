@@ -233,20 +233,23 @@ abstract class Handler {
 		$settings = apply_filters( 'blocks_everywhere_editor_settings', $this->get_default_settings() );
 
 		if ( in_array( 'blocks-everywhere/support-content', $settings['iso']['blocks']['allowBlocks'], true ) ) {
-			register_block_type( 'blocks-everywhere/support-content', [
-				'editor_script' => 'support-content-editor',
-				'editor_style' => 'support-content-editor',
-				'style' => 'support-content-view',
-				'render_callback' => function( $attribs, $content ) {
-					$this->enqueue_assets(
-						'support-content-view',
-						'support-content-view.min.asset.php',
-						'support-content-view.min.js',
-						'support-content-view.min.css'
-					);
-					return $content;
-				}
-			] );
+			register_block_type(
+				'blocks-everywhere/support-content',
+				[
+					'editor_script' => 'support-content-editor',
+					'editor_style' => 'support-content-editor',
+					'style' => 'support-content-view',
+					'render_callback' => function( $attribs, $content ) {
+						$this->enqueue_assets(
+							'support-content-view',
+							'support-content-view.min.asset.php',
+							'support-content-view.min.js',
+							'support-content-view.min.css'
+						);
+						return $content;
+					},
+				]
+			);
 		}
 	}
 

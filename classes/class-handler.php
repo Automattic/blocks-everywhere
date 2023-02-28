@@ -152,7 +152,7 @@ abstract class Handler {
 	 * Modify KSES filters to match the allowed blocks
 	 *
 	 * @param array $tags
-	 * @return void
+	 * @return array
 	 */
 	public function get_kses_for_allowed_blocks( array $tags ) {
 		$allowed = $this->get_allowed_blocks();
@@ -225,16 +225,43 @@ abstract class Handler {
 	}
 
 	/**
-	 * Load Gutenberg if a comment form is enabled
+	 * Load any view assets
 	 *
 	 * @return void
 	 */
-	public function load_editor( $textarea, $container = null ) {
-		$this->editor = new \Automattic\Blocks_Everywhere\Editor();
+	protected function load_view_assets() {
+		$settings = apply_filters( 'blocks_everywhere_editor_settings', $this->get_default_settings() );
 
+		if ( in_array( 'blocks-everywhere/support-content', $settings['iso']['blocks']['allowBlocks'], true ) ) {
+			register_block_type(
+				'blocks-everywhere/support-content',
+				[
+					'editor_script' => 'support-content-editor',
+					'editor_style' => 'support-content-editor',
+					'style' => 'support-content-view',
+					'render_callback' => function( $attribs, $content ) {
+						$this->enqueue_assets(
+							'support-content-view',
+							'support-content-view.min.asset.php',
+							'support-content-view.min.js',
+							'support-content-view.min.css'
+						);
+						return $content;
+					},
+				]
+			);
+		}
+	}
+
+	/**
+	 * Get the default settings for the editor
+	 *
+	 * @return array
+	 */
+	private function get_default_settings() {
 		// Settings for the editor
 		$default_settings = [
-			'editor' => $this->editor->get_editor_settings(),
+			'editor' => [],
 			'iso' => [
 				'blocks' => [
 					'allowBlocks' => $this->get_allowed_blocks(),
@@ -260,8 +287,6 @@ abstract class Handler {
 					'imgur',
 				],
 			],
-			'saveTextarea' => $textarea,
-			'container' => $container,
 			'editorType' => $this->get_editor_type(),
 			'allowUrlEmbed' => false,
 			'pastePlainText' => false,
@@ -271,7 +296,21 @@ abstract class Handler {
 			'version' => \Automattic\Blocks_Everywhere\Blocks_Everywhere::VERSION,
 		];
 
-		$settings = apply_filters( 'blocks_everywhere_editor_settings', $default_settings );
+		return apply_filters( 'blocks_everywhere_editor_settings', $default_settings );
+	}
+
+	/**
+	 * Load Gutenberg if a comment form is enabled
+	 *
+	 * @return void
+	 */
+	public function load_editor( $textarea, $container = null ) {
+		$this->editor = new \Automattic\Blocks_Everywhere\Editor();
+
+		$settings = $this->get_default_settings();
+		$settings['editor']       = $this->editor->get_editor_settings();
+		$settings['saveTextarea'] = $textarea;
+		$settings['container']    = $container;
 
 		$this->editor->load( $settings );
 		$this->settings = $settings;
@@ -288,16 +327,16 @@ abstract class Handler {
 
 		if ( in_array( 'blocks-everywhere/support-content', $settings['iso']['blocks']['allowBlocks'], true ) ) {
 			$this->enqueue_assets(
-				'support-content-view',
-				'support-content-view.min.asset.php',
-				'support-content-view.min.js',
-				'support-content-view.min.css'
-			);
-			$this->enqueue_assets(
 				'support-content-editor',
 				'support-content-editor.min.asset.php',
 				'support-content-editor.min.js',
 				'support-content-editor.min.css'
+			);
+			$this->enqueue_assets(
+				'support-content-view',
+				'support-content-view.min.asset.php',
+				'support-content-view.min.js',
+				'support-content-view.min.css'
 			);
 		}
 
@@ -310,6 +349,15 @@ abstract class Handler {
 		}
 	}
 
+	/**
+	 * Queue up the CSS and JS
+	 *
+	 * @param string $name Resource name.
+	 * @param string $asset_file Resource file.
+	 * @param string $js_file JS file.
+	 * @param string $css_file CSS file.
+	 * @return string
+	 */
 	private function enqueue_assets( $name, $asset_file, $js_file, $css_file ) {
 		$asset_file = dirname( __DIR__ ) . '/build/' . $asset_file;
 		$asset = file_exists( $asset_file ) ? require_once $asset_file : null;

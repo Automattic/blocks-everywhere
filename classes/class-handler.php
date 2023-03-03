@@ -308,7 +308,7 @@ abstract class Handler {
 		$this->editor = new \Automattic\Blocks_Everywhere\Editor();
 
 		$settings = $this->get_default_settings();
-		$settings['editor']       = $this->editor->get_editor_settings();
+		$settings['editor']       = array_merge( $settings['editor'], $this->editor->get_editor_settings() );
 		$settings['saveTextarea'] = $textarea;
 		$settings['container']    = $container;
 

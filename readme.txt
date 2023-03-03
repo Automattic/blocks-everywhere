@@ -150,6 +150,7 @@ The plugin is simple to install:
 
 = 1.16.1 =
 * Fix custom editor settings being reset
+* Fix editor inline code style not appearing outside of paragraphs
 
 = 1.16.0 =
 * Add wp-exclude-emoji to the editor

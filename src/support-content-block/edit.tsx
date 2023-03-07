@@ -3,7 +3,7 @@ import { BlockControls, useBlockProps } from '@wordpress/block-editor';
 import { BlockEditProps, createBlock } from '@wordpress/blocks';
 import { ToolbarButton, ToolbarGroup, withNotices } from '@wordpress/components';
 import { compose } from '@wordpress/compose';
-import { renderToString, useState } from '@wordpress/element';
+import { renderToString, useState, useEffect } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { edit } from '@wordpress/icons';
 import React from 'react';
@@ -31,6 +31,11 @@ export const Edit = compose( withNotices )( ( props: EditProps ) => {
 	const [ isConfirmed, setIsConfirmed ] = useState( props.attributes.isConfirmed );
 	const [ isEditing, setIsEditing ] = useState( false );
 	const [ url, setUrl ] = useState( attributes.url );
+	const [ isReady, setIsReady ] = useState( false );
+
+	useEffect( () => {
+		setIsReady( true );
+	}, [] );
 
 	const onEditModeToggle = () => {
 		setIsEditing( ! isEditing );
@@ -67,20 +72,22 @@ export const Edit = compose( withNotices )( ( props: EditProps ) => {
 	if ( ! isConfirmed ) {
 		return (
 			<div { ...blockProps }>
-				<ConfirmContent
-					url={ url }
-					confirm={ async () => {
-						setIsConfirmed( true );
-						await fetchBlockAttributes();
-					} }
-					cancel={ () => {
-						const link = <a href={ url }>{ url }</a>;
-						const newBlock = createBlock( 'core/paragraph', {
-							content: renderToString( link ),
-						} );
-						replaceBlock( blockProps[ 'data-block' ], newBlock );
-					} }
-				/>
+				{ isReady && (
+					<ConfirmContent
+						url={ url }
+						confirm={ async () => {
+							setIsConfirmed( true );
+							await fetchBlockAttributes();
+						} }
+						cancel={ () => {
+							const link = <a href={ url }>{ url }</a>;
+							const newBlock = createBlock( 'core/paragraph', {
+								content: renderToString( link ),
+							} );
+							replaceBlock( blockProps[ 'data-block' ], newBlock );
+						} }
+					/>
+				) }
 			</div>
 		);
 	}

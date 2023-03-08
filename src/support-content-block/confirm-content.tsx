@@ -11,7 +11,7 @@ export const ConfirmContent = ( { url, confirm, cancel } ) => {
 			</a>
 
 			<span className="be-support-content-confirm-anchor">
-				<Popover variant="unstyled" offset={ 16 } placement="right-start">
+				<Popover onFocusOutside={ cancel } variant="unstyled" offset={ 16 } placement="right-start">
 					<div className="be-support-content-confirm-content">
 						<Elevation value={ 3 } />
 						<NavigableMenu role="menu">

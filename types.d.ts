@@ -18,4 +18,5 @@ declare var wpBlocksEverywhere: {
 	container: string;
 	pastePlainText: boolean;
 	replaceParagraphCode: boolean;
+	autocompleter: boolean;
 };

@@ -1,6 +1,6 @@
 {
 	"name": "blocks-everywhere",
-	"version": "1.16.1",
+	"version": "1.17.0",
 	"description": "Gutenberg in WordPress comments, admin pages, bbPress, and BuddyPress.",
 	"main": "src/index.js",
 	"scripts": {
@@ -20,9 +20,9 @@
 		"@babel/preset-env": "^7.20.2",
 		"@babel/preset-react": "^7.18.6",
 		"@types/eslint": "^8.21.1",
-		"@wordpress/babel-preset-default": "^7.11.0",
-		"@wordpress/prettier-config": "^2.10.0",
-		"@wordpress/scripts": "^25.4.0",
+		"@wordpress/babel-preset-default": "^7.12.0",
+		"@wordpress/prettier-config": "^2.11.0",
+		"@wordpress/scripts": "^25.5.1",
 		"babel-plugin-emotion": "^11.0.0",
 		"babel-plugin-inline-json-import": "^0.3.2",
 		"eslint": "^8.35.0",
@@ -32,7 +32,7 @@
 		"eslint-plugin-react": "^7.32.2",
 		"eslint-plugin-wpcalypso": "^7.0.0",
 		"precss": "^4.0.0",
-		"release-it": "^15.6.0",
+		"release-it": "^15.8.0",
 		"remove-files-webpack-plugin": "^1.5.0"
 	},
 	"dependencies": {

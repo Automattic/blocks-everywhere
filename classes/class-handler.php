@@ -294,6 +294,7 @@ abstract class Handler {
 			'patchEmoji' => false,
 			'pluginsUrl' => plugins_url( '', __DIR__ ),
 			'version' => \Automattic\Blocks_Everywhere\Blocks_Everywhere::VERSION,
+			'autocompleter' => true,
 		];
 
 		return apply_filters( 'blocks_everywhere_editor_settings', $default_settings );

@@ -33,6 +33,7 @@ const removeNullPostFromFileUploadMiddleware = ( options, next ) => {
 };
 
 domReady( () => {
+	// Stops an error when Gutenberg tries to save a post with a file upload and we dont have a post ID
 	apiFetch.use( removeNullPostFromFileUploadMiddleware );
 
 	// Modify any blocks we need to
@@ -42,7 +43,7 @@ domReady( () => {
 	unregisterFormatType( 'core/text-color' );
 	unregisterFormatType( 'core/image' );
 
-	if ( wpBlocksEverywhere.editorType === 'bbpress' ) {
+	if ( wpBlocksEverywhere.editorType === 'bbpress' && wpBlocksEverywhere.autocompleter ) {
 		addFilter(
 			'editor.Autocomplete.completers',
 			'blocks-everywhere/autocompleters',

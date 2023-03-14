@@ -121,26 +121,60 @@ Gutenberg outputs HTML content and this may be affected by KSES (WordPress HTML 
 
 The plugin provides some modifications to this so it works fine with basic blocks. You may run into problems if you are using different blocks or have customised permission levels.
 
-## Building
+## Development
 
-Run:
+This repository can be used directly with WordPress. For example, in your `wp-content/plugins` directory you can:
+
+`git clone git@github.com:Automattic/blocks-everywhere.git`
+
+You can then activate the plugin as normal and can follow the 'Building' instructions to build the files.
+
+### Sandboxes
+
+If you wish to sync changes with a remote sandbox you add `blocks_everywhere` to your `~/.npmrc` file. The value should point to the remote directory (including host and username). The directory should have a trailing slash.
+
+For example `blocks_everywhere=sandbox:public_html/wp-content/plugins/blocks-everywhere/`.
+
+### Building
+
+The JS and CSS needs to be compiled. You can do this in development mode, which will monitor for updates to the files:
 
 `yarn start`
 
-Or:
+You can perform the same function but also upload to a remote sandbox (see sandbox configuration above):
+
+`yarn start:sync`
+
+If you want to build production files (minified and without debugging) then:
 
 `yarn build`
 
+And
+
+`yarn build:sync`
+
 ### Releasing
 
-Run:
+A release packages up all the JS, CSS, and PHP files into a clean directory without any development tooling.
 
 `yarn release`
 
 The plugin will be available in the `release` directory.
 
+You can sync to a remote sandbox with (see sandbox configuration above):
+
+`yarn release:sync`
+
 ### Distribution
 
-Run:
+To produce a released and versioned distribution of the plugin run:
 
 `yarn dist`
+
+This will produce a zip file, upload it to Github, and mark it as an official release.
+
+You can sync this to the WordPress.org SVN repo with:
+
+`yarn dist:svn`
+
+You will need appropriate permissions.

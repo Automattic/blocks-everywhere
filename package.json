@@ -1,6 +1,6 @@
 {
 	"name": "blocks-everywhere",
-	"version": "1.17.0",
+	"version": "1.17.1",
 	"description": "Gutenberg in WordPress comments, admin pages, bbPress, and BuddyPress.",
 	"main": "src/index.js",
 	"scripts": {

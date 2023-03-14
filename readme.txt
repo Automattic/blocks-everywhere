@@ -3,7 +3,7 @@ Contributors: johnny5, automattic
 Tags: gutenberg, comments, bbpress, buddypress
 Requires at least: 6.1
 Tested up to: 6.1
-Stable tag: 1.17.0
+Stable tag: 1.17.1
 Requires PHP: 5.6
 License: GPLv3
 
@@ -147,6 +147,9 @@ The plugin is simple to install:
 2. Gutenberg when editing a comment
 
 == Changelog ==
+
+= 1.17.1 =
+* Revert fix for block inspector tabs in 1.15.0. Gutenberg has changed again.
 
 = 1.17.0 =
 * Updates to content support block

@@ -1,4 +1,4 @@
-=== Plugin Name ===
+=== Blocks Everywhere ===
 Contributors: johnny5, automattic
 Tags: gutenberg, comments, bbpress, buddypress
 Requires at least: 6.1

@@ -35,7 +35,7 @@ function setLoaded( container ) {
 }
 
 function createContainer( textarea, existingContainer ) {
-	if ( existingContainer && !existingContainer.contains( textarea ) ) {
+	if ( existingContainer && ! existingContainer.contains( textarea ) ) {
 		return existingContainer;
 	}
 
@@ -47,20 +47,25 @@ function createContainer( textarea, existingContainer ) {
 	return container;
 }
 
-function createEditorContainer( container, textarea, settings ) {
+function createEditorContainer( container, textarea, settings, form ) {
 	if ( settings?.editor?.hasUploadPermissions ) {
 		// Connect the media uploader if it's enabled
 		settings.editor.mediaUpload = mediaUpload;
 		addFilter( 'editor.MediaUpload', 'blocks-everywhere/media-upload', () => MediaUpload );
 	} else {
 		settings.editor.mediaUpload = ( { onError } ) => {
-			onError( __( 'File uploading is disabled. Please use an image block and an external image URL.', 'blocks-everywhere' ) );
+			onError(
+				__(
+					'File uploading is disabled. Please use an image block and an external image URL.',
+					'blocks-everywhere'
+				)
+			);
 		};
 	}
 
 	render(
 		<IsolatedBlockEditor
-			settings={ settings }
+			settings={ { ...settings, editor: { ...settings.editor, currentEditor: { container, form } } } }
 			onSaveContent={ ( content ) => saveBlocks( textarea, content ) }
 			onLoad={ ( parser ) => ( textarea && textarea.nodeName === 'TEXTAREA' ? parser( textarea.value ) : [] ) }
 			onError={ () => document.location.reload() }
@@ -85,7 +90,11 @@ function insulateForm( container ) {
 				ev.preventDefault();
 			}
 		} );
+
+		return form;
 	}
+
+	return null;
 }
 
 export default function createEditor( node ) {
@@ -99,6 +108,7 @@ export default function createEditor( node ) {
 		container = createContainer( node, document.querySelector( wpBlocksEverywhere.container ) );
 	}
 
-	insulateForm( container );
-	createEditorContainer( container, node, wpBlocksEverywhere );
+	const form = insulateForm( container );
+
+	createEditorContainer( container, node, wpBlocksEverywhere, form );
 }

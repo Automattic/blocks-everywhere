@@ -74,16 +74,30 @@ class Blocks_Everywhere {
 		$default_buddypress = defined( 'BLOCKS_EVERYWHERE_BUDDYPRESS' ) ? BLOCKS_EVERYWHERE_BUDDYPRESS : false;
 
 		if ( apply_filters( 'blocks_everywhere_comments', $default_comments ) ) {
-			$this->handlers[] = new Handler\Comments();
+			$this->handlers['Comments'] = new Handler\Comments();
 		}
 
 		if ( apply_filters( 'blocks_everywhere_bbpress', $default_bbpress ) ) {
-			$this->handlers[] = new Handler\bbPress();
+			$this->handlers['bbPress'] = new Handler\bbPress();
 		}
 
 		if ( apply_filters( 'blocks_everywhere_buddypress', $default_buddypress ) ) {
-			$this->handlers[] = new Handler\BuddyPress();
+			$this->handlers['BuddyPress'] = new Handler\BuddyPress();
 		}
+	}
+
+	/**
+	 * Get the instantiated handler class for the specified type, or null if it isn't configured or known.
+	 *
+	 * @param String $which The handler type -- Comments, bbPress, BuddyPress.
+	 * @return class object or null it not configured.
+	 */
+	public function get_handler( $which ) {
+		if ( isset( $this->handlers[ $which ] ) ) {
+			return $this->handlers[ $which ];
+		}
+
+		return null;
 	}
 
 	/**

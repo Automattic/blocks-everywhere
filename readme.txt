@@ -1,9 +1,9 @@
 === Blocks Everywhere ===
 Contributors: johnny5, automattic
 Tags: gutenberg, comments, bbpress, buddypress
-Requires at least: 6.1
-Tested up to: 6.1
-Stable tag: 1.17.1
+Requires at least: 6.2
+Tested up to: 6.2
+Stable tag: 1.18.0
 Requires PHP: 5.6
 License: GPLv3
 
@@ -147,6 +147,9 @@ The plugin is simple to install:
 2. Gutenberg when editing a comment
 
 == Changelog ==
+
+= 1.18.0 =
+* Add PHP access method for improved integration
 
 = 1.17.1 =
 * Revert fix for block inspector tabs in 1.15.0. Gutenberg has changed again.

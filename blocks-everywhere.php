@@ -89,8 +89,8 @@ class Blocks_Everywhere {
 	/**
 	 * Get the instantiated handler class for the specified type, or null if it isn't configured or known.
 	 *
-	 * @param String $which The handler type -- Comments, bbPress, BuddyPress.
-	 * @return class object or null it not configured.
+	 * @param 'Comments'|'bbPress'|'BuddyPress' $which The handler type.
+	 * @return Handler\Handler|null object or null it not configured.
 	 */
 	public function get_handler( $which ) {
 		if ( isset( $this->handlers[ $which ] ) ) {

@@ -150,6 +150,8 @@ The plugin is simple to install:
 
 = 1.18.0 =
 * Add PHP access method for improved integration
+* Fix KSES for comments
+* Fix hiding of the comment textarea
 
 = 1.17.1 =
 * Revert fix for block inspector tabs in 1.15.0. Gutenberg has changed again.

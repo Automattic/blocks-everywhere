@@ -8,6 +8,10 @@
 	}
 }
 
+.gutenberg-comments #comment {
+	display: none;
+}
+
 // wp-admin has a darker border
 .wp-admin .iso-editor {
 	border-color: #ccd0d4;

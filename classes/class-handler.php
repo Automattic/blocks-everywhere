@@ -179,7 +179,17 @@ abstract class Handler {
 		}
 
 		if ( in_array( 'core/image', $allowed, true ) ) {
-			$tags['img']['class'] = true;
+			// If `img` already exists, merge its arguments in. Otherwise create it.
+			$tags['img'] = wp_parse_args(
+				array(
+					'alt'      => true,
+					'height'   => true,
+					'src'      => true,
+					'width'    => true,
+					'class'    => true,
+				),
+				$tags['img'] ?? []
+			);
 		}
 
 		if ( in_array( 'core/image', $allowed, true ) || in_array( 'core/quote', $allowed, true ) ) {

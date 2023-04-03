@@ -28,7 +28,7 @@ class Comments extends Handler {
 	 * Filter on `wp_kses_allowed_html` -- accepting two arguments so we can only run it on the right contexts.
 	 */
 	public function filter_kses_allowed_html( $tags, $context ) {
-		if ( 'pre_comment_context' === $context ) {
+		if ( 'pre_comment_content' === $context ) {
 			// Handler::get_kses_for_allowed_blocks() doesn't accept a `$context` arg so we need to run this here.
 			$tags = $this->get_kses_for_allowed_blocks( $tags );
 		}

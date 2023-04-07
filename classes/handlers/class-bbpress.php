@@ -8,6 +8,8 @@ class bbPress extends Handler {
 	 * Constructor
 	 */
 	public function __construct() {
+		parent::__construct();
+
 		// Load the editor when the page has been setup, allowing us to decide based on the content
 		add_action( 'bbp_template_redirect', [ $this, 'bbp_template_redirect' ], 8 );
 

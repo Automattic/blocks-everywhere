@@ -27,6 +27,39 @@ abstract class Handler {
 	private $doing_hook = null;
 
 	/**
+	 * Whether the assets have been registered already.
+	 */
+	public static $registered_assets = false;
+
+	/**
+	 * The `Blocks_Everywhere::load_handlers()` method that would instantiate, and thereby invoke this, runs on init.
+	 */
+	public function __construct() {
+		// We only need to run this once, no matter how many child classes are instantiated, so let's stash it in a static.
+		if ( ! self::$registered_assets ) {
+			$this->register_assets(
+				'blocks-everywhere',
+				'index.min.asset.php',
+				'index.min.js',
+				'style-index.min.css'
+			);
+			$this->register_assets(
+				'support-content-editor',
+				'support-content-editor.min.asset.php',
+				'support-content-editor.min.js',
+				'support-content-editor.min.css'
+			);
+			$this->register_assets(
+				'support-content-view',
+				'support-content-view.min.asset.php',
+				'support-content-view.min.js',
+				'support-content-view.min.css'
+			);
+			self::$registered_assets = true;
+		}
+	}
+
+	/**
 	 * Direct copy of core `do_blocks`, but for comments.
 	 *
 	 * This also has the benefit that we don't run `wpautop` on block transformed comments, potentially breaking them.

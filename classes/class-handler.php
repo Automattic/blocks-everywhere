@@ -327,7 +327,7 @@ abstract class Handler {
 		$this->settings = $settings;
 
 		// Enqueue assets
-		$version = $this->enqueue_assets(
+		$this->enqueue_assets(
 			'blocks-everywhere',
 			'index.min.asset.php',
 			'index.min.js',

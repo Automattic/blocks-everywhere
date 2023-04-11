@@ -27,6 +27,39 @@ abstract class Handler {
 	private $doing_hook = null;
 
 	/**
+	 * Whether the assets have been registered already.
+	 */
+	public static $registered_assets = false;
+
+	/**
+	 * The `Blocks_Everywhere::load_handlers()` method that would instantiate, and thereby invoke this, runs on init.
+	 */
+	public function __construct() {
+		// We only need to run this once, no matter how many child classes are instantiated, so let's stash it in a static.
+		if ( ! self::$registered_assets ) {
+			$this->register_assets(
+				'blocks-everywhere',
+				'index.min.asset.php',
+				'index.min.js',
+				'style-index.min.css'
+			);
+			$this->register_assets(
+				'support-content-editor',
+				'support-content-editor.min.asset.php',
+				'support-content-editor.min.js',
+				'support-content-editor.min.css'
+			);
+			$this->register_assets(
+				'support-content-view',
+				'support-content-view.min.asset.php',
+				'support-content-view.min.js',
+				'support-content-view.min.css'
+			);
+			self::$registered_assets = true;
+		}
+	}
+
+	/**
 	 * Direct copy of core `do_blocks`, but for comments.
 	 *
 	 * This also has the benefit that we don't run `wpautop` on block transformed comments, potentially breaking them.
@@ -327,7 +360,7 @@ abstract class Handler {
 		$this->settings = $settings;
 
 		// Enqueue assets
-		$version = $this->enqueue_assets(
+		$this->enqueue_assets(
 			'blocks-everywhere',
 			'index.min.asset.php',
 			'index.min.js',
@@ -361,7 +394,33 @@ abstract class Handler {
 	}
 
 	/**
-	 * Queue up the CSS and JS
+	 * Register the CSS and JS in case we want to later enqueue it.
+	 *
+	 * @param string $name Resource name.
+	 * @param string $asset_file Resource file.
+	 * @param string|null $js_file JS file, if it exists.
+	 * @param string|null $css_file CSS file, if it exists.
+	 * @return string
+	 */
+	private function register_assets( $name, $asset_file, $js_file = null, $css_file = null ) {
+		$asset_file = dirname( __DIR__ ) . '/build/' . $asset_file;
+		$asset = file_exists( $asset_file ) ? require_once $asset_file : null;
+		$version = isset( $asset['version'] ) ? $asset['version'] : time();
+		$plugin = dirname( __DIR__ ) . '/blocks-everywhere.php';
+
+		if ( $js_file ) {
+			wp_register_script( $name, plugins_url( 'build/' . $js_file, $plugin ), [], $version, true );
+		}
+
+		if ( $css_file ) {
+			wp_register_style( $name, plugins_url( 'build/' . $css_file, $plugin ), [], $version );
+		}
+
+		return $version;
+	}
+
+	/**
+	 * Enqueue the CSS and JS.
 	 *
 	 * @param string $name Resource name.
 	 * @param string $asset_file Resource file.
@@ -369,19 +428,16 @@ abstract class Handler {
 	 * @param string $css_file CSS file.
 	 * @return string
 	 */
-	private function enqueue_assets( $name, $asset_file, $js_file, $css_file ) {
-		$asset_file = dirname( __DIR__ ) . '/build/' . $asset_file;
-		$asset = file_exists( $asset_file ) ? require_once $asset_file : null;
-		$version = isset( $asset['version'] ) ? $asset['version'] : time();
-		$plugin = dirname( __DIR__ ) . '/blocks-everywhere.php';
-
-		wp_register_script( $name, plugins_url( 'build/' . $js_file, $plugin ), [], $version, true );
+	private function enqueue_assets( $name, $asset_file, $js_file = null, $css_file = null ) {
+		if ( $js_file && ! wp_script_is( $name, 'registered' ) ) {
+			$this->register_assets( $name, $asset_file, $js_file, null );
+		}
 		wp_enqueue_script( $name );
 
-		wp_register_style( $name, plugins_url( 'build/' . $css_file, $plugin ), [], $version );
+		if ( $css_file && ! wp_style_is( $name, 'registered' ) ) {
+			$this->register_assets( $name, $asset_file, null, $css_file );
+		}
 		wp_enqueue_style( $name );
-
-		return $version;
 	}
 
 	/**

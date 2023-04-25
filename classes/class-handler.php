@@ -388,7 +388,7 @@ abstract class Handler {
 		if ( apply_filters( 'blocks_everywhere_theme_compat', $theme_compat ) ) {
 			$plugin = dirname( __DIR__ ) . '/blocks-everywhere.php';
 
-			wp_register_style( 'blocks-everywhere-compat', plugins_url( 'build/theme-compat.min.css', $plugin ), [ 'blocks-everywhere' ], $version );
+			wp_register_style( 'blocks-everywhere-compat', plugins_url( 'build/theme-compat.min.css', $plugin ), [ 'blocks-everywhere' ], true );
 			wp_enqueue_style( 'blocks-everywhere-compat' );
 		}
 	}

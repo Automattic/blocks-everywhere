@@ -149,6 +149,7 @@ The plugin is simple to install:
 == Changelog ==
 
 = 1.18.0 =
+* Compatibility with Gutenberg 15.5.0+
 * Add PHP access method for improved integration
 * Fix KSES for comments
 * Fix hiding of the comment textarea

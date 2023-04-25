@@ -195,6 +195,12 @@ class Editor {
 	public function get_editor_settings() {
 		global $post;
 
+		$supports_layout = false;
+
+		if ( function_exists( 'wp_theme_has_theme_json' ) ) {
+			$supports_layout = wp_theme_has_theme_json();
+		}
+
 		// phpcs:ignore
 		$body_placeholder = apply_filters( 'write_your_story', null, $post );
 
@@ -209,7 +215,7 @@ class Editor {
 			'styles'                               => get_block_editor_theme_styles(),
 			'richEditingEnabled'                   => user_can_richedit(),
 			'postLock'                             => false,
-			'supportsLayout'                       => \WP_Theme_JSON_Resolver::theme_has_support(),
+			'supportsLayout'                       => $supports_layout,
 			'__experimentalBlockPatterns'          => [],
 			'__experimentalBlockPatternCategories' => [],
 			'supportsTemplateMode'                 => current_theme_supports( 'block-templates' ),

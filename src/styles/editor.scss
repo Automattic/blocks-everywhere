@@ -65,7 +65,8 @@ body:not(.gutenberg-support-upload) {
 	}
 
 	// Hide upload button
-	.block-editor-media-replace-flow__media-upload-menu {
+	.block-editor-media-replace-flow__media-upload-menu,
+	.components-form-file-upload {
 		display: none;
 	}
 }

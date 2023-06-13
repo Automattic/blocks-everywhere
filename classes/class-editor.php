@@ -222,6 +222,7 @@ class Editor {
 			'enableCustomFields'                   => false,
 			'generateAnchors'                      => true,
 			'canLockBlocks'                        => false,
+			'hasUploadPermissions'                 => false,
 		);
 
 		$editor_settings['__unstableResolvedAssets'] = $this->wp_get_iframed_editor_assets();

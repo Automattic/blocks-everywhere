@@ -2,8 +2,8 @@
 Contributors: johnny5, automattic
 Tags: gutenberg, comments, bbpress, buddypress
 Requires at least: 6.2
-Tested up to: 6.2
-Stable tag: 1.18.0
+Tested up to: 6.2.2
+Stable tag: 1.19.0
 Requires PHP: 5.6
 License: GPLv3
 
@@ -147,6 +147,11 @@ The plugin is simple to install:
 2. Gutenberg when editing a comment
 
 == Changelog ==
+
+= 1.19.0 =
+* Fix link apply button having wrong style
+* Fix disabled upload permissions from not working
+* Fix React 17/18 warning
 
 = 1.18.0 =
 * Compatibility with Gutenberg 15.5.0+

@@ -11,16 +11,17 @@ For extra security the list of available blocks is determined by the allowed tag
 Gutenberg is not bundled and instead is side-loaded from WordPress. For better compatibility you should use the plugin version of Gutenberg, which is typically several versions ahead of the one included in WordPress.
 
 The condition of the Gutenberg replacements are:
-- bbPress - good (requires bbPress 2.6+)
-- comments - alright
-- BuddyPress - needs a lot of work
+
+-   bbPress - good (requires bbPress 2.6+)
+-   comments - alright
+-   BuddyPress - needs a lot of work
 
 The plugin uses the [Isolated Block Editor](https://github.com/Automattic/isolated-block-editor/). This can also be found in:
 
-- [Plain Text Editor](https://github.com/Automattic/isolated-block-editor/src/browser/README.md) - standalone JS file that can replace any `textarea` on any page with a full Gutenberg editor
-- [Gutenberg Chrome Extension](https://github.com/Automattic/gutenberg-everywhere-chrome/) - a Chrome extension that allows Gutenberg to be used on any page
-- [Gutenberg Desktop](https://github.com/Automattic/gutenberg-desktop/) - a desktop editor that supports the loading and saving of HTML and Markdown files
-- [P2](https://wordpress.com/p2/) - WordPress as a collaborative workspace (coming soon for self-hosted)
+-   [Plain Text Editor](https://github.com/Automattic/isolated-block-editor/src/browser/README.md) - standalone JS file that can replace any `textarea` on any page with a full Gutenberg editor
+-   [Gutenberg Chrome Extension](https://github.com/Automattic/gutenberg-everywhere-chrome/) - a Chrome extension that allows Gutenberg to be used on any page
+-   [Gutenberg Desktop](https://github.com/Automattic/gutenberg-desktop/) - a desktop editor that supports the loading and saving of HTML and Markdown files
+-   [P2](https://wordpress.com/p2/) - WordPress as a collaborative workspace (coming soon for self-hosted)
 
 Blocks Everywhere can be downloaded from WordPress.org:
 
@@ -74,6 +75,10 @@ Some settings are available through the settings object, which is filterable wit
 `patchEmoji` - set to `true` to stop twemoji from affecting the editor
 `iso.allowEmbeds` - List of enabled embeds
 `iso.blocks.allowBlocks` - List of enabled blocks
+`iso.className` - String of classes to be assigned to the editor.
+`iso.__experimentalOnChange` - An optional callback that is triggered when the blocks are changed.
+`iso.__experimentalOnInput` - An optional callback that is triggered when text is input.
+`iso.__experimentalOnSelection` - An optional callback when a block is selected.
 
 ### Theme compatibility
 

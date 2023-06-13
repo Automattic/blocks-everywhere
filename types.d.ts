@@ -7,8 +7,10 @@ declare interface Blocks {
 declare interface Iso {
 	allowEmbeds: string[];
 	blocks: Blocks;
-	__experimentalOnInput?: () => void;
-	__experimentalOnChange?: () => void;
+	__experimentalOnInput?: ( block: any ) => any;
+	__experimentalOnChange?: ( block: any ) => any;
+	__experimentalOnSelection?: ( selection: any ) => any;
+	className?: string;
 }
 
 declare var wpBlocksEverywhere: {

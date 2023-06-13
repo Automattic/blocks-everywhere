@@ -4,7 +4,7 @@
 
 import { MediaUpload } from '@wordpress/media-utils';
 import { mediaUpload } from '@wordpress/editor';
-import { render } from '@wordpress/element';
+import { createRoot } from '@wordpress/element';
 import IsolatedBlockEditor, { EditorLoaded } from '@automattic/isolated-block-editor';
 import { addFilter } from '@wordpress/hooks';
 import { __ } from '@wordpress/i18n';
@@ -35,7 +35,7 @@ function setLoaded( container ) {
 }
 
 function createContainer( textarea, existingContainer ) {
-	if ( existingContainer && !existingContainer.contains( textarea ) ) {
+	if ( existingContainer && ! existingContainer.contains( textarea ) ) {
 		return existingContainer;
 	}
 
@@ -48,17 +48,17 @@ function createContainer( textarea, existingContainer ) {
 }
 
 function createEditorContainer( container, textarea, settings ) {
+	const root = createRoot( container );
+
 	if ( settings?.editor?.hasUploadPermissions ) {
 		// Connect the media uploader if it's enabled
 		settings.editor.mediaUpload = mediaUpload;
 		addFilter( 'editor.MediaUpload', 'blocks-everywhere/media-upload', () => MediaUpload );
 	} else {
-		settings.editor.mediaUpload = ( { onError } ) => {
-			onError( __( 'File uploading is disabled. Please use an image block and an external image URL.', 'blocks-everywhere' ) );
-		};
+		settings.editor.mediaUpload = null;
 	}
 
-	render(
+	root.render(
 		<IsolatedBlockEditor
 			settings={ settings }
 			onSaveContent={ ( content ) => saveBlocks( textarea, content ) }
@@ -68,8 +68,7 @@ function createEditorContainer( container, textarea, settings ) {
 			<EditorLoaded onLoaded={ () => setLoaded( container ) } />
 
 			{ settings.editorType === 'buddypress' && <BuddyPress textarea={ textarea } /> }
-		</IsolatedBlockEditor>,
-		container
+		</IsolatedBlockEditor>
 	);
 }
 

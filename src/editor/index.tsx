@@ -64,6 +64,10 @@ function createEditorContainer( container, textarea, settings ) {
 			onSaveContent={ ( content ) => saveBlocks( textarea, content ) }
 			onLoad={ ( parser ) => ( textarea && textarea.nodeName === 'TEXTAREA' ? parser( textarea.value ) : [] ) }
 			onError={ () => document.location.reload() }
+			__experimentalOnInput={ ( newBlocks ) => settings?.iso.__experimentalOnInput?.( newBlocks ) }
+			__experimentalOnChange={ ( newBlocks ) => settings?.iso.__experimentalOnChange?.( newBlocks ) }
+			__experimentalOnSelection={ ( selection ) => settings?.iso.__experimentalOnSelection?.( selection ) }
+			className={ settings?.iso?.className }
 		>
 			<EditorLoaded onLoaded={ () => setLoaded( container ) } />
 

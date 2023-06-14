@@ -76,6 +76,10 @@ Some settings are available through the settings object, which is filterable wit
 `patchEmoji` - set to `true` to stop twemoji from affecting the editor
 `iso.allowEmbeds` - List of enabled embeds
 `iso.blocks.allowBlocks` - List of enabled blocks
+`iso.className` - String of classes to be assigned to the editor.
+`iso.__experimentalOnChange` - An optional callback that is triggered when the blocks are changed.
+`iso.__experimentalOnInput` - An optional callback that is triggered when text is input.
+`iso.__experimentalOnSelection` - An optional callback when a block is selected.
 
 == Theme compatibility ==
 

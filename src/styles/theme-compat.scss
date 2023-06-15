@@ -283,11 +283,10 @@ body:not(.gutenberg-support-upload) {
 }
 
 .wporg-support.gutenberg-support .block-editor-block-contextual-toolbar.is-fixed {
-	top: 92px;
-}
+	position: static;
+	margin-left: 0;
 
-@media (min-height: 800px) and (min-width: 890px) {
-	.wporg-support.gutenberg-support .block-editor-block-contextual-toolbar.is-fixed {
-		top: 122px;
+	&:not(:empty) {
+		border-bottom: 1px solid #e0e0e0;
 	}
 }

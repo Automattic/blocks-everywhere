@@ -367,7 +367,10 @@ abstract class Handler {
 			'style-index.min.css'
 		);
 
-		wp_localize_script( 'blocks-everywhere', 'wpBlocksEverywhere', $settings );
+		// Enqueue settings separately to allow for dynamic loading.
+		wp_register_script( 'blocks-everywhere-settings', '', [], $settings['version'], true );
+		wp_add_inline_script( 'blocks-everywhere-settings', 'const wpBlocksEverywhere = ' . wp_json_encode( $settings ), 'before' );
+		wp_enqueue_script( 'blocks-everywhere-settings' );
 
 		if ( in_array( 'blocks-everywhere/support-content', $settings['iso']['blocks']['allowBlocks'], true ) ) {
 			$this->enqueue_assets(
@@ -409,7 +412,7 @@ abstract class Handler {
 		$plugin = dirname( __DIR__ ) . '/blocks-everywhere.php';
 
 		if ( $js_file ) {
-			wp_register_script( $name, plugins_url( 'build/' . $js_file, $plugin ), [], $version, true );
+			wp_register_script( $name, plugins_url( 'build/' . $js_file, $plugin ), $asset['dependencies'], $version, true );
 		}
 
 		if ( $css_file ) {
@@ -432,7 +435,12 @@ abstract class Handler {
 		if ( $js_file && ! wp_script_is( $name, 'registered' ) ) {
 			$this->register_assets( $name, $asset_file, $js_file, null );
 		}
-		wp_enqueue_script( $name );
+
+		if ( defined( '__EXPERIMENTAL_DYNAMIC_LOAD' ) && 'blocks-everywhere' === $name ) {
+			\WP_Enqueue_Dynamic_Script::enqueue_script( $name );
+		} else {
+			wp_enqueue_script( $name );
+		}
 
 		if ( $css_file && ! wp_style_is( $name, 'registered' ) ) {
 			$this->register_assets( $name, $asset_file, null, $css_file );

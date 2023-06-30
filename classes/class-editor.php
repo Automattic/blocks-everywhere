@@ -93,12 +93,6 @@ class Editor {
 		add_filter( 'tiny_mce_before_init', [ $this, 'tiny_mce_before_init' ] );
 
 		if ( ! defined( '__EXPERIMENTAL_DYNAMIC_LOAD' ) ) {
-			// Gutenberg scripts
-			wp_enqueue_script( 'wp-block-library' );
-			wp_enqueue_script( 'wp-format-library' );
-			wp_enqueue_script( 'wp-editor' );
-			wp_enqueue_script( 'wp-plugins' );
-
 			// Keep Jetpack out of things
 			add_filter(
 				'jetpack_blocks_variation',

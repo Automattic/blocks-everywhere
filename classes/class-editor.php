@@ -92,16 +92,18 @@ class Editor {
 		// Restrict tinymce buttons
 		add_filter( 'tiny_mce_before_init', [ $this, 'tiny_mce_before_init' ] );
 
+		// Keep Jetpack out of things
+		add_filter(
+			'jetpack_blocks_variation',
+			function() {
+				return 'no-post-editor';
+			}
+		);
+		
+		// Only call the editor assets if we are not dynamically loading.
 		if ( ! defined( '__EXPERIMENTAL_DYNAMIC_LOAD' ) ) {
-			// Keep Jetpack out of things
-			add_filter(
-				'jetpack_blocks_variation',
-				function() {
-					return 'no-post-editor';
-				}
-			);
-
 			wp_tinymce_inline_scripts();
+
 			wp_enqueue_editor();
 
 			do_action( 'enqueue_block_editor_assets' );

@@ -92,16 +92,6 @@ class Editor {
 		// Restrict tinymce buttons
 		add_filter( 'tiny_mce_before_init', [ $this, 'tiny_mce_before_init' ] );
 
-		// Gutenberg scripts
-		wp_enqueue_script( 'wp-block-library' );
-		wp_enqueue_script( 'wp-format-library' );
-		wp_enqueue_script( 'wp-editor' );
-		wp_enqueue_script( 'wp-plugins' );
-
-		// Gutenberg styles
-		wp_enqueue_style( 'wp-edit-post' );
-		wp_enqueue_style( 'wp-format-library' );
-
 		// Keep Jetpack out of things
 		add_filter(
 			'jetpack_blocks_variation',
@@ -109,13 +99,21 @@ class Editor {
 				return 'no-post-editor';
 			}
 		);
+		
+		// Only call the editor assets if we are not dynamically loading.
+		if ( ! defined( '__EXPERIMENTAL_DYNAMIC_LOAD' ) ) {
+			wp_tinymce_inline_scripts();
 
-		wp_tinymce_inline_scripts();
-		wp_enqueue_editor();
+			wp_enqueue_editor();
 
-		do_action( 'enqueue_block_editor_assets' );
+			do_action( 'enqueue_block_editor_assets' );
 
-		add_action( 'wp_print_footer_scripts', array( '_WP_Editors', 'print_default_editor_scripts' ), 45 );
+			add_action( 'wp_print_footer_scripts', array( '_WP_Editors', 'print_default_editor_scripts' ), 45 );
+		}
+
+		// Gutenberg styles
+		wp_enqueue_style( 'wp-edit-post' );
+		wp_enqueue_style( 'wp-format-library' );
 
 		$this->setup_rest_api();
 

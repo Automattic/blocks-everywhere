@@ -14,6 +14,7 @@ function disableSupports( settings ) {
 			anchor: false,
 			html: false,
 			color: false,
+			typography: false,
 		}
 	}
 }

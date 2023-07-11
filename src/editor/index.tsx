@@ -4,10 +4,11 @@
 
 import { MediaUpload } from '@wordpress/media-utils';
 import { mediaUpload } from '@wordpress/editor';
-import { createRoot } from '@wordpress/element';
+import { createRoot, useEffect } from '@wordpress/element';
 import IsolatedBlockEditor, { EditorLoaded } from '@automattic/isolated-block-editor';
 import { addFilter } from '@wordpress/hooks';
 import { __ } from '@wordpress/i18n';
+import { getBlockTypes, unregisterBlockType } from '@wordpress/blocks';
 
 /**
  * Local dependencies
@@ -47,6 +48,18 @@ function createContainer( textarea, existingContainer ) {
 	return container;
 }
 
+function RemoveBlockTypes() {
+	useEffect( () => {
+		const blocks = getBlockTypes()
+			.filter( ( block ) => wpBlocksEverywhere.iso.blocks.allowBlocks.indexOf( block.name ) === -1 )
+			.forEach( ( block ) => {
+				unregisterBlockType( block.name );
+			} );
+	}, [] );
+
+	return null;
+}
+
 function createEditorContainer( container, textarea, settings ) {
 	const root = createRoot( container );
 
@@ -64,14 +77,15 @@ function createEditorContainer( container, textarea, settings ) {
 			onSaveContent={ ( content ) => saveBlocks( textarea, content ) }
 			onLoad={ ( parser ) => ( textarea && textarea.nodeName === 'TEXTAREA' ? parser( textarea.value ) : [] ) }
 			onError={ () => document.location.reload() }
-			__experimentalOnInput={ ( newBlocks ) => settings?.iso.__experimentalOnInput?.( newBlocks ) }
-			__experimentalOnChange={ ( newBlocks ) => settings?.iso.__experimentalOnChange?.( newBlocks ) }
-			__experimentalOnSelection={ ( selection ) => settings?.iso.__experimentalOnSelection?.( selection ) }
+			__experimentalOnInput={ settings?.iso.__experimentalOnInput }
+			__experimentalOnChange={ settings?.iso.__experimentalOnChange }
+			__experimentalOnSelection={ settings?.iso.__experimentalOnSelection }
 			className={ settings?.iso?.className }
 		>
 			<EditorLoaded onLoaded={ () => setLoaded( container ) } />
 
 			{ settings.editorType === 'buddypress' && <BuddyPress textarea={ textarea } /> }
+			<RemoveBlockTypes />
 		</IsolatedBlockEditor>
 	);
 }

@@ -1,6 +1,6 @@
 {
 	"name": "blocks-everywhere",
-	"version": "1.19.0",
+	"version": "1.20.0",
 	"description": "Gutenberg in WordPress comments, admin pages, bbPress, and BuddyPress.",
 	"main": "src/index.tsx",
 	"scripts": {
@@ -20,8 +20,8 @@
 	"author": "Automattic",
 	"license": "GPL-2.0-or-later",
 	"devDependencies": {
-		"@babel/core": "^7.22.8",
-		"@babel/preset-env": "^7.22.7",
+		"@babel/core": "^7.22.9",
+		"@babel/preset-env": "^7.22.9",
 		"@babel/preset-react": "^7.22.5",
 		"@types/eslint": "^8.44.0",
 		"@wordpress/babel-preset-default": "^7.21.0",
@@ -29,7 +29,7 @@
 		"@wordpress/scripts": "^26.8.0",
 		"babel-plugin-emotion": "^11.0.0",
 		"babel-plugin-inline-json-import": "^0.3.2",
-		"eslint": "^8.44.0",
+		"eslint": "^8.45.0",
 		"eslint-config-wpcalypso": "^6.1.0",
 		"eslint-plugin-import": "^2.27.5",
 		"eslint-plugin-jsx-a11y": "^6.7.1",
@@ -37,12 +37,12 @@
 		"eslint-plugin-wpcalypso": "^7.0.0",
 		"onchange": "^7.1.0",
 		"precss": "^4.0.0",
-		"release-it": "^16.1.0",
+		"release-it": "^16.1.2",
 		"remove-files-webpack-plugin": "^1.5.0"
 	},
 	"dependencies": {
 		"@automattic/color-studio": "^2.5.0",
-		"@automattic/isolated-block-editor": "https://github.com/Automattic/isolated-block-editor#aa742af512733c8b7a85ffa66d588f779ed449a8",
+		"@automattic/isolated-block-editor": "^2.26.0",
 		"@automattic/typography": "^1.0.0",
 		"use-debounce": "^9.0.4"
 	},

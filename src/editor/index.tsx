@@ -4,10 +4,11 @@
 
 import { MediaUpload } from '@wordpress/media-utils';
 import { mediaUpload } from '@wordpress/editor';
-import { createRoot } from '@wordpress/element';
+import { createRoot, useEffect } from '@wordpress/element';
 import IsolatedBlockEditor, { EditorLoaded } from '@automattic/isolated-block-editor';
 import { addFilter } from '@wordpress/hooks';
 import { __ } from '@wordpress/i18n';
+import { getBlockTypes, unregisterBlockType } from '@wordpress/blocks';
 
 /**
  * Local dependencies
@@ -47,6 +48,18 @@ function createContainer( textarea, existingContainer ) {
 	return container;
 }
 
+function RemoveBlockTypes() {
+	useEffect( () => {
+		const blocks = getBlockTypes()
+			.filter( ( block ) => wpBlocksEverywhere.iso.blocks.allowBlocks.indexOf( block.name ) === -1 )
+			.forEach( ( block ) => {
+				unregisterBlockType( block.name );
+			} );
+	}, [] );
+
+	return null;
+}
+
 function createEditorContainer( container, textarea, settings ) {
 	const root = createRoot( container );
 
@@ -72,6 +85,7 @@ function createEditorContainer( container, textarea, settings ) {
 			<EditorLoaded onLoaded={ () => setLoaded( container ) } />
 
 			{ settings.editorType === 'buddypress' && <BuddyPress textarea={ textarea } /> }
+			<RemoveBlockTypes />
 		</IsolatedBlockEditor>
 	);
 }

@@ -3,7 +3,7 @@ Contributors: johnny5, automattic
 Tags: gutenberg, comments, bbpress, buddypress
 Requires at least: 6.2
 Tested up to: 6.2.2
-Stable tag: 1.20.1
+Stable tag: 1.22.0
 Requires PHP: 5.6
 License: GPLv3
 
@@ -151,6 +151,10 @@ The plugin is simple to install:
 2. Gutenberg when editing a comment
 
 == Changelog ==
+
+= 1.21.0 =
+* Disable block renaming
+* Update for latest Gutenberg (16.7.1+)
 
 = 1.20.1 =
 * Fix toolbar not being full width in 16.2.1

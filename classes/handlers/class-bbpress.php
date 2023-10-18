@@ -490,6 +490,10 @@ class bbPress extends Handler {
 	 * @return array
 	 */
 	public function get_topic_users( $topic_id = 0 ) {
+		if ( ! function_exists( 'get_topic_users' ) ) {
+			return [];
+		}
+
 		$topic_id = bbp_get_topic_id( $topic_id );
 		if ( empty( $topic_id ) ) {
 			return [];

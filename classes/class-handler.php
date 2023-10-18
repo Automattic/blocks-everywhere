@@ -318,7 +318,8 @@ abstract class Handler {
 					'navigation' => true,
 				],
 				'defaultPreferences' => [
-					'fixedToolbar' => true,
+					'fixedToolbar'    => true,
+					'hasFixedToolbar' => true,
 				],
 				'allowEmbeds' => [
 					'youtube',

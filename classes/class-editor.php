@@ -99,7 +99,7 @@ class Editor {
 				return 'no-post-editor';
 			}
 		);
-		
+
 		// Only call the editor assets if we are not dynamically loading.
 		if ( ! defined( '__EXPERIMENTAL_DYNAMIC_LOAD' ) ) {
 			wp_tinymce_inline_scripts();
@@ -214,6 +214,8 @@ class Editor {
 			'richEditingEnabled'                   => user_can_richedit(),
 			'postLock'                             => false,
 			'supportsLayout'                       => $supports_layout,
+			'hasFixedToolbar'                      => true,
+			'hasInlineToolbar'                     => false,
 			'__experimentalBlockPatterns'          => [],
 			'__experimentalBlockPatternCategories' => [],
 			'supportsTemplateMode'                 => current_theme_supports( 'block-templates' ),

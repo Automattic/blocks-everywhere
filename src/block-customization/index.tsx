@@ -15,6 +15,7 @@ function disableSupports( settings ) {
 			html: false,
 			color: false,
 			typography: false,
+			renaming: false,
 		}
 	}
 }

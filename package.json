@@ -1,6 +1,6 @@
 {
 	"name": "blocks-everywhere",
-	"version": "1.21.0",
+	"version": "1.22.0",
 	"description": "Gutenberg in WordPress comments, admin pages, bbPress, and BuddyPress.",
 	"main": "src/index.tsx",
 	"scripts": {
@@ -23,15 +23,15 @@
 		"@babel/core": "^7.23.2",
 		"@babel/preset-env": "^7.23.2",
 		"@babel/preset-react": "^7.22.15",
-		"@types/eslint": "^8.44.4",
-		"@wordpress/babel-preset-default": "^7.27.0",
-		"@wordpress/prettier-config": "^3.0.0",
-		"@wordpress/scripts": "^26.14.0",
+		"@types/eslint": "^8.44.6",
+		"@wordpress/babel-preset-default": "^7.28.0",
+		"@wordpress/prettier-config": "^3.1.0",
+		"@wordpress/scripts": "^26.15.0",
 		"babel-plugin-emotion": "^11.0.0",
 		"babel-plugin-inline-json-import": "^0.3.2",
-		"eslint": "^8.51.0",
+		"eslint": "^8.52.0",
 		"eslint-config-wpcalypso": "^6.1.0",
-		"eslint-plugin-import": "^2.28.1",
+		"eslint-plugin-import": "^2.29.0",
 		"eslint-plugin-jsx-a11y": "^6.7.1",
 		"eslint-plugin-react": "^7.33.2",
 		"eslint-plugin-wpcalypso": "^8.0.0",
@@ -42,7 +42,7 @@
 	},
 	"dependencies": {
 		"@automattic/color-studio": "^2.5.0",
-		"@automattic/isolated-block-editor": "^2.27.0",
+		"@automattic/isolated-block-editor": "^2.28.0",
 		"@automattic/typography": "^1.0.0",
 		"use-debounce": "^9.0.4"
 	},

@@ -111,14 +111,18 @@ class Editor {
 			add_action( 'wp_print_footer_scripts', array( '_WP_Editors', 'print_default_editor_scripts' ), 45 );
 		}
 
-		// Gutenberg styles
-		wp_enqueue_style( 'wp-edit-post' );
-		wp_enqueue_style( 'wp-format-library' );
+		// Optionally skip loading the editor styles.
+		$should_inline_styles = apply_filters( 'blocks_everywhere_should_enqueue_styles' , true );
+
+		if ( $should_inline_styles ) {
+			wp_enqueue_style( 'wp-edit-post' );
+			wp_enqueue_style( 'wp-format-library' );
+
+			set_current_screen( 'front' );
+			wp_styles()->done = array( 'wp-reset-editor-styles' );
+		}
 
 		$this->setup_rest_api();
-
-		set_current_screen( 'front' );
-		wp_styles()->done = array( 'wp-reset-editor-styles' );
 
 		$categories = wp_json_encode( get_block_categories( $post ) );
 

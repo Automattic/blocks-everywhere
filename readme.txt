@@ -154,6 +154,7 @@ The plugin is simple to install:
 
 = 1.23.0 =
 * Update for Gutenberg 17.9
+* Toolbars now merged into a single toolbar
 
 = 1.22.0 =
 * Update for Gutenberg 16.9. Now only works with this specific version.

@@ -112,7 +112,7 @@ class Editor {
 		}
 
 		// Optionally skip loading the editor styles.
-		$should_inline_styles = apply_filters( 'blocks_everywhere_should_enqueue_styles' , true );
+		$should_inline_styles = apply_filters( 'blocks_everywhere_should_enqueue_styles', true );
 
 		if ( $should_inline_styles ) {
 			wp_enqueue_style( 'wp-edit-post' );

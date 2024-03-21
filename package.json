@@ -1,6 +1,6 @@
 {
 	"name": "blocks-everywhere",
-	"version": "1.22.0",
+	"version": "1.23.0",
 	"description": "Gutenberg in WordPress comments, admin pages, bbPress, and BuddyPress.",
 	"main": "src/index.tsx",
 	"scripts": {
@@ -15,36 +15,38 @@
 		"lint:css": "wp-scripts lint-style",
 		"lint:js": "wp-scripts lint-js",
 		"lint:php": "composer run-script lint",
-		"test:php": "composer run-script test"
+		"test:php": "composer run-script test",
+		"update": "ncu -u"
 	},
 	"author": "Automattic",
 	"license": "GPL-2.0-or-later",
 	"devDependencies": {
-		"@babel/core": "^7.23.2",
-		"@babel/preset-env": "^7.23.2",
-		"@babel/preset-react": "^7.22.15",
-		"@types/eslint": "^8.44.6",
-		"@wordpress/babel-preset-default": "^7.28.0",
-		"@wordpress/prettier-config": "^3.1.0",
-		"@wordpress/scripts": "^26.15.0",
+		"@babel/core": "^7.24.3",
+		"@babel/preset-env": "^7.24.3",
+		"@babel/preset-react": "^7.24.1",
+		"@types/eslint": "^8.56.6",
+		"@wordpress/babel-preset-default": "^7.37.0",
+		"@wordpress/prettier-config": "^3.10.0",
+		"@wordpress/scripts": "^27.4.0",
 		"babel-plugin-emotion": "^11.0.0",
 		"babel-plugin-inline-json-import": "^0.3.2",
-		"eslint": "^8.52.0",
+		"eslint": "^8.57.0",
 		"eslint-config-wpcalypso": "^6.1.0",
-		"eslint-plugin-import": "^2.29.0",
-		"eslint-plugin-jsx-a11y": "^6.7.1",
-		"eslint-plugin-react": "^7.33.2",
+		"eslint-plugin-import": "^2.29.1",
+		"eslint-plugin-jsx-a11y": "^6.8.0",
+		"eslint-plugin-react": "^7.34.1",
 		"eslint-plugin-wpcalypso": "^8.0.0",
+		"npm-check-updates": "^16.14.17",
 		"onchange": "^7.1.0",
 		"precss": "^4.0.0",
-		"release-it": "^16.2.1",
+		"release-it": "^17.1.1",
 		"remove-files-webpack-plugin": "^1.5.0"
 	},
 	"dependencies": {
 		"@automattic/color-studio": "^2.5.0",
-		"@automattic/isolated-block-editor": "^2.28.0",
+		"@automattic/isolated-block-editor": "^2.29.0",
 		"@automattic/typography": "^1.0.0",
-		"use-debounce": "^9.0.4"
+		"use-debounce": "^10.0.0"
 	},
 	"release-it": {
 		"github": {

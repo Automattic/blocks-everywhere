@@ -128,7 +128,7 @@
 		width: 100%;
 
 		button {
-			padding: 0;
+			padding: 0 !important;
 
 			&:hover,
 			&:focus {
@@ -224,6 +224,10 @@ body:not(.gutenberg-support-upload) {
 }
 
 .gutenberg-support #bbpress-forums fieldset.bbp-form .blocks-everywhere {
+	// Stops the editor changing width depending on the toolbar
+	max-width: 620px;
+	min-width: 620px;
+
 	// Clean up the link popup
 	.block-editor-link-control input[type="text"] {
 		padding: 11px 16px;

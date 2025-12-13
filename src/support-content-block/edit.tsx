@@ -5,7 +5,7 @@ import { ToolbarButton, ToolbarGroup, withNotices } from '@wordpress/components'
 import { compose } from '@wordpress/compose';
 import { renderToString, useState, useEffect } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
-import { edit } from '@wordpress/icons';
+import { pencil } from '@wordpress/icons';
 import React from 'react';
 import { fetchAttributes, getContentTypeFromUrl, SupportContentBlockAttributes } from './block';
 import { EmbedPlaceHolder } from './embed-placeholder';
@@ -98,7 +98,7 @@ export const Edit = compose( withNotices )( ( props: EditProps ) => {
 				<ToolbarGroup>
 					{ ! isEditing && (
 						<ToolbarButton
-							icon={ edit }
+							icon={ pencil }
 							label={ __( 'Edit URL', 'blocks-everywhere' ) }
 							isActive={ isEditing }
 							onClick={ onEditModeToggle }

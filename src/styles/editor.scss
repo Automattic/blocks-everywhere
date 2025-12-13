@@ -1,6 +1,72 @@
-// Basic editor fixes
+// WordPress Component CSS Variable Mapping
+// Maps Gutenberg's component CSS variables to theme variables for dark mode compatibility.
+// This approach ensures all WP components automatically inherit theme colors.
+.gutenberg-support {
+	// Core color mappings
+	--wp-components-color-foreground: var(--text-color);
+	--wp-components-color-foreground-inverted: var(--background-color);
+	--wp-components-color-background: var(--background-color);
+	--wp-components-color-icon: var(--text-color);
+	--wp-components-color-icon-inverted: var(--background-color);
+	
+	// Accent colors
+	--wp-components-color-accent: var(--accent);
+	--wp-components-color-accent-darker-10: var(--accent-hover);
+	--wp-components-color-accent-darker-20: var(--accent-hover);
+	--wp-components-color-accent-inverted: var(--button-text-color);
+
+	// WP admin focus/selection color (kills default WP blue)
+	--wp-admin-theme-color: var(--accent);
+	--wp-admin-theme-color-darker-10: var(--accent-hover);
+	--wp-admin-theme-color-darker-20: var(--accent-hover);
+	
+	// Gray scale mapping for dark mode
+	--wp-components-color-gray-100: var(--card-background);
+	--wp-components-color-gray-200: var(--border-color);
+	--wp-components-color-gray-300: var(--border-color);
+	--wp-components-color-gray-400: var(--muted-text);
+	--wp-components-color-gray-600: var(--muted-text);
+	--wp-components-color-gray-700: var(--text-color);
+	--wp-components-color-gray-800: var(--text-color);
+	--wp-components-color-gray-900: var(--text-color);
+	--wp-components-color-gray-950: var(--text-color);
+}
+
+// Basic editor container styles
 .gutenberg-support .iso-editor {
-	min-height: 280px;
+	border: 1px solid var(--border-color);
+	background-color: var(--background-color);
+
+	// Editor canvas iframe min-height for better UX
+	iframe[name="editor-canvas"] {
+		min-height: 400px;
+	}
+
+	// Header and footer styling
+	.interface-interface-skeleton__header,
+	.interface-interface-skeleton__footer {
+		background-color: var(--background-color);
+		color: var(--text-color);
+	}
+
+	.interface-interface-skeleton__header,
+	.interface-interface-skeleton__header .edit-post-header,
+	.interface-interface-skeleton__header .edit-post-editor-regions__header {
+		background-color: var(--background-color);
+		color: var(--text-color);
+		border-bottom: 1px solid var(--border-color);
+	}
+
+	.interface-interface-skeleton__footer {
+		border-top: 1px solid var(--border-color);
+		padding: var(--spacing-xs) var(--spacing-sm);
+		font-size: var(--font-size-sm);
+		line-height: 1.1;
+	}
+
+	.interface-interface-skeleton__footer .edit-post-layout__footer {
+		padding: 0;
+	}
 
 	.iso-editor .edit-post-editor-regions__header {
 		margin: 0 15px;
@@ -10,7 +76,7 @@
 		padding-left: 15px;
 	}
 
-	// Fix titles that may get changed
+	// Font size fixes
 	.block-editor-inserter__panel-header h2 {
 		font-size: 11px;
 	}
@@ -23,18 +89,30 @@
 		font-size: 13px;
 	}
 
-	:where(.wp-block):not(ul > li > ul, li) {
-		margin-top: 28px !important;
-		margin-bottom: 28px !important;
+	// Toolbar inserter (+) mirrors theme `.button-2`
+	.interface-interface-skeleton__header .editor-document-tools__inserter-toggle.is-primary {
+		background-color: var(--accent);
+		border-color: var(--accent);
+		color: var(--button-text-color);
+		transition: background-color 0.3s ease;
+
+		&:hover,
+		&:focus,
+		&:focus-visible {
+			background-color: var(--accent-hover);
+			border-color: var(--accent-hover);
+			color: var(--button-text-color);
+		}
 	}
 
-	// Highlight on block inserter
+	// Highlight on block inserter hover
 	.edit-post-header__toolbar button:hover svg,
 	.block-editor-block-types-list__list-item:hover span {
-		color: var(--wp-admin-theme-color);
-		fill: var(--wp-admin-theme-color);
+		color: var(--accent);
+		fill: currentColor;
 	}
 
+	// List block spacing fixes
 	.block-editor-writing-flow [data-type="core/list"] {
 		ul {
 			margin-top: 0.5em;
@@ -55,26 +133,161 @@
 			margin-left: 0;
 		}
 	}
+}
 
-	.components-input-control__container {
-		background-color: white !important;
+// Popover and sidebar styles (elements that render to body)
+// Note: In-canvas editor styles (inside iframe) are in class-editor.php as $iframe_editor_css
+.gutenberg-support {
+	// Popover content backgrounds
+	.components-popover__content,
+	.block-editor-inserter__menu,
+	.block-editor-tabbed-sidebar {
+		background-color: var(--background-color);
+		border: 1px solid var(--border-color);
+		color: var(--wp-components-color-foreground);
+	}
+
+	// List View / Block Navigation popover (needs explicit border + row hover)
+	.components-popover.block-editor-block-navigation__popover .components-popover__content {
+		background-color: var(--background-color);
+		border: 1px solid var(--border-color);
+		color: var(--wp-components-color-foreground);
+	}
+
+	// List view tree rows can pick up WP blue selection; normalize to theme tokens.
+	.block-editor-list-view-tree .block-editor-list-view-block-select-button {
+		color: var(--text-color);
+
+		&:hover,
+		&:focus,
+		&:focus-visible {
+			background-color: var(--card-background);
+			color: var(--wp-components-color-accent);
+			box-shadow: inset 0 0 0 var(--wp-admin-border-width-focus) var(--wp-components-color-accent);
+		}
+	}
+
+	// Ensure inserter icons inherit theme text color
+	.block-editor-inserter__menu .block-editor-block-types-list__item-icon,
+	.block-editor-inserter__menu .block-editor-block-patterns-list__item-icon,
+	.block-editor-inserter__menu .block-editor-block-types-list__item svg,
+	.block-editor-inserter__menu .block-editor-block-patterns-list__item svg,
+	.block-editor-inserter__menu .block-editor-block-types-list__item svg *,
+	.block-editor-inserter__menu .block-editor-block-patterns-list__item svg *,
+	.block-editor-inserter__menu .block-editor-inserter__tabs button svg,
+	.block-editor-inserter__menu .block-editor-inserter__tabs button svg *,
+	.block-editor-inserter__menu button[aria-label="Close"] svg,
+	.block-editor-inserter__menu button[aria-label="Close"] svg * {
+		color: var(--wp-components-color-icon);
+		fill: currentColor;
+	}
+
+	// Only apply stroke color to elements that actually use strokes.
+	.block-editor-inserter__menu svg [stroke]:not([stroke="none"]) {
+		stroke: currentColor;
+	}
+
+	// Quick inserter popover (in-canvas and other "is-quick" contexts) can render icons black in dark mode.
+	.components-popover.block-editor-inserter__popover.is-quick {
+		color: var(--wp-components-color-foreground);
+
+		.components-search-control__icon,
+		.block-editor-inserter__quick-inserter svg,
+		.block-editor-inserter__quick-inserter svg *,
+		.block-editor-block-icon,
+		.block-editor-block-icon.has-colors {
+			color: var(--wp-components-color-icon);
+			fill: currentColor;
+		}
+
+		svg [stroke]:not([stroke="none"]) {
+			stroke: currentColor;
+		}
+	}
+
+	// Tabbed sidebar border
+	.block-editor-tabbed-sidebar__tablist-and-close-button {
+		border-bottom: 1px solid var(--border-color);
+	}
+
+	// Close icons/buttons inside inserter/menu should inherit theme color
+	.block-editor-inserter__menu .components-button.has-icon,
+	.components-popover__content .components-button.has-icon {
+		background: transparent;
+		color: var(--wp-components-color-icon);
+
+		&:hover,
+		&:focus,
+		&:focus-visible {
+			background-color: var(--card-background);
+		}
+	}
+
+	.block-editor-inserter__menu .components-button.has-icon svg,
+	.block-editor-inserter__menu .components-button.has-icon svg *,
+	.components-popover__content .components-button.has-icon svg,
+	.components-popover__content .components-button.has-icon svg * {
+		color: var(--wp-components-color-icon);
+		fill: currentColor;
+	}
+
+	.block-editor-inserter__menu .components-button.has-icon svg [stroke]:not([stroke="none"]),
+	.components-popover__content .components-button.has-icon svg [stroke]:not([stroke="none"]) {
+		stroke: currentColor;
+	}
+
+	// Active tab indicator
+	.block-editor-tabbed-sidebar__tab {
+		&[aria-selected="true"],
+		&[data-active-item="true"] {
+			color: var(--accent);
+		}
+	}
+
+	// Block side inserter popover should not have a visible border
+	.block-editor-block-list__block-side-inserter-popover > .components-popover__content {
+		border: 0;
+	}
+
+	// Empty block inserter button (renders in popover outside iframe when selected)
+	.block-editor-block-list__empty-block-inserter .block-editor-inserter > button.components-button.block-editor-inserter__toggle.has-icon {
+		background-color: var(--accent-3);
+		border: none;
+		color: var(--button-text-color);
+		transition: background-color 0.3s ease;
+
+		&:hover,
+		&:focus,
+		&:focus-visible {
+			background-color: var(--link-color-hover);
+			border: none;
+			color: var(--button-text-color);
+		}
+
+		svg,
+		svg * {
+			fill: currentColor;
+		}
+
+		svg [stroke]:not([stroke="none"]) {
+			stroke: currentColor;
+		}
 	}
 }
 
-/* Fix some Gutenberg issues when media upload is disabled */
+// Fix Gutenberg issues when media upload is disabled
 body:not(.gutenberg-support-upload) {
 	.block-editor-media-flow__url-input {
 		margin-top: 0;
 		border-top: none;
 	}
 
-	// Hide upload button
 	.block-editor-media-replace-flow__media-upload-menu {
 		display: none;
 	}
 }
 
-// Make the change from loading to loaded a bit better
+// Loading state
 .blocks-everywhere.iso-editor__loading {
 	min-height: 200px;
 }

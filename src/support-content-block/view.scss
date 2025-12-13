@@ -1,5 +1,3 @@
-@import "~@automattic/typography/styles/variables";
-@import "~@automattic/color-studio/dist/color-variables";
 
 .wp-block-blocks-everywhere-support-content {
 	&:not(:first-child) {
@@ -16,11 +14,10 @@
 .be-support-content {
 	--line-height-content: 20px;
 	--line-height-title: 24px;
-	--color-light-gray: #eee;
 
-	border: 1px solid var(--color-light-gray);
-	border-radius: 4px;
-	background: $studio-white;
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius-sm);
+	background: var(--card-background);
 	padding: 29px 30px;
 	cursor: pointer;
 
@@ -29,10 +26,10 @@
 	gap: 16px;
 	flex-direction: column;
 
-	font-family: "SF Pro Text", $sans;
+	font-family: var(--font-family-body);
 	font-style: normal;
 	font-weight: 400;
-	font-size: $font-body-small;
+	font-size: var(--font-size-sm);
 	line-height: var(--line-height-content);
 
 	&__created {
@@ -47,14 +44,14 @@
 		bottom: 0;
 	}
 
-	&__link {
-		text-decoration: none !important;
-		color: $studio-gray-60 !important;
+	&__link.be-support-content__link {
+		text-decoration: none;
+		color: var(--muted-text);
 		z-index: 1;
 
 		&:hover {
-			color: $studio-gray-60 !important;
-			text-decoration: underline !important;
+			color: var(--text-color);
+			text-decoration: underline;
 		}
 	}
 
@@ -66,43 +63,43 @@
 
 	&__title {
 		font-weight: 500;
-		font-size: $font-body;
+		font-size: var(--font-size-base);
 		line-height: var(--line-height-title);
 
 		display: flex;
 		align-items: center;
 		gap: 8px;
 
-		color: $studio-gray-100;
+		color: var(--text-color);
 	}
 
 	&__badge {
 		padding: 0 10px;
-		background: $studio-blue-5;
-		border-radius: 4px;
+		background: var(--accent-3);
+		border-radius: var(--border-radius-sm);
 
-		font-family: Inter, $sans;
+		font-family: var(--font-family-body);
 		font-weight: 500;
-		font-size: $font-body-extra-small;
+		font-size: var(--font-size-xs);
 		line-height: var(--line-height-content);
-		color: $studio-blue-80;
+		color: var(--button-text-color);
 	}
 
 	&__source {
-		color: $studio-gray-60;
+		color: var(--muted-text);
 		display: flex;
 		gap: 4px;
 	}
 
 	&__details {
 		font-weight: 400;
-		font-size: $font-body-extra-small;
+		font-size: var(--font-size-xs);
 		line-height: var(--line-height-content);
-		color: $studio-gray-60;
+		color: var(--muted-text);
 	}
 
 	&__content {
-		color: $studio-gray-80;
+		color: var(--text-color);
 
 		max-height: calc(var(--line-height-content) * 3);
 		overflow: hidden;
@@ -114,18 +111,18 @@
 
 	&__reactions {
 		font-weight: 400;
-		font-size: $font-body-extra-small;
+		font-size: var(--font-size-xs);
 		line-height: var(--line-height-content);
-		color: $studio-gray-60;
+		color: var(--muted-text);
 	}
 }
 
 // Override bbPress styles
-.bbp-reply-content .be-support-content a.be-support-content__link {
-	text-decoration: none !important;
+.bbp-reply-content .be-support-content a.be-support-content__link.be-support-content__link {
+	text-decoration: none;
 
 	&:hover {
-		text-decoration: underline !important;
+		text-decoration: underline;
 	}
 }
 
@@ -135,7 +132,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	background-color: $studio-blue-50;
+	background-color: var(--accent-3);
 	border-radius: 2px;
 }
 
@@ -144,8 +141,10 @@
 		margin-right: 10px;
 	}
 
-	svg {
-		fill: $studio-white !important;
+	svg,
+	svg * {
+		fill: currentColor;
+		stroke: currentColor;
 	}
 }
 
@@ -165,8 +164,8 @@
 
 .be-support-content-inline-skeleton {
 	display: inline-block;
-	color: var(--color-light-gray);
-	background-color: var(--color-light-gray);
+	color: var(--border-color);
+	background-color: var(--border-color);
 	width: 20em;
 
 	animation: be-support-content_skeleton__animation 1.6s ease-in-out infinite;

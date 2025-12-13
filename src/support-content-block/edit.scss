@@ -1,9 +1,7 @@
-@import "~@automattic/typography/styles/variables";
-@import "~@automattic/color-studio/dist/color-variables";
 
 .be-support-content-placeholder {
-  .components-placeholder__input[type="url"] {
-    margin: 0 8px 0 0 !important;
+  .components-placeholder__input[type="url"].components-placeholder__input {
+    margin: 0 8px 0 0;
   }
 
   .components-notice-list .components-notice__content {
@@ -22,38 +20,38 @@
 
 .be-support-content-confirm-content {
   padding: 12px;
-  background: $studio-white;
+  background: var(--card-background);
 
   button.is-tertiary {
     padding: 6px 12px;
   }
 
-  &__item {
-    font-family: "SF Pro Text", $sans !important;
+  .components-menu-item__button.be-support-content-confirm-content__item {
+    font-family: var(--font-family-body);
     font-weight: 400;
-    font-size: $font-body-small !important;
-    color: $studio-gray-60 !important;
+    font-size: var(--font-size-sm);
+    color: var(--muted-text);
+  }
 
-    &:hover {
-      box-shadow: inset 0 0 0 1px $studio-gray-60 !important;
-    }
+  .components-menu-item__button.be-support-content-confirm-content__item:hover {
+    box-shadow: inset 0 0 0 1px var(--muted-text);
+  }
 
-    &.is-destructive {
-      color: $studio-red-50 !important;
+  .components-menu-item__button.be-support-content-confirm-content__item.is-destructive {
+    color: var(--error-color);
+  }
 
-      &:hover {
-        box-shadow: inset 0 0 0 1px $studio-red-50 !important;
-      }
-    }
+  .components-menu-item__button.be-support-content-confirm-content__item.is-destructive:hover {
+    box-shadow: inset 0 0 0 1px var(--error-color);
   }
 }
 
 .be-support-content-search-results {
   padding: 10px;
-  background-color: $studio-white;
+  background-color: var(--background-color);
 
-  border: 1px solid #D8DBDD;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--card-shadow);
   border-radius: 2px;
 
   position: absolute;
@@ -75,15 +73,15 @@
     cursor: pointer;
 
     &:hover {
-        background-color: $studio-gray-0;
+      background-color: var(--card-background);
     }
   }
 
   &__title {
-    font-family: "SF Pro Text", $sans;
+    font-family: var(--font-family-body);
     font-style: normal;
     font-weight: 500;
-    font-size: $font-body;
+    font-size: var(--font-size-base);
     line-height: 24px;
 
     overflow: hidden;
@@ -93,10 +91,10 @@
   }
 
   &__link {
-    font-family: "SF Pro Text", $sans;
+    font-family: var(--font-family-body);
     font-style: normal;
     font-weight: 400;
-    font-size: $font-body-small;
+    font-size: var(--font-size-sm);
     line-height: 20px;
 
     overflow: hidden;

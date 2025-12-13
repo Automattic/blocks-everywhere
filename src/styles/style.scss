@@ -6,6 +6,12 @@
 	> textarea {
 		display: none;
 	}
+
+	&.blocks-everywhere--error {
+		> textarea {
+			display: block;
+		}
+	}
 }
 
 .gutenberg-comments #comment {
@@ -14,7 +20,7 @@
 
 // wp-admin has a darker border
 .wp-admin .iso-editor {
-	border-color: #ccd0d4;
+	border-color: var(--wp-components-color-gray-300);
 }
 
 @import "./buddypress.scss";

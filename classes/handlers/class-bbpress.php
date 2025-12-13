@@ -53,9 +53,14 @@ class bbPress extends Handler {
 			'blocks_everywhere_editor_settings',
 			function( $settings ) {
 				$settings['topicUsers'] = $this->get_topic_users();
+				$settings['bbpress']    = [
+					'topicId' => $this->get_current_topic_id(),
+				];
 				return $settings;
 			}
 		);
+
+		add_action( 'bbp_new_topic', [ $this, 'reparent_pending_content_embed_attachments' ], 10, 4 );
 
 		// Apply block processing to email notifications
 		$default_email = defined( 'BLOCKS_EVERYWHERE_EMAIL' ) ? BLOCKS_EVERYWHERE_EMAIL : false;
@@ -187,6 +192,112 @@ class bbPress extends Handler {
 		}
 
 		return false;
+	}
+
+	private function get_current_topic_id() {
+		if ( ! function_exists( 'bbp_get_topic_id' ) ) {
+			return 0;
+		}
+
+		$topic_id = 0;
+
+		if ( bbp_is_topic() || bbp_is_topic_edit() ) {
+			$topic_id = bbp_get_topic_id();
+		} elseif ( bbp_is_reply_edit() ) {
+			$reply_id = bbp_get_reply_id();
+			$topic_id = bbp_get_reply_topic_id( $reply_id );
+		} elseif ( bbp_is_single_forum() ) {
+			return 0;
+		}
+
+		return $topic_id ? (int) $topic_id : 0;
+	}
+
+	public function reparent_pending_content_embed_attachments( $topic_id, $forum_id, $anonymous_data, $topic_author ) {
+		$topic_id = (int) $topic_id;
+		if ( ! $topic_id ) {
+			return;
+		}
+
+		$topic_content = get_post_field( 'post_content', $topic_id );
+		if ( ! $topic_content || ! has_blocks( $topic_content ) ) {
+			return;
+		}
+
+		$blocks = parse_blocks( $topic_content );
+		if ( ! is_array( $blocks ) ) {
+			return;
+		}
+
+		$attachment_ids = $this->get_attachment_ids_from_blocks( $blocks );
+		$attachment_ids = array_values( array_unique( array_filter( $attachment_ids ) ) );
+		if ( empty( $attachment_ids ) ) {
+			return;
+		}
+
+		foreach ( $attachment_ids as $attachment_id ) {
+			$attachment_id = (int) $attachment_id;
+			if ( ! $attachment_id ) {
+				continue;
+			}
+
+			$attachment = get_post( $attachment_id );
+			if ( ! $attachment || $attachment->post_type !== 'attachment' ) {
+				continue;
+			}
+
+			if ( (int) $attachment->post_parent !== 0 ) {
+				continue;
+			}
+
+			if ( (int) $attachment->post_author !== (int) $topic_author ) {
+				continue;
+			}
+
+			if ( ! get_post_meta( $attachment_id, '_extrachill_content_embed_pending_parent', true ) ) {
+				continue;
+			}
+
+			wp_update_post(
+				[
+					'ID'          => $attachment_id,
+					'post_parent' => $topic_id,
+				]
+			);
+
+			delete_post_meta( $attachment_id, '_extrachill_content_embed_pending_parent' );
+		}
+	}
+
+	private function get_attachment_ids_from_blocks( array $blocks ) {
+		$attachment_ids = [];
+
+		foreach ( $blocks as $block ) {
+			if ( ! is_array( $block ) ) {
+				continue;
+			}
+
+			if ( isset( $block['blockName'], $block['attrs'] ) ) {
+				$block_name = $block['blockName'];
+				$attrs      = is_array( $block['attrs'] ) ? $block['attrs'] : [];
+
+				if ( $block_name === 'core/image' && isset( $attrs['id'] ) ) {
+					$attachment_ids[] = (int) $attrs['id'];
+				}
+
+				if ( $block_name === 'core/gallery' && isset( $attrs['ids'] ) && is_array( $attrs['ids'] ) ) {
+					foreach ( $attrs['ids'] as $id ) {
+						$attachment_ids[] = (int) $id;
+					}
+				}
+			}
+
+			if ( ! empty( $block['innerBlocks'] ) && is_array( $block['innerBlocks'] ) ) {
+				$attachment_ids = array_merge( $attachment_ids, $this->get_attachment_ids_from_blocks( $block['innerBlocks'] ) );
+			}
+		}
+
+		return $attachment_ids;
 	}
 
 	/**

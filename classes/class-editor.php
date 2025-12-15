@@ -2,6 +2,10 @@
 
 namespace Automattic\Blocks_Everywhere;
 
+use WP_Block_Editor_Context;
+use WP_Theme_JSON_Data;
+use WP_Theme_JSON_Data_Gutenberg;
+
 /**
  * Provides functions to load Gutenberg assets.
  */
@@ -17,17 +21,17 @@ class Editor {
 	 * Constructor.
 	 */
 	public function __construct() {
-		\add_action( 'template_redirect', [ $this, 'setup_media' ] );
-		\add_filter( 'block_editor_settings_all', [ $this, 'block_editor_settings_all' ] );
-		\add_filter( 'should_load_block_editor_scripts_and_styles', '__return_true' );
-		\add_filter( 'wp_theme_json_data_theme', [ $this, 'wp_theme_json_data_theme' ] );
+		add_action( 'template_redirect', [ $this, 'setup_media' ] );
+		add_filter( 'block_editor_settings_all', [ $this, 'block_editor_settings_all' ] );
+		add_filter( 'should_load_block_editor_scripts_and_styles', '__return_true' );
+		add_filter( 'wp_theme_json_data_theme', [ $this, 'wp_theme_json_data_theme' ] );
 	}
 
 	/**
 	 * Provide theme.json.
 	 *
-	 * @param \WP_Theme_JSON_Data|\WP_Theme_JSON_Data_Gutenberg $json JSON.
-	 * @return \WP_Theme_JSON_Data|\WP_Theme_JSON_Data_Gutenberg
+	 * @param WP_Theme_JSON_Data|WP_Theme_JSON_Data_Gutenberg $json JSON.
+	 * @return WP_Theme_JSON_Data|WP_Theme_JSON_Data_Gutenberg
 	 */
 	public function wp_theme_json_data_theme( $json ) {
 		$data = [
@@ -57,11 +61,11 @@ class Editor {
 			],
 		];
 
-		if ( \class_exists( 'WP_Theme_JSON_Data_Gutenberg' ) ) {
-			return new \WP_Theme_JSON_Data_Gutenberg( $data );
+		if ( class_exists( 'WP_Theme_JSON_Data_Gutenberg' ) ) {
+			return new WP_Theme_JSON_Data_Gutenberg( $data );
 		}
 
-		return new \WP_Theme_JSON_Data( $data );
+		return new WP_Theme_JSON_Data( $data );
 	}
 
 	/**
@@ -91,56 +95,50 @@ class Editor {
 		$this->can_upload = isset( $settings['editor']['hasUploadPermissions'] ) && $settings['editor']['hasUploadPermissions'];
 		$this->load_extra_blocks();
 
-		\add_filter( 'tiny_mce_before_init', [ $this, 'tiny_mce_before_init' ] );
-
-		\add_filter(
+		add_filter(
 			'jetpack_blocks_variation',
 			function() {
 				return 'no-post-editor';
 			}
 		);
 
-		if ( ! \defined( '__EXPERIMENTAL_DYNAMIC_LOAD' ) ) {
-			\wp_tinymce_inline_scripts();
-			\wp_enqueue_editor();
-
+		if ( ! defined( '__EXPERIMENTAL_DYNAMIC_LOAD' ) ) {
 			// Enqueue block editor scripts that are required dependencies.
 			// These are normally only loaded in the admin block editor context.
-			\wp_enqueue_script( 'lodash' );
-			\wp_enqueue_script( 'wp-block-library' );
-			\wp_enqueue_script( 'wp-format-library' );
-			\wp_enqueue_script( 'wp-editor' );
-			\wp_enqueue_script( 'wp-plugins' );
-			\wp_enqueue_script( 'wp-media-utils' );
-			\wp_enqueue_script( 'wp-viewport' );
+			wp_enqueue_script( 'lodash' );
+			wp_enqueue_script( 'wp-block-library' );
+			wp_enqueue_script( 'wp-format-library' );
+			wp_enqueue_script( 'wp-editor' );
+			wp_enqueue_script( 'wp-plugins' );
+			wp_enqueue_script( 'wp-media-utils' );
+			wp_enqueue_script( 'wp-viewport' );
+			wp_enqueue_script( 'wp-admin-ui' );
 
-			\do_action( 'enqueue_block_editor_assets' );
-
-			\add_action( 'wp_print_footer_scripts', [ '_WP_Editors', 'print_default_editor_scripts' ], 45 );
+			do_action( 'enqueue_block_editor_assets' );
 		}
 
-		$should_inline_styles = \apply_filters( 'blocks_everywhere_should_enqueue_styles', true );
+		$should_inline_styles = apply_filters( 'blocks_everywhere_should_enqueue_styles', true );
 
 		if ( $should_inline_styles ) {
 			// Core block styles needed for correct frontend rendering inside the iframe
 			// (notably responsive embeds).
-			\wp_enqueue_style( 'wp-block-library' );
-			\wp_enqueue_style( 'wp-block-library-theme' );
+			wp_enqueue_style( 'wp-block-library' );
+			wp_enqueue_style( 'wp-block-library-theme' );
 
-			\wp_enqueue_style( 'wp-edit-post' );
-			\wp_enqueue_style( 'wp-format-library' );
+			wp_enqueue_style( 'wp-edit-post' );
+			wp_enqueue_style( 'wp-format-library' );
 
-			\set_current_screen( 'front' );
-			\wp_styles()->done = [ 'wp-reset-editor-styles' ];
+			set_current_screen( 'front' );
+			wp_styles()->done = [ 'wp-reset-editor-styles' ];
 		}
 
 		$this->setup_rest_api();
 
-		$block_editor_context = new \WP_Block_Editor_Context( [ 'post' => $post ] );
-		$categories           = \wp_json_encode( \get_block_categories( $block_editor_context ) );
+		$block_editor_context = new WP_Block_Editor_Context( [ 'post' => $post ] );
+		$categories           = wp_json_encode( get_block_categories( $block_editor_context ) );
 
 		if ( $categories !== false ) {
-			\wp_add_inline_script(
+			wp_add_inline_script(
 				'wp-blocks',
 				sprintf( 'wp.blocks.setCategories( %s );', $categories ),
 				'after'
@@ -150,9 +148,9 @@ class Editor {
 		/**
 		 * @psalm-suppress PossiblyFalseOperand
 		 */
-		\wp_add_inline_script(
+		wp_add_inline_script(
 			'wp-blocks',
-			'if ( typeof wp.blocks.unstable__bootstrapServerSideBlockDefinitions === "function" ) { wp.blocks.unstable__bootstrapServerSideBlockDefinitions(' . \wp_json_encode( \get_block_editor_server_block_settings() ) . '); }',
+			'if ( typeof wp.blocks.unstable__bootstrapServerSideBlockDefinitions === "function" ) { wp.blocks.unstable__bootstrapServerSideBlockDefinitions(' . wp_json_encode( get_block_editor_server_block_settings() ) . '); }',
 			'after'
 		);
 
@@ -171,19 +169,19 @@ class Editor {
 		/**
 		 * @psalm-suppress MissingFile
 		 */
-		require_once \ABSPATH . 'wp-admin/includes/class-wp-screen.php';
+		require_once ABSPATH . 'wp-admin/includes/class-wp-screen.php';
 		/**
 		 * @psalm-suppress MissingFile
 		 */
-		require_once \ABSPATH . 'wp-admin/includes/screen.php';
+		require_once ABSPATH . 'wp-admin/includes/screen.php';
 		/**
 		 * @psalm-suppress MissingFile
 		 */
-		require_once \ABSPATH . 'wp-admin/includes/post.php';
+		require_once ABSPATH . 'wp-admin/includes/post.php';
 
-		\set_current_screen();
+		set_current_screen();
 
-		$current_screen = \get_current_screen();
+		$current_screen = get_current_screen();
 		if ( $current_screen ) {
 			$current_screen->is_block_editor( true );
 		}
@@ -211,29 +209,29 @@ class Editor {
 		global $post;
 
 		$supports_layout = false;
-		if ( \function_exists( 'wp_theme_has_theme_json' ) ) {
-			$supports_layout = \wp_theme_has_theme_json();
+		if ( function_exists( 'wp_theme_has_theme_json' ) ) {
+			$supports_layout = wp_theme_has_theme_json();
 		}
 
 		// phpcs:ignore
-		$body_placeholder = \apply_filters( 'write_your_story', null, $post );
+		$body_placeholder = apply_filters( 'write_your_story', null, $post );
 
 		$editor_settings = [
 			'availableTemplates'                   => [],
-			'disablePostFormats'                   => ! \current_theme_supports( 'post-formats' ),
+			'disablePostFormats'                   => ! current_theme_supports( 'post-formats' ),
 			// phpcs:ignore
-			'titlePlaceholder'                     => \apply_filters( 'enter_title_here', \__( 'Add title', 'blocks-everywhere' ), $post ),
+			'titlePlaceholder'                     => apply_filters( 'enter_title_here', __( 'Add title', 'blocks-everywhere' ), $post ),
 			'bodyPlaceholder'                      => $body_placeholder,
-			'autosaveInterval'                     => \AUTOSAVE_INTERVAL,
-			'styles'                               => \get_block_editor_theme_styles(),
-			'richEditingEnabled'                   => \user_can_richedit(),
+			'autosaveInterval'                     => AUTOSAVE_INTERVAL,
+			'styles'                               => get_block_editor_theme_styles(),
+			'richEditingEnabled'                   => user_can_richedit(),
 			'postLock'                             => false,
 			'supportsLayout'                       => $supports_layout,
 			'hasFixedToolbar'                      => true,
 			'hasInlineToolbar'                     => false,
 			'__experimentalBlockPatterns'          => [],
 			'__experimentalBlockPatternCategories' => [],
-			'supportsTemplateMode'                 => \current_theme_supports( 'block-templates' ),
+			'supportsTemplateMode'                 => current_theme_supports( 'block-templates' ),
 			'enableCustomFields'                   => false,
 			'generateAnchors'                      => true,
 			'canLockBlocks'                        => false,
@@ -290,7 +288,7 @@ class Editor {
 			// Modal styles
 			. "\n.components-modal__frame{background-color:var(--background-color);border:1px solid var(--border-color);color:var(--text-color);}"
 			. "\n.components-modal__header{border-bottom:1px solid var(--border-color);}"
-			. "\n.components-modal__frame svg,\n.components-modal__frame svg *{fill:currentColor;}"
+			. "\n.components-modal__frame svg,n.components-modal__frame svg *{fill:currentColor;}"
 			. "\n.components-modal__frame svg [stroke]:not([stroke=\"none\"]){stroke:currentColor;}"
 			// Block list appender and button appender (inside iframe)
 			. "\n.editor-styles-wrapper .block-list-appender__toggle,"
@@ -312,26 +310,46 @@ class Editor {
 			. ".editor-styles-wrapper .block-editor-block-list__insertion-point-inserter svg *{fill:currentColor;}"
 			. "\n.editor-styles-wrapper .block-list-appender__toggle svg [stroke]:not([stroke=\"none\"]),.editor-styles-wrapper .block-editor-button-block-appender svg [stroke]:not([stroke=\"none\"]),.editor-styles-wrapper .block-editor-block-list__insertion-point-inserter svg [stroke]:not([stroke=\"none\"]){stroke:currentColor;}";
 
-		$enqueue_iframe_block_styles = static function() use ( $iframe_editor_css ) {
-			\wp_enqueue_style( 'wp-block-library' );
+		$enqueue_iframe_block_styles = static function() use ( $iframe_editor_css, $post ) {
+			wp_enqueue_style( 'wp-block-library' );
+			wp_add_inline_style( 'wp-block-library', $iframe_editor_css );
 
-			\wp_add_inline_style( 'wp-block-library', $iframe_editor_css );
-
-			if ( \current_theme_supports( 'wp-block-styles' ) ) {
-				\wp_enqueue_style( 'wp-block-library-theme' );
+			if ( current_theme_supports( 'wp-block-styles' ) ) {
+				wp_enqueue_style( 'wp-block-library-theme' );
 			}
+
+			if ( function_exists( 'wp_enqueue_global_styles' ) ) {
+				wp_enqueue_global_styles();
+			}
+
+			if ( ! wp_style_is( 'blocks-everywhere', 'registered' ) ) {
+				$asset_file = dirname( __DIR__ ) . '/build/index.min.asset.php';
+				$asset      = file_exists( $asset_file ) ? require $asset_file : null;
+				$version    = isset( $asset['version'] ) ? $asset['version'] : time();
+				$plugin     = dirname( __DIR__ ) . '/blocks-everywhere.php';
+
+				wp_register_style( 'blocks-everywhere', plugins_url( 'build/style-index.min.css', $plugin ), [], $version );
+			}
+
+			wp_enqueue_style( 'blocks-everywhere' );
+
+			if ( function_exists( 'wp_enqueue_classic_theme_styles' ) ) {
+				wp_enqueue_classic_theme_styles();
+			}
+
+			do_action( 'blocks_everywhere_enqueue_iframe_assets', $post );
 		};
 
-		\add_action( 'enqueue_block_assets', $enqueue_iframe_block_styles, 0 );
+		add_action( 'enqueue_block_assets', $enqueue_iframe_block_styles, 0 );
 
 		try {
-			if ( \function_exists( '_wp_get_iframed_editor_assets' ) ) {
-				$editor_settings['__unstableResolvedAssets'] = \_wp_get_iframed_editor_assets();
+			if ( function_exists( '_wp_get_iframed_editor_assets' ) ) {
+				$editor_settings['__unstableResolvedAssets'] = _wp_get_iframed_editor_assets();
 			} else {
 				$editor_settings['__unstableResolvedAssets'] = $this->wp_get_iframed_editor_assets();
 			}
 		} finally {
-			\remove_action( 'enqueue_block_assets', $enqueue_iframe_block_styles, 0 );
+			remove_action( 'enqueue_block_assets', $enqueue_iframe_block_styles, 0 );
 		}
 
 		if (
@@ -345,8 +363,8 @@ class Editor {
 				. "\n</style>\n";
 		}
 
-		$block_editor_context = new \WP_Block_Editor_Context( [ 'post' => $post ] );
-		return \get_block_editor_settings( $editor_settings, $block_editor_context );
+		$block_editor_context = new WP_Block_Editor_Context( [ 'post' => $post ] );
+		return get_block_editor_settings( $editor_settings, $block_editor_context );
 	}
 
 	/**
@@ -373,12 +391,12 @@ class Editor {
 		/**
 		 * @psalm-suppress TooManyArguments
 		 */
-		$preload_paths = \apply_filters( 'block_editor_preload_paths', $preload_paths, $post );
-		$preload_data  = \array_reduce( $preload_paths, 'rest_preload_api_request', [] );
+		$preload_paths = apply_filters( 'block_editor_preload_paths', $preload_paths, $post );
+		$preload_data  = array_reduce( $preload_paths, 'rest_preload_api_request', [] );
 
-		$encoded = \wp_json_encode( $preload_data );
+		$encoded = wp_json_encode( $preload_data );
 		if ( $encoded !== false ) {
-			\wp_add_inline_script(
+			wp_add_inline_script(
 				'wp-editor',
 				sprintf( 'wp.apiFetch.use( wp.apiFetch.createPreloadingMiddleware( %s ) );', $encoded ),
 				'after'
@@ -396,16 +414,16 @@ class Editor {
 			return;
 		}
 
-		if ( \did_action( 'wp_enqueue_media' ) > 0 ) {
+		if ( did_action( 'wp_enqueue_media' ) > 0 ) {
 			return;
 		}
 
 		/**
 		 * @psalm-suppress MissingFile
 		 */
-		require_once \ABSPATH . 'wp-admin/includes/media.php';
+		require_once ABSPATH . 'wp-admin/includes/media.php';
 
-		\wp_enqueue_media();
+		wp_enqueue_media();
 	}
 
 	/**
@@ -421,52 +439,52 @@ class Editor {
 			'wp-edit-blocks',
 		];
 
-		if ( \current_theme_supports( 'wp-block-styles' ) ) {
+		if ( current_theme_supports( 'wp-block-styles' ) ) {
 			$style_handles[] = 'wp-block-library-theme';
 		}
 
-		$block_registry = \WP_Block_Type_Registry::get_instance();
+		$block_registry = WP_Block_Type_Registry::get_instance();
 		foreach ( $block_registry->get_all_registered() as $block_type ) {
 			if ( ! empty( $block_type->style ) ) {
-				$style_handles = \array_merge( $style_handles, (array) $block_type->style );
+				$style_handles = array_merge( $style_handles, (array) $block_type->style );
 			}
 
 			if ( ! empty( $block_type->editor_style ) ) {
-				$style_handles = \array_merge( $style_handles, (array) $block_type->editor_style );
+				$style_handles = array_merge( $style_handles, (array) $block_type->editor_style );
 			}
 
 			if ( ! empty( $block_type->script ) ) {
-				$script_handles = \array_merge( $script_handles, (array) $block_type->script );
+				$script_handles = array_merge( $script_handles, (array) $block_type->script );
 			}
 
 			if ( ! empty( $block_type->view_script ) ) {
-				$script_handles = \array_merge( $script_handles, (array) $block_type->view_script );
+				$script_handles = array_merge( $script_handles, (array) $block_type->view_script );
 			}
 		}
 
-		$style_handles = \apply_filters( 'blocks_everywhere_editor_styles', $style_handles );
-		$style_handles = \array_unique( $style_handles );
-		$done          = \wp_styles()->done;
+		$style_handles = apply_filters( 'blocks_everywhere_editor_styles', $style_handles );
+		$style_handles = array_unique( $style_handles );
+		$done          = wp_styles()->done;
 
-		\ob_start();
+		ob_start();
 
 		// We do not need reset styles for the iframed editor.
-		\wp_styles()->done = [ 'wp-reset-editor-styles' ];
-		\wp_styles()->do_items( $style_handles );
-		\wp_styles()->done = $done;
+		wp_styles()->done = [ 'wp-reset-editor-styles' ];
+		wp_styles()->do_items( $style_handles );
+		wp_styles()->done = $done;
 
-		$styles = \ob_get_clean();
+		$styles = ob_get_clean();
 
-		$script_handles = \array_unique( \apply_filters( 'blocks_everywhere_editor_scripts', $script_handles ) );
-		$done           = \wp_scripts()->done;
+		$script_handles = array_unique( apply_filters( 'blocks_everywhere_editor_scripts', $script_handles ) );
+		$done           = wp_scripts()->done;
 
-		\ob_start();
+		ob_start();
 
-		\wp_scripts()->done = [];
-		\wp_scripts()->do_items( $script_handles );
-		\wp_scripts()->done = $done;
+		wp_scripts()->done = [];
+		wp_scripts()->do_items( $script_handles );
+		wp_scripts()->done = $done;
 
-		$scripts = \ob_get_clean();
+		$scripts = ob_get_clean();
 
 		return [
 			'styles'  => $styles,

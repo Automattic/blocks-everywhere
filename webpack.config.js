@@ -1,3 +1,4 @@
+const path = require( 'path' );
 const MiniCssExtractPlugin = require( 'mini-css-extract-plugin' );
 const defaultConfig = require( '@wordpress/scripts/config/webpack.config' );
 const RemovePlugin = require('remove-files-webpack-plugin');
@@ -13,6 +14,14 @@ defaultConfig.module.rules
 // Default @wordpress/scripts but output with .min in the filename
 module.exports = {
 	...defaultConfig,
+	// Avoid importing `@wordpress/interface` root, which registers the `core/interface` store.
+	resolve: {
+		...defaultConfig.resolve,
+		alias: {
+			...( defaultConfig.resolve ? defaultConfig.resolve.alias : {} ),
+			'@wordpress/interface': path.resolve( __dirname, 'src/wp-interface-shim.ts' ),
+		},
+	},
 	output: {
 		...defaultConfig.output,
 		filename: '[name].min.js',

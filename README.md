@@ -183,3 +183,18 @@ You can sync this to the WordPress.org SVN repo with:
 `yarn dist:svn`
 
 You will need appropriate permissions.
+
+## Documentation
+
+For detailed technical documentation, see the `/docs/` directory:
+
+- **[overview.md](docs/overview.md)** - Plugin purpose, architecture overview, and feature matrix
+- **[architecture.md](docs/architecture.md)** - Complete class hierarchy, design patterns, and extensibility
+- **[components.md](docs/components.md)** - React/TypeScript component organization and patterns
+- **[build-and-development.md](docs/build-and-development.md)** - Development workflow and build process
+- **[handlers/](docs/handlers/)** - Platform-specific integration guides
+  - [bbpress-handler.md](docs/handlers/bbpress-handler.md) - BBPress forum integration
+  - [comments-handler.md](docs/handlers/comments-handler.md) - WordPress comments integration
+  - [buddypress-handler.md](docs/handlers/buddypress-handler.md) - BuddyPress activity integration
+
+For developers working on this plugin, see **[AGENTS.md](AGENTS.md)** for architectural guidance, coding standards, and development patterns.

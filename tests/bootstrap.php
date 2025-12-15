@@ -43,7 +43,7 @@ function bbp_encode_normal_callback( &$content = '', $key = '', $preg = '' ) {
 
 function bbp_encode_empty_callback( &$content = '', $key = '', $preg = '' ) {
 	if ( strpos( $content, '`' ) !== 0 ) {
-		$content = preg_replace( "|&lt;({$preg})\s*?/*?&gt;|i", '<$1 />', $content );
+		$content = preg_replace( "|&lt;({$preg})s*?/*?&gt;|i", '<$1 />', $content );
 	}
 }
 
@@ -178,7 +178,7 @@ function bbp_encode_bad( $content = '' ) {
 
 	// Loop through allowed tags and compare for empty and normal tags
 	foreach ( $allowed as $tag => $args ) {
-		$preg = $args ? "{$tag}(?:\s.*?)?" : $tag;
+		$preg = $args ? "{$tag}(?:s.*?)?" : $tag;
 
 		// Which walker to use based on the tag and arguments
 		if ( isset( $empty[ $tag ] ) ) {

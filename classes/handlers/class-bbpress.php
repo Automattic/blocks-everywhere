@@ -28,36 +28,125 @@ class bbPress extends Handler {
 		add_filter(
 			'bbp_get_forum_content',
 			function( $content ) {
-				$content = $GLOBALS['wp_embed']->autoembed( $content );
-				return $this->do_blocks( $content, 'bbp_get_forum_content' );
+				$has_embed_html = false !== strpos( $content, 'wp-embedded-content' );
+
+				if ( ! $has_embed_html && ! has_blocks( $content ) ) {
+					$content = $GLOBALS['wp_embed']->autoembed( $content );
+				}
+
+				$content = $this->do_blocks( $content, 'bbp_get_forum_content' );
+
+				if ( false === strpos( $content, 'wp-embedded-content' ) ) {
+					$content = $GLOBALS['wp_embed']->autoembed( $content );
+				}
+
+				return $this->normalize_wp_embed_iframe_secrets( $content );
 			},
 			8
 		);
 		add_filter(
 			'bbp_get_topic_content',
 			function( $content ) {
-				$content = $GLOBALS['wp_embed']->autoembed( $content );
-				return $this->do_blocks( $content, 'bbp_get_topic_content' );
+				$has_embed_html = false !== strpos( $content, 'wp-embedded-content' );
+
+				if ( ! $has_embed_html && ! has_blocks( $content ) ) {
+					$content = $GLOBALS['wp_embed']->autoembed( $content );
+				}
+
+				$content = $this->do_blocks( $content, 'bbp_get_topic_content' );
+
+				if ( false === strpos( $content, 'wp-embedded-content' ) ) {
+					$content = $GLOBALS['wp_embed']->autoembed( $content );
+				}
+
+				return $this->normalize_wp_embed_iframe_secrets( $content );
 			},
 			8
 		);
 		add_filter(
 			'bbp_get_reply_content',
 			function( $content ) {
-				$content = $GLOBALS['wp_embed']->autoembed( $content );
-				return $this->do_blocks( $content, 'bbp_get_reply_content' );
+				$has_embed_html = false !== strpos( $content, 'wp-embedded-content' );
+
+				if ( ! $has_embed_html && ! has_blocks( $content ) ) {
+					$content = $GLOBALS['wp_embed']->autoembed( $content );
+				}
+
+				$content = $this->do_blocks( $content, 'bbp_get_reply_content' );
+
+				if ( false === strpos( $content, 'wp-embedded-content' ) ) {
+					$content = $GLOBALS['wp_embed']->autoembed( $content );
+				}
+
+				return $this->normalize_wp_embed_iframe_secrets( $content );
 			},
 			8
 		);
 		add_filter(
 			'blocks_everywhere_editor_settings',
 			function( $settings ) {
-				$settings['topicUsers'] = $this->get_topic_users();
-				$settings['bbpress']    = [
-					'topicId' => $this->get_current_topic_id(),
+				$settings['bbpress'] = [
+					'topicId'     => $this->get_current_topic_id(),
+					'forumId'     => $this->get_current_forum_id(),
+					'isTopicEdit' => function_exists( 'bbp_is_topic_edit' ) ? (bool) bbp_is_topic_edit() : false,
+					'isReplyEdit' => function_exists( 'bbp_is_reply_edit' ) ? (bool) bbp_is_reply_edit() : false,
 				];
 				return $settings;
 			}
+		);
+
+		add_action( 'bbp_new_topic', [ $this, 'reparent_pending_content_embed_attachments' ], 10, 4 );
+
+		// Apply block processing to email notifications
+		$default_email = defined( 'BLOCKS_EVERYWHERE_EMAIL' ) ? BLOCKS_EVERYWHERE_EMAIL : false;
+		if ( apply_filters( 'blocks_everywhere_email', $default_email ) ) {
+			add_filter( 'bbp_subscription_mail_message', [ $this, 'remove_blocks_from_reply' ], 10, 2 );
+			add_filter( 'bbp_forum_subscription_mail_message', [ $this, 'remove_blocks_from_topic' ], 10, 2 );
+		}
+	}
+
+	/**
+	 * Normalize WP oEmbed iframe secrets.
+	 *
+	 * Some rendering paths can produce an iframe `src` like:
+	 * `.../embed/#?secret=AAA#?secret=BBB`.
+	 * This breaks the WP embed host script which relies on `data-secret` matching.
+	 *
+	 * @param string $content Rendered HTML.
+	 * @return string
+	 */
+	private function normalize_wp_embed_iframe_secrets( $content ) {
+		if ( false === strpos( $content, 'wp-embedded-content' ) ) {
+			return $content;
+		}
+
+		return preg_replace_callback(
+			'/<iframe\b[^>]*\bclass="[^"]*\bwp-embedded-content\b[^"]*"[^>]*>/i',
+			function( $matches ) {
+				$iframe_tag = $matches[0];
+
+				if ( ! preg_match( '/\bdata-secret="([^"]+)"/i', $iframe_tag, $secret_match ) ) {
+					return $iframe_tag;
+				}
+
+				if ( ! preg_match( '/\bsrc="([^"]+)"/i', $iframe_tag, $src_match ) ) {
+					return $iframe_tag;
+				}
+
+				$secret = $secret_match[1];
+				$src    = $src_match[1];
+				$base   = explode( '#', $src, 2 )[0];
+
+				$normalized_src = $base . '#?secret=' . $secret;
+
+				return preg_replace(
+					'/\bsrc="[^"]+"/i',
+					'src="' . esc_url( $normalized_src ) . '"',
+					$iframe_tag,
+					1
+				);
+			},
+			$content
 		);
 
 		add_action( 'bbp_new_topic', [ $this, 'reparent_pending_content_embed_attachments' ], 10, 4 );
@@ -201,7 +290,7 @@ class bbPress extends Handler {
 
 		$topic_id = 0;
 
-		if ( bbp_is_topic() || bbp_is_topic_edit() ) {
+		if ( ( function_exists( 'bbp_is_single_topic' ) && bbp_is_single_topic() ) || bbp_is_topic_edit() ) {
 			$topic_id = bbp_get_topic_id();
 		} elseif ( bbp_is_reply_edit() ) {
 			$reply_id = bbp_get_reply_id();
@@ -211,6 +300,25 @@ class bbPress extends Handler {
 		}
 
 		return $topic_id ? (int) $topic_id : 0;
+	}
+
+	private function get_current_forum_id() {
+		if ( function_exists( 'bbp_is_single_forum' ) && bbp_is_single_forum() && function_exists( 'bbp_get_forum_id' ) ) {
+			$forum_id = (int) bbp_get_forum_id();
+			return $forum_id > 0 ? $forum_id : 0;
+		}
+
+		if ( ! function_exists( 'bbp_get_topic_forum_id' ) ) {
+			return 0;
+		}
+
+		$topic_id = $this->get_current_topic_id();
+		if ( $topic_id <= 0 ) {
+			return 0;
+		}
+
+		$forum_id = (int) bbp_get_topic_forum_id( $topic_id );
+		return $forum_id > 0 ? $forum_id : 0;
 	}
 
 	public function reparent_pending_content_embed_attachments( $topic_id, $forum_id, $anonymous_data, $topic_author ) {
@@ -400,10 +508,10 @@ class bbPress extends Handler {
 
 		return "@{$prefix}!--(" .
 			// Opening blocks, supporting a self-closing block
-			"(?:\s*{$block_syntax}\s*(?:\{.*?\}\s*)?[/]?)" .
+			"(?:s*{$block_syntax}s*(?:\{.*?\}s*)?[/]?)" .
 			'|' .
 			// Closing block
-			"(?:\s*[/]{$block_syntax}\s*)" .
+			"(?:s*[/]{$block_syntax}s*)" .
 			")--{$suffix}@";
 	}
 
@@ -502,18 +610,18 @@ class bbPress extends Handler {
 		$new_content = wp_specialchars_decode( wp_strip_all_tags( $new_content ), ENT_QUOTES );
 
 		// Remove a lot of the extra new lines
-		$new_content = preg_replace( '/\n{2,}/', "\n\n", $new_content );
+		$new_content = preg_replace( '/n{2,}/', "n\n", $new_content );
 
 		// Get the scalpel out. Makes some assumptions about the existing email format
-		$lines = explode( "\n", $old_email );
+		$lines = explode( "n", $old_email );
 		$lines = array_merge(
 			array_slice( $lines, 0, 2 ),          // Email intro
-			explode( "\n", $new_content ),        // Our content
+			explode( "n", $new_content ),        // Our content
 			$this->get_email_signature( $lines ), // Signature
 		);
 
 		// Package it all back up
-		return implode( "\n", $lines );
+		return implode( "n", $lines );
 	}
 
 	/**
@@ -580,61 +688,5 @@ class bbPress extends Handler {
 		}
 
 		return $classes;
-	}
-
-	/**
-	 * Given a $user_id return the data needed for completers
-	 *
-	 * @param $user_id
-	 * @return array
-	 */
-	private function get_user_data( $user_id, $reply_id ) {
-		return [
-			'nicename'  => bbp_get_user_nicename( $user_id ),
-			'avatarUrl' => apply_filters( 'bbp_get_reply_author_avatar_url', get_avatar_url( $user_id ), $reply_id ),
-		];
-	}
-
-	/**
-	 * Returns all the users involved in the current topic.
-	 *
-	 * @return array
-	 */
-	public function get_topic_users( $topic_id = 0 ) {
-		if ( ! function_exists( 'bbp_get_topic_id' ) ) {
-			return [];
-		}
-
-		$topic_id = bbp_get_topic_id( $topic_id );
-		if ( empty( $topic_id ) ) {
-			return [];
-		}
-
-		$user_id = bbp_get_topic_author_id( $topic_id );
-		$users = [ $user_id ];
-		$users_formatted = [ $this->get_user_data( $user_id, $topic_id ) ];
-
-		// Get an array of replies for the topic
-		$replies = get_posts(
-			[
-				'fields'      => 'ids',
-				'numberposts' => 100,
-				'post_parent' => $topic_id,
-				'post_type'   => bbp_get_reply_post_type(),
-				'post_status' => bbp_get_public_status_id(),
-			]
-		);
-
-		// Loop through the replies and get the user IDs
-		foreach ( $replies as $reply_id ) {
-			$user_id = bbp_get_reply_author_id( $reply_id );
-			// Add the user ID to the array if it's not already there
-			if ( ! in_array( $user_id, $users ) ) {
-				$users[] = $user_id;
-				$users_formatted[] = $this->get_user_data( $user_id, $reply_id );
-			}
-		}
-
-		return $users_formatted;
 	}
 }

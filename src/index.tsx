@@ -13,7 +13,7 @@ import { unregisterFormatType } from '@wordpress/rich-text';
 
 import createEditor from './editor';
 import customBlocks from './block-customization';
-import topicUsersCompleter from './completer/topic-users';
+import mentionsCompleter from './completer/mentions';
 import './styles/style.scss';
 
 const removeNullPostFromFileUploadMiddleware = ( options, next ) => {
@@ -36,6 +36,10 @@ domReady( () => {
 	// Stops an error when Gutenberg tries to save a post with a file upload and we dont have a post ID
 	apiFetch.use( removeNullPostFromFileUploadMiddleware );
 
+	if ( wpBlocksEverywhere?.restNonce ) {
+		apiFetch.use( apiFetch.createNonceMiddleware( wpBlocksEverywhere.restNonce ) );
+	}
+
 	// Modify any blocks we need to
 	addFilter( 'blocks.registerBlockType', 'blocks-everywhere/modify-blocks', customBlocks );
 
@@ -43,14 +47,21 @@ domReady( () => {
 	unregisterFormatType( 'core/text-color' );
 	unregisterFormatType( 'core/image' );
 
+	// Remove some items from the toolbar “More” dropdown.
+	// Keep: strikethrough, subscript, superscript.
+	unregisterFormatType( 'core/code' );
+	unregisterFormatType( 'core/keyboard' );
+	unregisterFormatType( 'core/language' );
+	unregisterFormatType( 'core/math' );
+
 	if ( wpBlocksEverywhere.editorType === 'bbpress' && wpBlocksEverywhere.autocompleter ) {
 		addFilter(
 			'editor.Autocomplete.completers',
 			'blocks-everywhere/autocompleters',
 			( completers = [] ) => {
 				return completers
-					.filter( ( filter ) => filter.name !== 'users' )
-					.concat( [ topicUsersCompleter ] );
+					.filter( ( completer ) => completer.name !== 'users' )
+					.concat( [ mentionsCompleter ] );
 			}
 		);
 	}

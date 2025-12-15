@@ -42,6 +42,30 @@
 		min-height: 400px;
 	}
 
+	// Tablet: reduce editor height.
+	@media (min-width: 601px) and (max-width: 768px) {
+		iframe[name="editor-canvas"] {
+			min-height: 300px;
+		}
+	}
+
+	// Mobile: reduce editor height.
+	@media (max-width: 600px) {
+		iframe[name="editor-canvas"] {
+			min-height: 240px;
+		}
+	}
+
+	// When the top bar wraps and block tools drop to their own row (phones + tablets),
+	// keep theme background + separator on the contextual toolbar.
+	@media (max-width: 781px) {
+		.block-editor-block-contextual-toolbar.is-fixed,
+		.block-editor-block-contextual-toolbar.is-unstyled {
+			background-color: var(--background-color);
+			border-bottom: 1px solid var(--border-color);
+		}
+	}
+
 	// Header and footer styling
 	.interface-interface-skeleton__header,
 	.interface-interface-skeleton__footer {
@@ -146,6 +170,7 @@
 		border: 1px solid var(--border-color);
 		color: var(--wp-components-color-foreground);
 	}
+
 
 	// List View / Block Navigation popover (needs explicit border + row hover)
 	.components-popover.block-editor-block-navigation__popover .components-popover__content {

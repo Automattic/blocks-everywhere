@@ -23,8 +23,12 @@ declare var wpBlocksEverywhere: {
 	pastePlainText: boolean;
 	replaceParagraphCode: boolean;
 	autocompleter: boolean;
+	restUrl?: string;
 	restNonce?: string;
 	bbpress?: {
 		topicId: number;
+		forumId?: number;
+		isTopicEdit?: boolean;
+		isReplyEdit?: boolean;
 	};
 };

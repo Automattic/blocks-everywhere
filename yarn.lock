@@ -1234,7 +1234,7 @@
     keyv "^5.5.4"
 
 "@chubes4/isolated-block-editor@file:../../isolated-block-editor":
-  version "3.0.0"
+  version "3.1.0"
   dependencies:
     "@wordpress/a11y" "^4.36.0"
     "@wordpress/annotations" "^3.36.0"

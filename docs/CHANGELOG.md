@@ -2,6 +2,27 @@
 
 All notable changes to Blocks Everywhere are documented in this file.
 
+## [1.25.0] - 2025-12-14
+
+### Added
+- Comprehensive documentation suite in `/docs/` directory
+- Mentions autocompleter for user @mentions in bbPress topics
+- Production build script (`build.sh`) for optimized distributions
+- WordPress interface compatibility shim for better integration
+
+### Changed
+- Enhanced bbPress media upload API with custom endpoint integration
+- Improved iframe editor asset loading and theme compatibility
+- Simplified PHP code style by removing unnecessary fully-qualified function call prefixes
+- Refactored asset registration and enqueueing for better control
+- Enhanced webpack configuration and build process
+
+### Fixed
+- Iframe editor styles for responsive embeds now load correctly
+- Block category retrieval uses modern `WP_Block_Editor_Context`
+- Responsive embed rendering issues in iframe editors
+- CSS specificity conflicts in theme compatibility mode
+
 ## [1.24.0] - 2025-12-13
 
 ### Added

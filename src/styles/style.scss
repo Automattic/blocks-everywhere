@@ -1,3 +1,5 @@
+@use 'sass:meta';
+
 // General CSS
 .blocks-everywhere {
 	margin-bottom: 30px;
@@ -23,7 +25,7 @@
 	border-color: var(--wp-components-color-gray-300);
 }
 
-@import "./buddypress.scss";
-@import "./comments.scss";
-@import "./bbpress.scss";
-@import "./editor.scss";
+@include meta.load-css( './buddypress.scss' );
+@include meta.load-css( './comments.scss' );
+@include meta.load-css( './bbpress.scss' );
+@include meta.load-css( './editor.scss' );

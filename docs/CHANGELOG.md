@@ -2,6 +2,15 @@
 
 All notable changes to Blocks Everywhere are documented in this file.
 
+## [1.25.2] - 2025-12-20
+
+### Fixed
+- SASS import syntax for modern SASS compatibility
+- Enhanced TypeScript definitions with additional optional properties
+
+### Changed
+- Updated webpack configuration with isolated-block-editor alias
+
 ## [1.25.1] - 2025-12-20
 
 ### Added

@@ -23,6 +23,9 @@ declare var wpBlocksEverywhere: {
 	pastePlainText: boolean;
 	replaceParagraphCode: boolean;
 	autocompleter: boolean;
+	patchEmoji?: boolean;
+	version?: string;
+	editor?: Record<string, unknown>;
 	restUrl?: string;
 	restNonce?: string;
 	bbpress?: {

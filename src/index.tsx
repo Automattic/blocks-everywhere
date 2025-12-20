@@ -16,6 +16,9 @@ import customBlocks from './block-customization';
 import mentionsCompleter from './completer/mentions';
 import './styles/style.scss';
 
+// Expose createEditor globally for dynamic editor initialization (e.g., inline reply forms)
+( window as any ).blocksEverywhereCreateEditor = createEditor;
+
 const removeNullPostFromFileUploadMiddleware = ( options, next ) => {
 	if ( options.method === 'POST' && options.path === '/wp/v2/media' ) {
 		const formData = options.body;

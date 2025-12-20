@@ -302,6 +302,16 @@ function createEditorContainer( container, textarea, settings ) {
 		return Number.isFinite( numberValue ) && numberValue >= 0 ? numberValue : 0;
 	};
 
+	const getReplyToFromDom = () => {
+		const replyToField = textarea?.closest?.( 'form' )?.querySelector?.( 'input[name="bbp_reply_to"]' );
+		if ( ! replyToField || ! ( 'value' in replyToField ) ) {
+			return 0;
+		}
+
+		const numberValue = Number( replyToField.value );
+		return Number.isFinite( numberValue ) && numberValue >= 0 ? numberValue : 0;
+	};
+
 	const buildDraftPayload = ( contentOverride = null, forumIdOverride = null ) => {
 		const content = typeof contentOverride === 'string' ? contentOverride : textarea?.value || '';
 
@@ -309,7 +319,7 @@ function createEditorContainer( container, textarea, settings ) {
 			return {
 				type: 'reply',
 				topic_id: bbpressTopicId,
-				reply_to: 0,
+				reply_to: getReplyToFromDom(),
 				content,
 			};
 		}
@@ -380,7 +390,7 @@ function createEditorContainer( container, textarea, settings ) {
 				const response = await requestDraft( 'GET', {
 					type: 'reply',
 					topic_id: bbpressTopicId,
-					reply_to: 0,
+					reply_to: getReplyToFromDom(),
 				} );
 				const draft = response?.draft;
 				if ( ! draft ) {

@@ -508,10 +508,10 @@ class bbPress extends Handler {
 
 		return "@{$prefix}!--(" .
 			// Opening blocks, supporting a self-closing block
-			"(?:s*{$block_syntax}s*(?:\{.*?\}s*)?[/]?)" .
+			"(?:\\s*{$block_syntax}\\s*(?:\\{.*?\\}\\s*)?[/]?)" .
 			'|' .
 			// Closing block
-			"(?:s*[/]{$block_syntax}s*)" .
+			"(?:\\s*[/]{$block_syntax}\\s*)" .
 			")--{$suffix}@";
 	}
 

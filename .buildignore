@@ -1,0 +1,53 @@
+# Development files
+.git
+.gitignore
+.gitattributes
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Documentation
+README.md
+AGENTS.md
+LICENSE.md
+docs
+
+# Development dependencies
+node_modules
+vendor
+composer.lock
+package-lock.json
+yarn.lock
+
+# Source files (compiled assets are in build/)
+src
+
+# Build artifacts to exclude
+*.zip
+*.tar.gz
+.DS_Store
+._*
+*.log
+*.tmp
+*.temp
+.env*
+
+# Build/dev config files
+build.sh
+.buildignore
+.eslintrc.js
+.prettierrc.js
+tsconfig.json
+types.d.ts
+webpack.config.js
+phpcs.xml
+phpunit.xml
+psalm.xml
+
+# Tests
+tests
+
+# WordPress.org assets (not needed in plugin)
+resources

@@ -2,6 +2,23 @@
 
 All notable changes to Blocks Everywhere are documented in this file.
 
+## [1.25.1] - 2025-12-20
+
+### Added
+- Enhanced bbPress reply threading with proper reply-to detection
+- Build ignore file for production distributions
+
+### Changed
+- Refactored allowed blocks logic for better maintainability
+
+### Fixed
+- Regex pattern escaping in bbPress block processing
+- SASS import syntax for theme styles
+- Test infrastructure with improved WordPress mocks
+
+### Tests
+- Added recursion prevention test for bbPress KSES filtering
+
 ## [1.25.0] - 2025-12-14
 
 ### Added

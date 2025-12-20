@@ -154,33 +154,27 @@ abstract class Handler {
 	}
 
 	/**
-	 * Get a list of allowed blocks by looking at the allowed comment tags.
+	 * Get a list of allowed blocks by looking at the allowed tags.
 	 *
+	 * @param array $allowed_tags Allowed tag map, typically from KSES.
 	 * @return string[]
 	 */
-	protected function get_allowed_blocks() {
-		global $allowedtags;
-
-		$allowed_tags = $allowedtags;
-		if ( $this->get_editor_type() === 'bbpress' && function_exists( 'bbp_kses_allowed_tags' ) ) {
-			$allowed_tags = bbp_kses_allowed_tags();
-		}
-
+	protected function get_allowed_blocks_from_allowed_tags( array $allowed_tags ) {
 		$allowed = [ 'core/paragraph', 'core/list', 'core/code', 'core/list-item' ];
 		$convert = [
 			'blockquote' => 'core/quote',
-			'h1' => 'core/heading',
-			'h2' => 'core/heading',
-			'h3' => 'core/heading',
-			'img' => 'core/image',
-			'ul' => 'core/list',
-			'ol' => 'core/list',
-			'pre' => 'core/code',
-			'table' => 'core/table',
-			'video' => 'core/video',
+			'h1'         => 'core/heading',
+			'h2'         => 'core/heading',
+			'h3'         => 'core/heading',
+			'img'        => 'core/image',
+			'ul'         => 'core/list',
+			'ol'         => 'core/list',
+			'pre'        => 'core/code',
+			'table'      => 'core/table',
+			'video'      => 'core/video',
 		];
 
-		foreach ( array_keys( (array) $allowed_tags ) as $tag ) {
+		foreach ( array_keys( $allowed_tags ) as $tag ) {
 			if ( isset( $convert[ $tag ] ) ) {
 				$allowed[] = $convert[ $tag ];
 			}
@@ -190,7 +184,24 @@ abstract class Handler {
 			$allowed[] = 'core/gallery';
 		}
 
-		$allowed = apply_filters( 'blocks_everywhere_allowed_blocks', array_values( array_unique( $allowed ) ), $this->get_editor_type() );
+		return array_values( array_unique( $allowed ) );
+	}
+
+	/**
+	 * Get a list of allowed blocks by looking at the allowed tags.
+	 *
+	 * @return string[]
+	 */
+	protected function get_allowed_blocks() {
+		global $allowedtags;
+
+		$allowed_tags = (array) $allowedtags;
+		if ( $this->get_editor_type() === 'bbpress' && function_exists( 'bbp_kses_allowed_tags' ) ) {
+			$allowed_tags = (array) bbp_kses_allowed_tags();
+		}
+
+		$allowed = $this->get_allowed_blocks_from_allowed_tags( $allowed_tags );
+		$allowed = apply_filters( 'blocks_everywhere_allowed_blocks', $allowed, $this->get_editor_type() );
 		return array_values( (array) $allowed );
 	}
 
@@ -202,7 +213,12 @@ abstract class Handler {
 	 * @return array
 	 */
 	public function get_kses_for_allowed_blocks( array $tags ) {
-		$allowed = $this->get_allowed_blocks();
+		if ( 'bbpress' === $this->get_editor_type() ) {
+			$allowed = $this->get_allowed_blocks_from_allowed_tags( $tags );
+			$allowed = apply_filters( 'blocks_everywhere_allowed_blocks', $allowed, $this->get_editor_type() );
+		} else {
+			$allowed = $this->get_allowed_blocks();
+		}
 
 		if ( in_array( 'core/paragraph', $allowed, true ) ) {
 			$tags['p'] = [ 'class' => true ];

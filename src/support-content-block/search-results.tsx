@@ -1,6 +1,12 @@
+/**
+ * WordPress dependencies
+ */
 import { useEffect, useState } from '@wordpress/element';
 import { Spinner } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
+/**
+ * External dependencies
+ */
 import { useDebounce } from 'use-debounce';
 
 type SearchResultsProps = {
@@ -16,6 +22,7 @@ type SearchResult = {
 /**
  * Search for matching content and display search results
  * props.search is the search string, should be debounced.
+ * @param props
  */
 export const SearchResults = ( props: SearchResultsProps ) => {
 	const [ results, setResults ] = useState< SearchResult[] >( [] );
@@ -46,17 +53,30 @@ export const SearchResults = ( props: SearchResultsProps ) => {
 				{ loading && (
 					<div className="be-support-content-search-results__loading">
 						<Spinner />
-						<span>{ __( 'Loading content suggestions...', 'blocks-everywhere' ) }</span>
+						<span>{ __( 'Loading content suggestions…', 'blocks-everywhere' ) }</span>
 					</div>
 				) }
 
-				{ results.map( ( result ) => (
+				{ results.map( ( result, index ) => (
 					<div
+						key={ result.url || index }
 						className="be-support-content-search-results__item"
 						onClick={ () => props.setUrl( result.url ) }
+						onKeyDown={ ( e ) => {
+							if ( e.key === 'Enter' || e.key === ' ' ) {
+								props.setUrl( result.url );
+							}
+						} }
+						role="button"
+						tabIndex={ 0 }
 					>
 						<div className="be-support-content-search-results__title">{ result.title }</div>
-						<a className="be-support-content-search-results__link" href={ result.url } target="_blank">
+						<a
+							className="be-support-content-search-results__link"
+							href={ result.url }
+							target="_blank"
+							rel="noreferrer"
+						>
 							{ result.url }
 						</a>
 					</div>

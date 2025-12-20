@@ -1,4 +1,10 @@
+/**
+ * WordPress dependencies
+ */
 import { Path, SVG } from '@wordpress/components';
+/**
+ * External dependencies
+ */
 import classnames from 'classnames';
 
 type ContentBlockIcon = {

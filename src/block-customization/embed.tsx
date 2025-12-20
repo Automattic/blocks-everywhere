@@ -5,6 +5,8 @@ export default function customizeEmbed( settings ) {
 			...settings.transforms,
 			from: wpBlocksEverywhere?.allowUrlEmbed ? settings.transforms.from : [],
 		},
-		variations: settings.variations.filter( ( embed ) => wpBlocksEverywhere?.iso?.allowEmbeds.indexOf( embed.name ) !== -1 ),
+		variations: settings.variations.filter(
+			( embed ) => wpBlocksEverywhere?.iso?.allowEmbeds.indexOf( embed.name ) !== -1
+		),
 	};
 }

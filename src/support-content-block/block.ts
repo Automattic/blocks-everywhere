@@ -1,6 +1,9 @@
+/**
+ * WordPress dependencies
+ */
 import { __ } from '@wordpress/i18n';
 
-export const SUPPORT_PAGE_PATTERN = /^https?:\/\/wordpress\.com\/((?<lang>[a-z]{2})\/)?support\/(?<slug>[^# ]+)/i
+export const SUPPORT_PAGE_PATTERN = /^https?:\/\/wordpress\.com\/((?<lang>[a-z]{2})\/)?support\/(?<slug>[^# ]+)/i;
 /*
 Forum Pattern cases
 
@@ -46,19 +49,22 @@ export function getContentTypeFromUrl( url: string ): ContentType | null {
 }
 
 export async function fetchAttributes( url: string ): Promise< SupportContentBlockAttributes > {
-	const type = await getContentTypeFromUrl( url );
+	const type = getContentTypeFromUrl( url );
 
-	if ( type == ContentType.SUPPORT_PAGE ) {
+	if ( type === ContentType.SUPPORT_PAGE ) {
 		return fetchSupportPageAttributes( url );
-	} else if ( type == ContentType.FORUM_TOPIC ) {
-		return fetchForumTopicAttributes( url );
-	} else {
-		throw new Error( __( 'Failed to load the page. Check URL', 'blocks-everywhere' ) );
 	}
+	if ( type === ContentType.FORUM_TOPIC ) {
+		return fetchForumTopicAttributes( url );
+	}
+	throw new Error( __( 'Failed to load the page. Check URL', 'blocks-everywhere' ) );
 }
 
 /**
  * Fetch the support page via API and parse its data into block attributes
+ *
+ * @param {string} url - The support page URL.
+ * @return {Promise<SupportContentBlockAttributes>} The block attributes.
  */
 export async function fetchSupportPageAttributes( url: string ): Promise< SupportContentBlockAttributes > {
 	const { blog, slug } = getSupportPageSlugFromUrl( url );
@@ -98,6 +104,9 @@ export async function fetchSupportPageAttributes( url: string ): Promise< Suppor
 
 /**
  * Fetch forum topic via API and parse its data into block attributes
+ *
+ * @param {string} url - The forum topic URL.
+ * @return {Promise<SupportContentBlockAttributes>} The block attributes.
  */
 export async function fetchForumTopicAttributes( url: string ): Promise< SupportContentBlockAttributes > {
 	const { blog, slug } = getForumTopicSlugFromUrl( url );
@@ -138,8 +147,13 @@ export async function fetchForumTopicAttributes( url: string ): Promise< Support
 
 /**
  * Fetch author name via WP.com or WP REST API
+ *
+ * @param {number}  userId     - The user ID to fetch.
+ * @param {string}  blog       - The blog domain.
+ * @param {boolean} isWpComApi - Whether to use WP.com API.
+ * @return {Promise<string|null>} The author display name or null.
  */
-async function fetchForumTopicAuthor( userId: number, blog: string, isWpComApi: boolean ): Promise< string > {
+async function fetchForumTopicAuthor( userId: number, blog: string, isWpComApi: boolean ): Promise< string | null > {
 	try {
 		const apiUrl = isWpComApi
 			? `https://public-api.wordpress.com/rest/v1.1/users/${ userId }`
@@ -154,13 +168,16 @@ async function fetchForumTopicAuthor( userId: number, blog: string, isWpComApi: 
 		const user = await response.json();
 
 		return user.display_name || user.name;
-	} catch ( e ) {
-		return;
+	} catch {
+		return null;
 	}
 }
 
 /**
  * Get WP blog & slug from the support page URL
+ *
+ * @param {string} url - The support page URL.
+ * @return {Object} The blog and slug.
  */
 function getSupportPageSlugFromUrl( url: string ): { blog: string; slug: string } {
 	const urlMatches = url.match( SUPPORT_PAGE_PATTERN );
@@ -179,6 +196,9 @@ function getSupportPageSlugFromUrl( url: string ): { blog: string; slug: string 
 
 /**
  * Get WP blog & slug from the forum topic URL
+ *
+ * @param {string} url - The forum topic URL.
+ * @return {Object} The blog and slug.
  */
 function getForumTopicSlugFromUrl( url: string ): { blog: string; slug: string } {
 	const urlMatches = url.match( FORUM_TOPIC_PATTERN );
@@ -190,7 +210,7 @@ function getForumTopicSlugFromUrl( url: string ): { blog: string; slug: string }
 	}
 
 	const blog =
-		urlMatches.groups.domain == 'wordpress.com' ? `${ lang }.forums.wordpress.com` : urlMatches.groups.domain;
+		urlMatches?.groups?.domain === 'wordpress.com' ? `${ lang }.forums.wordpress.com` : urlMatches?.groups?.domain;
 
 	return { blog, slug };
 }

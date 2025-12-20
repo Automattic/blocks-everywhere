@@ -23,11 +23,7 @@ const removeNullPostFromFileUploadMiddleware = ( options, next ) => {
 	if ( options.method === 'POST' && options.path === '/wp/v2/media' ) {
 		const formData = options.body;
 
-		if (
-			formData instanceof FormData &&
-			formData.has( 'post' ) &&
-			formData.get( 'post' ) === 'null'
-		) {
+		if ( formData instanceof FormData && formData.has( 'post' ) && formData.get( 'post' ) === 'null' ) {
 			formData.delete( 'post' );
 		}
 	}
@@ -58,15 +54,9 @@ domReady( () => {
 	unregisterFormatType( 'core/math' );
 
 	if ( wpBlocksEverywhere.editorType === 'bbpress' && wpBlocksEverywhere.autocompleter ) {
-		addFilter(
-			'editor.Autocomplete.completers',
-			'blocks-everywhere/autocompleters',
-			( completers = [] ) => {
-				return completers
-					.filter( ( completer ) => completer.name !== 'users' )
-					.concat( [ mentionsCompleter ] );
-			}
-		);
+		addFilter( 'editor.Autocomplete.completers', 'blocks-everywhere/autocompleters', ( completers = [] ) => {
+			return completers.filter( ( completer ) => completer.name !== 'users' ).concat( [ mentionsCompleter ] );
+		} );
 	}
 
 	if ( wpBlocksEverywhere?.patchEmoji && window?.twemoji?.parse ) {
@@ -78,7 +68,7 @@ domReady( () => {
 			}
 
 			return original( object, args );
-		}
+		};
 	}
 
 	// Add the editor

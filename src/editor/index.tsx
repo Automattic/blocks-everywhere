@@ -1,28 +1,30 @@
 /**
  * WordPress dependencies
  */
-
 import { MediaUpload } from '@wordpress/media-utils';
 import { mediaUpload as blockEditorMediaUpload } from '@wordpress/block-editor';
 import { mediaUpload as legacyMediaUpload } from '@wordpress/editor';
 import { createRoot, useEffect } from '@wordpress/element';
-import IsolatedBlockEditor, { EditorLoaded } from '@chubes4/isolated-block-editor';
 import { addFilter } from '@wordpress/hooks';
-import { __ } from '@wordpress/i18n';
 import { getBlockTypes, serialize, unregisterBlockType } from '@wordpress/blocks';
 
 /**
- * Local dependencies
+ * External dependencies
  */
+import IsolatedBlockEditor, { EditorLoaded } from '@chubes4/isolated-block-editor';
 
+/**
+ * Internal dependencies
+ */
 import BuddyPress from './buddypress';
 
 /**
  * Save blocks to the comment form
  *
- * @param {string} content Comment content.
+ * @param {HTMLTextAreaElement} textarea - The textarea element.
+ * @param {string}              content  - Comment content.
  */
-function saveBlocks( textarea, content ) {
+function saveBlocks( textarea: HTMLTextAreaElement, content: string ): void {
 	if ( textarea ) {
 		textarea.value = content;
 	}
@@ -216,7 +218,7 @@ function createEditorContainer( container, textarea, settings ) {
 	let lastSavedPayload = null;
 	let lastSerializedContent = '';
 	let isSubmitting = false;
-	const draftRequestControllers = new Set<AbortController>();
+	const draftRequestControllers = new Set< AbortController >();
 
 	const configuredNonce = settings?.restNonce || window?.wpApiSettings?.nonce || null;
 	const restHeaders = configuredNonce ? { 'X-WP-Nonce': configuredNonce } : {};
@@ -249,7 +251,12 @@ function createEditorContainer( container, textarea, settings ) {
 					...restHeaders,
 					'Content-Type': 'application/json',
 				},
-				body: method === 'DELETE' || method === 'GET' ? undefined : payload ? JSON.stringify( payload ) : undefined,
+				body:
+					method === 'DELETE' || method === 'GET'
+						? undefined
+						: payload
+						? JSON.stringify( payload )
+						: undefined,
 			} );
 
 			if ( ! response.ok ) {
@@ -260,7 +267,6 @@ function createEditorContainer( container, textarea, settings ) {
 		} finally {
 			draftRequestControllers.delete( controller );
 		}
-
 	};
 
 	const isTopicDraft = () => {

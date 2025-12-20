@@ -1,8 +1,17 @@
+/**
+ * External dependencies
+ */
 import React from 'react';
+/**
+ * WordPress dependencies
+ */
 import { useEffect } from '@wordpress/element';
 import { Button, Placeholder } from '@wordpress/components';
 import { _x } from '@wordpress/i18n';
 import classnames from 'classnames';
+/**
+ * Internal dependencies
+ */
 import './edit.scss';
 import { useState } from '@wordpress/element';
 import { SearchResults } from './search-results';
@@ -21,6 +30,7 @@ type EmbedPlaceHolderProps = {
 
 /**
  * UI for configuring the embed
+ * @param props
  */
 export const EmbedPlaceHolder = ( props: EmbedPlaceHolderProps ) => {
 	const [ search, setSearch ] = useState( null );

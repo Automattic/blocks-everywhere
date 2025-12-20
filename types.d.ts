@@ -7,14 +7,14 @@ declare interface Blocks {
 declare interface Iso {
 	allowEmbeds: string[];
 	blocks: Blocks;
-	__experimentalOnInput?: ( block: any ) => any;
-	__experimentalOnChange?: ( block: any ) => any;
-	__experimentalOnSelection?: ( selection: any ) => any;
+	__experimentalOnInput?: ( block: unknown ) => unknown;
+	__experimentalOnChange?: ( block: unknown ) => unknown;
+	__experimentalOnSelection?: ( selection: unknown ) => unknown;
 	className?: string;
 }
 
-declare var wpBlocksEverywhere: {
-	saveTextarea: any;
+declare const wpBlocksEverywhere: {
+	saveTextarea: HTMLTextAreaElement | null;
 	pluginsUrl: string;
 	allowUrlEmbed: boolean;
 	editorType: string;
@@ -25,7 +25,7 @@ declare var wpBlocksEverywhere: {
 	autocompleter: boolean;
 	patchEmoji?: boolean;
 	version?: string;
-	editor?: Record<string, unknown>;
+	editor?: Record< string, unknown >;
 	restUrl?: string;
 	restNonce?: string;
 	bbpress?: {
@@ -35,3 +35,58 @@ declare var wpBlocksEverywhere: {
 		isReplyEdit?: boolean;
 	};
 };
+
+declare const wp: {
+	hooks: {
+		addFilter: ( hookName: string, namespace: string, callback: ( ...args: unknown[] ) => unknown, priority?: number ) => void;
+	};
+	element: {
+		createElement: ( type: string | ( ( props: unknown ) => JSX.Element ), props?: Record< string, unknown > | null, ...children: unknown[] ) => JSX.Element;
+	};
+};
+
+declare const jQuery: ( selector: string | Element ) => {
+	val: ( value?: string ) => string | undefined;
+	find: ( selector: string ) => { length: number };
+	trigger: ( event: string ) => void;
+};
+
+declare enum ContentType {
+	SUPPORT_PAGE = 'support_page',
+	FORUM_TOPIC = 'forum_topic',
+}
+
+declare interface SupportContentBlockAttributes {
+	url: string;
+	isConfirmed: boolean;
+	title: string;
+	content: string;
+	source: string;
+	sourceURL: string;
+	minutesToRead: number;
+	likes: number;
+	status: string;
+	author: {
+		name: string;
+		avatar: string;
+	};
+	created: string;
+}
+
+declare interface SearchResult {
+	id: number;
+	title: {
+		rendered: string;
+	};
+	link: string;
+	content?: {
+		rendered: string;
+	};
+}
+
+declare interface EditProps {
+	attributes: SupportContentBlockAttributes;
+	setAttributes: ( attributes: Partial< SupportContentBlockAttributes > ) => void;
+	isSelected?: boolean;
+	className?: string;
+}

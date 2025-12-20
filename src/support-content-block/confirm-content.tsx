@@ -1,12 +1,21 @@
+/**
+ * External dependencies
+ */
 import React from 'react';
+/**
+ * Internal dependencies
+ */
 import './edit.scss';
+/**
+ * WordPress dependencies
+ */
 import { __experimentalElevation as Elevation, MenuItem, NavigableMenu, Popover } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 
 export const ConfirmContent = ( { url, confirm, cancel } ) => {
 	return (
 		<>
-			<a href={ url } target="_blank">
+			<a href={ url } target="_blank" rel="noreferrer">
 				{ url }
 			</a>
 

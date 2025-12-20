@@ -1,3 +1,6 @@
+/**
+ * External dependencies
+ */
 import React from 'react';
 import classnames from 'classnames';
 
@@ -10,6 +13,7 @@ type InlineSkeletonProps = {
 
 /**
  * Loading skeleton that takes its sizes from the font size
+ * @param props
  */
 export const InlineSkeleton = ( props: InlineSkeletonProps ) => {
 	if ( props.loaded ) {

@@ -33,26 +33,18 @@ const normalizeUsers = ( users ) => {
 const getUserLabel = ( user ) => {
 	const avatar = user.avatarUrl
 		? wp.element.createElement( 'img', {
-			className: 'editor-autocompleters__user-avatar',
-			alt: '',
-			src: user.avatarUrl,
-		} )
+				className: 'editor-autocompleters__user-avatar',
+				alt: '',
+				src: user.avatarUrl,
+		  } )
 		: wp.element.createElement( 'span', {
-			className: 'editor-autocompleters__no-avatar',
-		} );
+				className: 'editor-autocompleters__no-avatar',
+		  } );
 
 	return wp.element.concatChildren( [
 		avatar,
-		wp.element.createElement(
-			'span',
-			{ className: 'editor-autocompleters__user-name' },
-			`@${ user.slug }`
-		),
-		wp.element.createElement(
-			'span',
-			{ className: 'editor-autocompleters__user-slug' },
-			user.username
-		),
+		wp.element.createElement( 'span', { className: 'editor-autocompleters__user-name' }, `@${ user.slug }` ),
+		wp.element.createElement( 'span', { className: 'editor-autocompleters__user-slug' }, user.username ),
 	] );
 };
 
@@ -66,7 +58,7 @@ export default {
 	className: 'editor-autocompleters__user',
 	triggerPrefix: '@',
 	isDebounced: true,
-	options: async function( filterValue ) {
+	async options( filterValue ) {
 		if ( ! filterValue || filterValue.length < 2 ) {
 			return [];
 		}
@@ -78,14 +70,14 @@ export default {
 			return [];
 		}
 	},
-	getOptionKeywords: function( user ) {
+	getOptionKeywords( user ) {
 		const values = [ user.slug, user.username ].filter( Boolean );
 		return values.flatMap( ( value ) => String( value ).split( /\s+/ ) );
 	},
-	getOptionLabel: function( user ) {
+	getOptionLabel( user ) {
 		return getUserLabel( user );
 	},
-	getOptionCompletion: function( user ) {
+	getOptionCompletion( user ) {
 		return {
 			action: 'insert-at-caret',
 			value: wp.element.concatChildren( [ getMentionLink( user ), ' ' ] ),

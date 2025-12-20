@@ -1,5 +1,11 @@
+/**
+ * External dependencies
+ */
 import React from 'react';
 import classnames from 'classnames';
+/**
+ * Internal dependencies
+ */
 import icon from './wordpress.png';
 
 export const WordPressIcon = () => {

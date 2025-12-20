@@ -64,7 +64,10 @@ function isPossiblyCode( blocks ) {
 	}
 
 	// Count the number of lines within the blocks
-	const lineLength = paragraphs.reduce( ( total, block ) =>( block.attributes?.content.split( '<br>' ).length ?? 1 ) + total, 0 );
+	const lineLength = paragraphs.reduce(
+		( total, block ) => ( block.attributes?.content.split( '<br>' ).length ?? 1 ) + total,
+		0
+	);
 	if ( lineLength > 20 ) {
 		return true;
 	}

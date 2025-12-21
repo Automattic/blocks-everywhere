@@ -90,7 +90,8 @@ function installIframeThemeFixes( container ) {
 				for ( const mutation of mutations ) {
 					if (
 						mutation.type === 'attributes' &&
-						mutation.target?.matches?.( '.block-editor-inserter__toggle.has-icon' )
+						mutation.target instanceof Element &&
+						mutation.target.matches( '.block-editor-inserter__toggle.has-icon' )
 					) {
 						removeInlineStylesFromEmptyBlockInserter( iframeDoc );
 						continue;
@@ -218,6 +219,8 @@ function createEditorContainer( container, textarea, settings ) {
 	let lastSavedPayload = null;
 	let lastSerializedContent = '';
 	let isSubmitting = false;
+	let isContextSwitching = false;
+	let editorKey = 0;
 	const draftRequestControllers = new Set< AbortController >();
 
 	const configuredNonce = settings?.restNonce || window?.wpApiSettings?.nonce || null;
@@ -418,7 +421,7 @@ function createEditorContainer( container, textarea, settings ) {
 	};
 
 	const scheduleAutosaveFromContent = ( content, forumIdOverride = null ) => {
-		if ( isSubmitting ) {
+		if ( isSubmitting || isContextSwitching ) {
 			return;
 		}
 
@@ -444,7 +447,7 @@ function createEditorContainer( container, textarea, settings ) {
 		}
 
 		autosaveTimer = setTimeout( async () => {
-			if ( isSubmitting ) {
+			if ( isSubmitting || isContextSwitching ) {
 				return;
 			}
 
@@ -566,6 +569,46 @@ function createEditorContainer( container, textarea, settings ) {
 		return response.json();
 	};
 
+	const renderEditor = () => {
+		root.render(
+			<IsolatedBlockEditor
+				key={ editorKey }
+				settings={ settings }
+				onSaveContent={ ( content ) => saveBlocks( textarea, content ) }
+				onLoad={ ( parser ) => {
+					if ( textarea && textarea.nodeName === 'TEXTAREA' ) {
+						return parser( textarea.value );
+					}
+					return [];
+				} }
+				onError={ ( error ) => {
+					// eslint-disable-next-line no-console
+					console.error( 'Blocks Everywhere: editor initialization failed', error );
+					container?.classList?.add( 'blocks-everywhere--error' );
+					document?.body?.classList?.add( 'gutenberg-support-loaded' );
+					setLoaded( container );
+				} }
+				__experimentalOnInput={ ( newBlocks ) => {
+					settings?.iso.__experimentalOnInput?.( newBlocks );
+					scheduleAutosave( newBlocks );
+				} }
+				__experimentalOnChange={ ( newBlocks ) => {
+					settings?.iso.__experimentalOnChange?.( newBlocks );
+					scheduleAutosave( newBlocks );
+				} }
+				__experimentalOnSelection={ ( selection ) => settings?.iso.__experimentalOnSelection?.( selection ) }
+				className={ settings?.iso?.className }
+			>
+				<IframeThemeFixes container={ container } />
+				<EditorLoaded onLoaded={ () => setLoaded( container ) } />
+
+				{ settings.editorType === 'buddypress' && <BuddyPress textarea={ textarea } /> }
+				<RemoveBlockVariations />
+				<RemoveBlockTypes />
+			</IsolatedBlockEditor>
+		);
+	};
+
 	const maybeInstallSubmitHandler = () => {
 		if ( settings?.editorType !== 'bbpress' ) {
 			return;
@@ -591,15 +634,98 @@ function createEditorContainer( container, textarea, settings ) {
 				clearTimeout( autosaveTimer );
 			}
 
-			for ( const controller of draftRequestControllers ) {
-				controller.abort();
-			}
+			draftRequestControllers.forEach( ( controller ) => controller.abort() );
 		} );
+	};
+
+	const maybeInstallReplyDraftContextHandler = () => {
+		if ( ! isReplyDraft() ) {
+			return;
+		}
+
+		if ( ! container || container.__extrachillReplyDraftContextInstalled ) {
+			return;
+		}
+
+		container.__extrachillReplyDraftContextInstalled = true;
+
+		const handler = async ( event ) => {
+			if ( ! event?.detail || event.detail.type !== 'reply' ) {
+				return;
+			}
+
+			const topicId = event.detail.topicId ? Number( event.detail.topicId ) : 0;
+			if ( ! topicId || topicId !== bbpressTopicId ) {
+				return;
+			}
+
+			if ( isSubmitting ) {
+				return;
+			}
+
+			const previousReplyTo = event.detail.previousReplyTo ? Number( event.detail.previousReplyTo ) : 0;
+			const nextReplyTo = event.detail.nextReplyTo ? Number( event.detail.nextReplyTo ) : 0;
+
+			if ( previousReplyTo === nextReplyTo ) {
+				return;
+			}
+
+			isContextSwitching = true;
+			if ( autosaveTimer ) {
+				clearTimeout( autosaveTimer );
+			}
+
+			draftRequestControllers.forEach( ( controller ) => controller.abort() );
+
+			try {
+				const outgoingContent = String( lastSerializedContent || textarea?.value || '' );
+				if ( outgoingContent.trim() ) {
+					const outgoingPayload = {
+						type: 'reply',
+						topic_id: bbpressTopicId,
+						reply_to: previousReplyTo,
+						content: outgoingContent,
+					};
+					await requestDraft( 'POST', outgoingPayload );
+					lastSavedPayload = JSON.stringify( outgoingPayload );
+				}
+
+				lastSerializedContent = '';
+				lastSavedPayload = null;
+				textarea.value = '';
+
+				const incoming = await requestDraft( 'GET', {
+					type: 'reply',
+					topic_id: bbpressTopicId,
+					reply_to: nextReplyTo,
+				} );
+
+				const incomingDraft = incoming?.draft;
+				if ( incomingDraft && String( incomingDraft?.content || '' ).trim() ) {
+					textarea.value = String( incomingDraft.content );
+					lastSerializedContent = textarea.value;
+				}
+
+				editorKey += 1;
+				renderEditor();
+			} catch ( error ) {
+				if ( error?.name === 'AbortError' ) {
+					return;
+				}
+				// eslint-disable-next-line no-console
+				console.error( 'Blocks Everywhere: failed to switch reply draft context', error );
+			} finally {
+				isContextSwitching = false;
+			}
+		};
+
+		document.addEventListener( 'extrachill:bbpressDraftContextChange', handler );
 	};
 
 	if ( settings?.editorType === 'bbpress' ) {
 		maybeInstallForumMoveHandler();
 		maybeInstallSubmitHandler();
+		maybeInstallReplyDraftContextHandler();
 		settings.editor.mediaUpload = ( { filesList, onFileChange, onError } ) => {
 			const files = Array.from( filesList );
 			const topicId = bbpressTopicId;
@@ -638,42 +764,7 @@ function createEditorContainer( container, textarea, settings ) {
 	void ( async () => {
 		await restoreDraftIfNeeded();
 
-		root.render(
-			<IsolatedBlockEditor
-				settings={ settings }
-				onSaveContent={ ( content ) => saveBlocks( textarea, content ) }
-				onLoad={ ( parser ) => {
-					if ( textarea && textarea.nodeName === 'TEXTAREA' ) {
-						return parser( textarea.value );
-					}
-					return [];
-				} }
-				onError={ ( error ) => {
-					// eslint-disable-next-line no-console
-					console.error( 'Blocks Everywhere: editor initialization failed', error );
-					container?.classList?.add( 'blocks-everywhere--error' );
-					document?.body?.classList?.add( 'gutenberg-support-loaded' );
-					setLoaded( container );
-				} }
-				__experimentalOnInput={ ( newBlocks ) => {
-					settings?.iso.__experimentalOnInput?.( newBlocks );
-					scheduleAutosave( newBlocks );
-				} }
-				__experimentalOnChange={ ( newBlocks ) => {
-					settings?.iso.__experimentalOnChange?.( newBlocks );
-					scheduleAutosave( newBlocks );
-				} }
-				__experimentalOnSelection={ ( selection ) => settings?.iso.__experimentalOnSelection?.( selection ) }
-				className={ settings?.iso?.className }
-			>
-				<IframeThemeFixes container={ container } />
-				<EditorLoaded onLoaded={ () => setLoaded( container ) } />
-
-				{ settings.editorType === 'buddypress' && <BuddyPress textarea={ textarea } /> }
-				<RemoveBlockVariations />
-				<RemoveBlockTypes />
-			</IsolatedBlockEditor>
-		);
+		renderEditor();
 	} )();
 }
 

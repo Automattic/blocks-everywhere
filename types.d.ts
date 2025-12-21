@@ -43,7 +43,25 @@ declare const wp: {
 	element: {
 		createElement: ( type: string | ( ( props: unknown ) => JSX.Element ), props?: Record< string, unknown > | null, ...children: unknown[] ) => JSX.Element;
 	};
+	blocks?: {
+		unregisterBlockVariation?: ( blockName: string, variationName: string ) => void;
+	};
 };
+
+declare interface Window {
+	wp?: typeof wp;
+	wpApiSettings?: {
+		root?: string;
+		nonce?: string;
+	};
+}
+
+declare interface HTMLElement {
+	__extrachillDraftMoveInstalled?: boolean;
+	__extrachillDraftTitleInstalled?: boolean;
+	__extrachillDraftSubmitInstalled?: boolean;
+	__extrachillReplyDraftContextInstalled?: boolean;
+}
 
 declare const jQuery: ( selector: string | Element ) => {
 	val: ( value?: string ) => string | undefined;

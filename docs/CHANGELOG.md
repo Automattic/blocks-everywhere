@@ -2,6 +2,25 @@
 
 All notable changes to Blocks Everywhere are documented in this file.
 
+## [1.25.3] - 2025-12-20
+
+### Changed
+- Refactored ESLint configuration with improved rule organization and browser globals
+- Migrated TypeScript type definitions from `any` to `unknown` for better type safety
+- Changed global type declarations from `var` to `const` for proper immutability
+
+### Fixed
+- Fixed 275 ESLint errors through configuration improvements and code quality fixes
+- Enhanced JSDoc documentation for better code clarity
+- Fixed accessibility issues in search results (key props, keyboard handlers)
+- Fixed strict equality operators throughout codebase
+
+### Added
+- Added browser globals to ESLint configuration (wpBlocksEverywhere, wp, jQuery)
+- Added missing dependencies: classnames and @wordpress/icons
+- Added TypeScript interface declarations for Window and HTMLElement globals
+- Added comprehensive type definitions for wp hooks and element creation API
+
 ## [1.25.2] - 2025-12-20
 
 ### Fixed

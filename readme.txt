@@ -3,7 +3,7 @@ Contributors: johnny5, automattic
 Tags: gutenberg, comments, bbpress, buddypress
 Requires at least: 6.9
 Tested up to: 6.9
-Stable tag: 1.25.2
+Stable tag: 1.25.3
 Requires PHP: 8.4
 License: GPLv3
 

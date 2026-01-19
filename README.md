@@ -2,9 +2,7 @@
 
 <img width="1280" alt="110600033-c625d880-8183-11eb-9609-70ab7390c0d9" src="/resources/banner-1544x500.png">
 
-Switches the default WordPress editor for comments, bbPress, and BuddyPress to use Gutenberg. These can now use a richer set of editing tools, as well as having access to the full power of Gutenberg blocks.
-
-Admin moderation is also upgraded to use Gutenberg, and blocks are processed on the front end.
+Switches the default WordPress editor for comments, bbPress, and BuddyPress to use Gutenberg. Admin moderation is also upgraded to use Gutenberg, and blocks are processed on the front end.
 
 For extra security the list of available blocks is determined by the allowed tags from WordPress.
 
@@ -197,4 +195,4 @@ For detailed technical documentation, see the `/docs/` directory:
   - [comments-handler.md](docs/handlers/comments-handler.md) - WordPress comments integration
   - [buddypress-handler.md](docs/handlers/buddypress-handler.md) - BuddyPress activity integration
 
-For developers working on this plugin, see **[AGENTS.md](AGENTS.md)** for architectural guidance, coding standards, and development patterns.
+For developers working on this plugin, see **[CLAUDE.md](CLAUDE.md)** for architectural guidance, coding standards, and development patterns.

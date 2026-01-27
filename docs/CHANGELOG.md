@@ -2,7 +2,7 @@
 
 All notable changes to Blocks Everywhere are documented in this file.
 
-## Unreleased
+## [1.25.4] - 2026-01-27
 
 ### Fixed
 

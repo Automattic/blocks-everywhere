@@ -7,6 +7,7 @@ import { mediaUpload as legacyMediaUpload } from '@wordpress/editor';
 import { createRoot, useEffect } from '@wordpress/element';
 import { addFilter } from '@wordpress/hooks';
 import { getBlockTypes, serialize, unregisterBlockType } from '@wordpress/blocks';
+import { useDispatch } from '@wordpress/data';
 
 /**
  * External dependencies
@@ -202,6 +203,25 @@ function RemoveBlockVariations() {
 			console.error( 'Blocks Everywhere: failed to prune block variations', error );
 		}
 	}, [] );
+
+	return null;
+}
+
+/**
+ * Dispatches theme supports to WordPress core store.
+ * This enables blocks like core/embed to detect responsive-embeds support
+ * and apply proper aspect ratio classes when saving content.
+ */
+function ThemeSupportsDispatcher( { themeSupports } ) {
+	const { receiveCurrentTheme } = useDispatch( 'core' );
+
+	useEffect( () => {
+		if ( themeSupports && receiveCurrentTheme ) {
+			receiveCurrentTheme( {
+				theme_supports: themeSupports,
+			} );
+		}
+	}, [ themeSupports, receiveCurrentTheme ] );
 
 	return null;
 }
@@ -601,6 +621,7 @@ function createEditorContainer( container, textarea, settings ) {
 			>
 				<IframeThemeFixes container={ container } />
 				<EditorLoaded onLoaded={ () => setLoaded( container ) } />
+				<ThemeSupportsDispatcher themeSupports={ settings?.editor?.themeSupports } />
 
 				{ settings.editorType === 'buddypress' && <BuddyPress textarea={ textarea } /> }
 				<RemoveBlockVariations />

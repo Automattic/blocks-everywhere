@@ -235,6 +235,9 @@ class Editor {
 			'enableCustomFields'                   => false,
 			'generateAnchors'                      => true,
 			'canLockBlocks'                        => false,
+			'themeSupports'                        => [
+				'responsive-embeds' => current_theme_supports( 'responsive-embeds' ),
+			],
 		];
 
 		// Iframe editor styles - these are injected into the iframe document.

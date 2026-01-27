@@ -316,3 +316,18 @@ body:not(.gutenberg-support-upload) {
 .blocks-everywhere.iso-editor__loading {
 	min-height: 200px;
 }
+
+// Toolbar button active state fix for dark mode
+.gutenberg-support .components-toolbar-button.is-active,
+.gutenberg-support .components-toolbar-button.is-pressed,
+.gutenberg-support .components-toolbar-button[aria-pressed="true"] {
+    background-color: var(--wp-components-color-gray-100);
+    color: var(--wp-components-color-foreground);
+    border-color: var(--wp-components-color-accent);
+}
+
+// Toolbar button pressed state ::before pseudo-element fix
+.gutenberg-support .components-accessible-toolbar .components-button.is-pressed::before,
+.gutenberg-support .components-toolbar .components-button.is-pressed::before {
+    background-color: var(--wp-components-color-gray-100);
+}

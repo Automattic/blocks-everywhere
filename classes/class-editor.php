@@ -255,6 +255,9 @@ class Editor {
 			. "\n.editor-styles-wrapper p{margin:0;}"
 			. "\n.editor-styles-wrapper .block-editor-block-list__layout.is-root-container>:first-child{margin-top:0;}"
 			. "\n.editor-styles-wrapper p.block-editor-default-block-appender__content{margin:0;}"
+			// List block styling (bullets and indentation)
+			. "\n.editor-styles-wrapper ul,.editor-styles-wrapper ol{list-style:revert;margin:0.5em 0;padding-left:1.5em;}"
+			. "\n.editor-styles-wrapper li{margin-bottom:0.5em;}"
 			// Placeholder styles (match theme tokens)
 			. "\n.editor-styles-wrapper .components-placeholder{background-color:var(--card-background);border:1px solid var(--border-color);border-radius:var(--border-radius-md,8px);color:var(--text-color);box-shadow:var(--card-shadow);padding:var(--spacing-md);}"
 			. "\n.editor-styles-wrapper .components-placeholder__label{color:var(--text-color);}"

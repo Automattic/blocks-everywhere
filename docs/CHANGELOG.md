@@ -2,6 +2,15 @@
 
 All notable changes to Blocks Everywhere are documented in this file.
 
+## Unreleased
+
+### Fixed
+
+- Fixed toolbar button active state styling in dark mode to ensure proper contrast and visibility of icons by overriding background, color, and border properties using theme-mapped CSS variables
+- Extended toolbar button active state styling to include .is-pressed and [aria-pressed="true"] selectors
+- Fixed list block rendering in iframe editor to show bullets and proper indentation
+- Fixed toolbar button pressed state ::before pseudo-element to use theme-mapped background color
+
 ## [1.25.3] - 2025-12-20
 
 ### Changed

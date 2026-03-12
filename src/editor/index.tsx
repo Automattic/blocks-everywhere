@@ -233,6 +233,8 @@ function createEditorContainer( container, textarea, settings ) {
 	const bbpressIsTopicEdit = Boolean( bbpress?.isTopicEdit );
 	const bbpressIsReplyEdit = Boolean( bbpress?.isReplyEdit );
 	const bbpressTopicId = bbpress?.topicId ? Number( bbpress.topicId ) : 0;
+	const bbpressDraftEndpoint = bbpress?.draftEndpoint || null;
+	const bbpressMediaEndpoint = bbpress?.mediaEndpoint || null;
 
 	let currentForumId = bbpress?.forumId ? Number( bbpress.forumId ) : 0;
 	let autosaveTimer = null;
@@ -255,7 +257,9 @@ function createEditorContainer( container, textarea, settings ) {
 			throw new Error( 'REST root not configured.' );
 		}
 
-		const url = new URL( 'extrachill/v1/community/drafts', restRoot );
+		const url = bbpressDraftEndpoint
+			? new URL( bbpressDraftEndpoint )
+			: new URL( 'extrachill/v1/community/drafts', restRoot );
 		if ( ( method === 'DELETE' || method === 'GET' ) && payload && typeof payload === 'object' ) {
 			Object.keys( payload ).forEach( ( key ) => {
 				if ( payload[ key ] === undefined || payload[ key ] === null ) {
@@ -581,7 +585,7 @@ function createEditorContainer( container, textarea, settings ) {
 			throw new Error( 'REST root not configured.' );
 		}
 
-		const response = await window.fetch( new URL( 'extrachill/v1/media', restRoot ).toString(), {
+		const response = await window.fetch( ( bbpressMediaEndpoint ? new URL( bbpressMediaEndpoint ) : new URL( 'extrachill/v1/media', restRoot ) ).toString(), {
 			method: 'POST',
 			credentials: 'same-origin',
 			headers,

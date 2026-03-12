@@ -5,7 +5,10 @@
 import apiFetch from '@wordpress/api-fetch';
 
 const mentionsPath = ( term = '' ) => {
-	const base = '/extrachill/v1/users/search';
+	const base = wpBlocksEverywhere?.bbpress?.mentionsEndpoint;
+	if ( ! base ) {
+		return null;
+	}
 	const query = new URLSearchParams( {
 		context: 'mentions',
 		term,
@@ -63,8 +66,13 @@ export default {
 			return [];
 		}
 
+		const path = mentionsPath( filterValue );
+		if ( ! path ) {
+			return [];
+		}
+
 		try {
-			const users = await apiFetch( { path: mentionsPath( filterValue ) } );
+			const users = await apiFetch( { path } );
 			return normalizeUsers( users );
 		} catch ( error ) {
 			return [];

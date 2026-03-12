@@ -253,13 +253,13 @@ function createEditorContainer( container, textarea, settings ) {
 		draftRequestControllers.add( controller );
 
 		const restRoot = settings?.restUrl || window?.wpApiSettings?.root || null;
-		if ( ! restRoot ) {
-			throw new Error( 'REST root not configured.' );
+		if ( ! bbpressDraftEndpoint && ! restRoot ) {
+			throw new Error( 'Draft endpoint not configured.' );
 		}
 
 		const url = bbpressDraftEndpoint
 			? new URL( bbpressDraftEndpoint )
-			: new URL( 'extrachill/v1/community/drafts', restRoot );
+			: new URL( restRoot );
 		if ( ( method === 'DELETE' || method === 'GET' ) && payload && typeof payload === 'object' ) {
 			Object.keys( payload ).forEach( ( key ) => {
 				if ( payload[ key ] === undefined || payload[ key ] === null ) {
@@ -581,11 +581,11 @@ function createEditorContainer( container, textarea, settings ) {
 		const headers = configuredNonce ? { 'X-WP-Nonce': configuredNonce } : undefined;
 
 		const restRoot = settings?.restUrl || window?.wpApiSettings?.root || null;
-		if ( ! restRoot ) {
-			throw new Error( 'REST root not configured.' );
+		if ( ! bbpressMediaEndpoint && ! restRoot ) {
+			throw new Error( 'Media endpoint not configured.' );
 		}
 
-		const response = await window.fetch( ( bbpressMediaEndpoint ? new URL( bbpressMediaEndpoint ) : new URL( 'extrachill/v1/media', restRoot ) ).toString(), {
+		const response = await window.fetch( ( bbpressMediaEndpoint ? new URL( bbpressMediaEndpoint ) : new URL( restRoot ) ).toString(), {
 			method: 'POST',
 			credentials: 'same-origin',
 			headers,

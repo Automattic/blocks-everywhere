@@ -341,6 +341,21 @@ function createEditorContainer( container, textarea, settings ) {
 		return Number.isFinite( numberValue ) && numberValue >= 0 ? numberValue : 0;
 	};
 
+	const isEffectivelyEmptyBlockContent = ( value ) => {
+		const content = String( value || '' ).trim();
+		if ( ! content ) {
+			return true;
+		}
+
+		const normalized = content
+			.replace( /<!--\s+wp:paragraph\s+-->/g, '' )
+			.replace( /<!--\s+\/wp:paragraph\s+-->/g, '' )
+			.replace( /<p>(?:\s|&nbsp;|&#160;|<br\s*\/?>)*<\/p>/gi, '' )
+			.replace( /\s+/g, '' );
+
+		return normalized === '';
+	};
+
 	const buildDraftPayload = ( contentOverride = null, forumIdOverride = null ) => {
 		const content = typeof contentOverride === 'string' ? contentOverride : textarea?.value || '';
 
@@ -371,7 +386,7 @@ function createEditorContainer( container, textarea, settings ) {
 			return false;
 		}
 
-		const hasContent = Boolean( String( textarea.value || '' ).trim() );
+		const hasContent = ! isEffectivelyEmptyBlockContent( textarea.value || '' );
 		if ( hasContent ) {
 			return false;
 		}
@@ -408,7 +423,7 @@ function createEditorContainer( container, textarea, settings ) {
 					titleInput.value = String( draft?.title || '' );
 				}
 
-				if ( String( textarea.value || '' ).trim() === '' ) {
+				if ( isEffectivelyEmptyBlockContent( textarea.value || '' ) ) {
 					textarea.value = String( draft?.content || '' );
 					lastSerializedContent = textarea.value;
 				}
@@ -426,7 +441,7 @@ function createEditorContainer( container, textarea, settings ) {
 					return;
 				}
 
-				if ( String( textarea.value || '' ).trim() === '' ) {
+				if ( isEffectivelyEmptyBlockContent( textarea.value || '' ) ) {
 					textarea.value = String( draft?.content || '' );
 					lastSerializedContent = textarea.value;
 				}

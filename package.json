@@ -29,6 +29,7 @@
 		"@wordpress/eslint-plugin": "^22.22.0",
 		"@wordpress/prettier-config": "^3.10.0",
 		"@wordpress/scripts": "^31.1.0",
+		"ajv": "^8.18.0",
 		"babel-plugin-emotion": "^11.0.0",
 		"babel-plugin-inline-json-import": "^0.3.2",
 		"eslint": "^8.57.0",
@@ -49,6 +50,7 @@
 		"@automattic/color-studio": "^2.5.0",
 		"@automattic/typography": "^1.0.0",
 		"@chubes4/isolated-block-editor": "file:../../isolated-block-editor",
+		"@wordpress/interface": "^9.21.0",
 		"@wordpress/icons": "^11.3.0",
 		"classnames": "^2.5.1",
 		"use-debounce": "^10.0.0"

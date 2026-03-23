@@ -16,6 +16,7 @@ require_once __DIR__ . '/classes/class-editor.php';
 require_once __DIR__ . '/classes/handlers/class-bbpress.php';
 require_once __DIR__ . '/classes/handlers/class-buddypress.php';
 require_once __DIR__ . '/classes/handlers/class-comments.php';
+require_once __DIR__ . '/classes/handlers/class-frontend.php';
 
 class Blocks_Everywhere {
 	const VERSION = '1.25.3';

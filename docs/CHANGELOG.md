@@ -2,6 +2,11 @@
 
 All notable changes to Blocks Everywhere are documented in this file.
 
+## [2.0.2] - 2026-03-24
+
+### Changed
+- expose per-textarea content API via ContentBridge component
+
 ## [2.0.1] - 2026-03-24
 
 ### Fixed

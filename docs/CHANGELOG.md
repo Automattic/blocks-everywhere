@@ -2,6 +2,11 @@
 
 All notable changes to Blocks Everywhere are documented in this file.
 
+## [2.0.3] - 2026-03-24
+
+### Changed
+- use ContentBridge API for reply draft context switching
+
 ## [2.0.2] - 2026-03-24
 
 ### Changed

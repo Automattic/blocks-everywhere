@@ -2,7 +2,7 @@
 /*
 Plugin Name: Blocks Everywhere
 Description: Use the Gutenberg block editor anywhere in WordPress. Register a context with a config array and get the full block editing experience on any page.
-Version: 2.0.2
+Version: 2.0.3
 Author: Automattic
 Text Domain: 'blocks-everywhere'
 */
@@ -18,7 +18,7 @@ require_once __DIR__ . '/classes/contexts/buddypress.php';
 require_once __DIR__ . '/classes/contexts/comments.php';
 
 class Blocks_Everywhere {
-	const VERSION = '2.0.2';
+	const VERSION = '2.0.3';
 
 	/**
 	 * Instance variable

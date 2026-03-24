@@ -113,23 +113,7 @@
 		font-size: 13px;
 	}
 
-	// Toolbar inserter (+) mirrors theme `.button-2`
-	.interface-interface-skeleton__header .editor-document-tools__inserter-toggle.is-primary {
-		background-color: var(--accent);
-		border-color: var(--accent);
-		color: var(--button-text-color);
-		transition: background-color 0.3s ease;
-
-		&:hover,
-		&:focus,
-		&:focus-visible {
-			background-color: var(--accent-hover);
-			border-color: var(--accent-hover);
-			color: var(--button-text-color);
-		}
-	}
-
-	// Highlight on block inserter hover
+	// Icon hover highlight
 	.edit-post-header__toolbar button:hover svg,
 	.block-editor-block-types-list__list-item:hover span {
 		color: var(--accent);
@@ -272,31 +256,6 @@
 	// Block side inserter popover should not have a visible border
 	.block-editor-block-list__block-side-inserter-popover > .components-popover__content {
 		border: 0;
-	}
-
-	// Empty block inserter button (renders in popover outside iframe when selected)
-	.block-editor-block-list__empty-block-inserter .block-editor-inserter > button.components-button.block-editor-inserter__toggle.has-icon {
-		background-color: var(--accent-3);
-		border: none;
-		color: var(--button-text-color);
-		transition: background-color 0.3s ease;
-
-		&:hover,
-		&:focus,
-		&:focus-visible {
-			background-color: var(--link-color-hover);
-			border: none;
-			color: var(--button-text-color);
-		}
-
-		svg,
-		svg * {
-			fill: currentColor;
-		}
-
-		svg [stroke]:not([stroke="none"]) {
-			stroke: currentColor;
-		}
 	}
 }
 

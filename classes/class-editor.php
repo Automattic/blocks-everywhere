@@ -261,18 +261,6 @@ class Editor {
 			// List block styling (bullets and indentation)
 			. "\n.editor-styles-wrapper ul,.editor-styles-wrapper ol{list-style:revert;margin:0.5em 0;padding-left:1.5em;}"
 			. "\n.editor-styles-wrapper li{margin-bottom:0.5em;}"
-			// Placeholder styles (match theme tokens)
-			. "\n.editor-styles-wrapper .components-placeholder{background-color:var(--card-background);border:1px solid var(--border-color);border-radius:var(--border-radius-md,8px);color:var(--text-color);box-shadow:var(--card-shadow);padding:var(--spacing-md);}"
-			. "\n.editor-styles-wrapper .components-placeholder__label{color:var(--text-color);}"
-			. "\n.editor-styles-wrapper .components-placeholder__instructions{color:var(--muted-text);}"
-			. "\n.editor-styles-wrapper .components-placeholder__input,.editor-styles-wrapper .components-placeholder__textarea,.editor-styles-wrapper .components-placeholder input{background-color:var(--background-color);border-color:var(--border-color);color:var(--text-color);}"
-			. "\n.editor-styles-wrapper .components-placeholder .components-button{border-radius:var(--border-radius-sm,5px);}"
-			. "\n.editor-styles-wrapper .components-placeholder .components-button.is-primary{background-color:var(--accent);border-color:var(--accent);color:var(--button-text-color);box-shadow:none;}"
-			. "\n.editor-styles-wrapper .components-placeholder .components-button.is-primary:hover,.editor-styles-wrapper .components-placeholder .components-button.is-primary:focus{background-color:var(--accent-hover);border-color:var(--accent-hover);color:var(--button-text-color);}"
-			. "\n.editor-styles-wrapper .components-placeholder .components-button:not(.is-primary){background-color:transparent;border:1px solid var(--border-color);color:var(--text-color);box-shadow:none;}"
-			. "\n.editor-styles-wrapper .components-placeholder .components-button:not(.is-primary):hover,.editor-styles-wrapper .components-placeholder .components-button:not(.is-primary):focus{border-color:var(--accent);color:var(--accent);}"
-			. "\n.editor-styles-wrapper .components-placeholder svg,.editor-styles-wrapper .components-placeholder svg *{fill:currentColor;}"
-			. "\n.editor-styles-wrapper .components-placeholder svg [stroke]:not([stroke=\"none\"]){stroke:currentColor;}"
 			// In-iframe inserter popover/menu styling
 			. "\n:root{--wp-components-color-foreground:var(--text-color);--wp-components-color-foreground-inverted:var(--background-color);--wp-components-color-background:var(--background-color);--wp-components-color-icon:var(--text-color);--wp-components-color-icon-inverted:var(--background-color);--wp-components-color-accent:var(--accent);--wp-components-color-accent-darker-10:var(--accent-hover);--wp-components-color-accent-darker-20:var(--accent-hover);--wp-components-color-accent-inverted:var(--button-text-color);--wp-admin-theme-color:var(--accent);--wp-admin-theme-color-darker-10:var(--accent-hover);--wp-admin-theme-color-darker-20:var(--accent-hover);--wp-components-color-gray-100:var(--card-background);--wp-components-color-gray-200:var(--border-color);--wp-components-color-gray-300:var(--border-color);--wp-components-color-gray-400:var(--muted-text);--wp-components-color-gray-600:var(--muted-text);--wp-components-color-gray-700:var(--text-color);--wp-components-color-gray-800:var(--text-color);--wp-components-color-gray-900:var(--text-color);--wp-components-color-gray-950:var(--text-color);}"
 			. "\n.components-popover__content,.block-editor-inserter__menu{background-color:var(--background-color);border:1px solid var(--border-color);color:var(--wp-components-color-foreground);}"
@@ -281,40 +269,12 @@ class Editor {
 			. "\n.components-popover.block-editor-inserter__popover.is-quick{color:var(--wp-components-color-foreground);}"
 			. "\n.components-popover.block-editor-inserter__popover.is-quick .components-search-control__icon,.components-popover.block-editor-inserter__popover.is-quick .block-editor-inserter__quick-inserter svg,.components-popover.block-editor-inserter__popover.is-quick .block-editor-inserter__quick-inserter svg *,.components-popover.block-editor-inserter__popover.is-quick .block-editor-block-icon,.components-popover.block-editor-inserter__popover.is-quick .block-editor-block-icon.has-colors{color:var(--wp-components-color-icon);fill:currentColor;}"
 			. "\n.components-popover.block-editor-inserter__popover.is-quick svg [stroke]:not([stroke=\"none\"]){stroke:currentColor;}"
-			// Empty block inserter button (inside iframe when not selected)
-			. "\n.editor-styles-wrapper .block-editor-block-list__empty-block-inserter .block-editor-inserter>button.components-button.block-editor-inserter__toggle.has-icon{background-color:var(--accent-3);border:none;color:var(--button-text-color);transition:background-color 0.3s ease;}"
-			. "\n.editor-styles-wrapper .block-editor-block-list__empty-block-inserter .block-editor-inserter>button.components-button.block-editor-inserter__toggle.has-icon:hover,.editor-styles-wrapper .block-editor-block-list__empty-block-inserter .block-editor-inserter>button.components-button.block-editor-inserter__toggle.has-icon:focus,.editor-styles-wrapper .block-editor-block-list__empty-block-inserter .block-editor-inserter>button.components-button.block-editor-inserter__toggle.has-icon:focus-visible{background-color:var(--link-color-hover);border:none;color:var(--button-text-color);}"
-			. "\n.editor-styles-wrapper .block-editor-block-list__empty-block-inserter .block-editor-inserter>button.components-button.block-editor-inserter__toggle.has-icon svg,.editor-styles-wrapper .block-editor-block-list__empty-block-inserter .block-editor-inserter>button.components-button.block-editor-inserter__toggle.has-icon svg *{fill:currentColor;}"
-			. "\n.editor-styles-wrapper .block-editor-block-list__empty-block-inserter .block-editor-inserter>button.components-button.block-editor-inserter__toggle.has-icon svg [stroke]:not([stroke=\"none\"]){stroke:currentColor;}"
-			// Default block appender button (inside iframe)
-			. "\n.editor-styles-wrapper .block-editor-default-block-appender .block-editor-inserter>button.components-button.block-editor-inserter__toggle.has-icon{background-color:var(--accent-3);border:none;color:var(--button-text-color);transition:background-color 0.3s ease;}"
-			. "\n.editor-styles-wrapper .block-editor-default-block-appender .block-editor-inserter>button.components-button.block-editor-inserter__toggle.has-icon:hover,.editor-styles-wrapper .block-editor-default-block-appender .block-editor-inserter>button.components-button.block-editor-inserter__toggle.has-icon:focus,.editor-styles-wrapper .block-editor-default-block-appender .block-editor-inserter>button.components-button.block-editor-inserter__toggle.has-icon:focus-visible{background-color:var(--link-color-hover);border:none;color:var(--button-text-color);}"
-			. "\n.editor-styles-wrapper .block-editor-default-block-appender .block-editor-inserter>button.components-button.block-editor-inserter__toggle.has-icon svg,.editor-styles-wrapper .block-editor-default-block-appender .block-editor-inserter>button.components-button.block-editor-inserter__toggle.has-icon svg *{fill:currentColor;}"
-			. "\n.editor-styles-wrapper .block-editor-default-block-appender .block-editor-inserter>button.components-button.block-editor-inserter__toggle.has-icon svg [stroke]:not([stroke=\"none\"]){stroke:currentColor;}"
 			// Modal styles
 			. "\n.components-modal__frame{background-color:var(--background-color);border:1px solid var(--border-color);color:var(--text-color);}"
 			. "\n.components-modal__header{border-bottom:1px solid var(--border-color);}"
 			. "\n.components-modal__frame svg,n.components-modal__frame svg *{fill:currentColor;}"
 			. "\n.components-modal__frame svg [stroke]:not([stroke=\"none\"]){stroke:currentColor;}"
-			// Block list appender and button appender (inside iframe)
-			. "\n.editor-styles-wrapper .block-list-appender__toggle,"
-			. ".editor-styles-wrapper .block-editor-button-block-appender,"
-			. ".editor-styles-wrapper .block-editor-block-list__insertion-point-inserter{"
-			. "background-color:var(--accent-3);border:none;color:var(--button-text-color);border-radius:var(--border-radius-sm,5px);transition:background-color 0.3s ease;}"
-			. "\n.editor-styles-wrapper .block-list-appender__toggle:hover,"
-			. ".editor-styles-wrapper .block-list-appender__toggle:focus,"
-			. ".editor-styles-wrapper .block-editor-button-block-appender:hover,"
-			. ".editor-styles-wrapper .block-editor-button-block-appender:focus,"
-			. ".editor-styles-wrapper .block-editor-block-list__insertion-point-inserter:hover,"
-			. ".editor-styles-wrapper .block-editor-block-list__insertion-point-inserter:focus{"
-			. "background-color:var(--link-color-hover);border:none;color:var(--button-text-color);}"
-			. "\n.editor-styles-wrapper .block-list-appender__toggle svg,"
-			. ".editor-styles-wrapper .block-editor-button-block-appender svg,"
-			. ".editor-styles-wrapper .block-editor-block-list__insertion-point-inserter svg,"
-			. ".editor-styles-wrapper .block-list-appender__toggle svg *,"
-			. ".editor-styles-wrapper .block-editor-button-block-appender svg *,"
-			. ".editor-styles-wrapper .block-editor-block-list__insertion-point-inserter svg *{fill:currentColor;}"
-			. "\n.editor-styles-wrapper .block-list-appender__toggle svg [stroke]:not([stroke=\"none\"]),.editor-styles-wrapper .block-editor-button-block-appender svg [stroke]:not([stroke=\"none\"]),.editor-styles-wrapper .block-editor-block-list__insertion-point-inserter svg [stroke]:not([stroke=\"none\"]){stroke:currentColor;}";
+;
 
 		$enqueue_iframe_block_styles = static function() use ( $iframe_editor_css, $post ) {
 			wp_enqueue_style( 'wp-block-library' );

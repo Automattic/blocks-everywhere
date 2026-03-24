@@ -37,28 +37,39 @@ abstract class Handler {
 	 * The `Blocks_Everywhere::load_handlers()` method that would instantiate, and thereby invoke this, runs on init.
 	 */
 	public function __construct() {
-		// We only need to run this once, no matter how many child classes are instantiated, so let's stash it in a static.
-		if ( ! self::$registered_assets ) {
-			$this->register_assets(
-				'blocks-everywhere',
-				'index.min.asset.php',
-				'index.min.js',
-				'style-index.min.css'
-			);
-			$this->register_assets(
-				'support-content-editor',
-				'support-content-editor.min.asset.php',
-				'support-content-editor.min.js',
-				'support-content-editor.min.css'
-			);
-			$this->register_assets(
-				'support-content-view',
-				'support-content-view.min.asset.php',
-				'support-content-view.min.js',
-				'support-content-view.min.css'
-			);
-			self::$registered_assets = true;
+		// Asset registration deferred to init so we don't call wp_register_script too early.
+		add_action( 'init', [ $this, 'register_default_assets' ], 5 );
+	}
+
+	/**
+	 * Register the default plugin assets. Runs on init.
+	 *
+	 * @return void
+	 */
+	public function register_default_assets() {
+		if ( self::$registered_assets ) {
+			return;
 		}
+
+		$this->register_assets(
+			'blocks-everywhere',
+			'index.min.asset.php',
+			'index.min.js',
+			'style-index.min.css'
+		);
+		$this->register_assets(
+			'support-content-editor',
+			'support-content-editor.min.asset.php',
+			'support-content-editor.min.js',
+			'support-content-editor.min.css'
+		);
+		$this->register_assets(
+			'support-content-view',
+			'support-content-view.min.asset.php',
+			'support-content-view.min.js',
+			'support-content-view.min.css'
+		);
+		self::$registered_assets = true;
 	}
 
 	/**

@@ -2,18 +2,22 @@
 
 All notable changes to Blocks Everywhere are documented in this file.
 
-## [1.26.0] - 2026-03-24
+## [2.0.0] - 2026-03-24
+
+### BREAKING
+- Deleted Handler subclasses: `Handler\bbPress`, `Handler\BuddyPress`, `Handler\Comments`, `Handler\Frontend`. Consumers must migrate to the `blocks_everywhere_contexts` filter API. All filter hooks remain backward-compatible.
 
 ### Added
-- add generic Frontend handler for non-bbPress editor contexts
+- Data-driven context engine (`Engine` class) — register editor contexts via config arrays
+- `blocks_everywhere_contexts` filter for external integrations
+- `editor_setup` callback in context config for domain-specific post-editor-load wiring
+- bbPress callbacks extracted to standalone functions (`contexts/bbpress-callbacks.php`)
 
 ### Changed
-- update plugin description for 2.0.0 — universal block editor
-- replace handler subclasses with data-driven context engine
-- extract brand-specific styles to consumer layer
-- Inject community endpoints into editor integrations
-- Use configured bbPress draft and media endpoints
-- Treat empty block markup as restorable bbPress draft content
+- Plugin description updated: "Use the Gutenberg block editor anywhere in WordPress"
+- Built-in contexts (bbPress, BuddyPress, Comments) now register via the same filter API as external consumers
+- Simplified Engine to 7 config keys (was 22 in intermediate version)
+- Registered as homeboy component with build/deploy pipeline
 
 ### Fixed
 - Fix editor build and homeboy packaging for WordPress 6.9

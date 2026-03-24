@@ -12,10 +12,11 @@ Blocks Everywhere extends the WordPress Gutenberg block editor to environments o
 ### Architecture
 
 - **Entry Point**: `blocks-everywhere.php` bootstraps plugin
-- **Classes**: Object-oriented handlers in `classes/` with inheritance-based architecture
-  - `class-editor.php` - Asset/configuration management
-  - `class-handler.php` - Base handler with shared functionality
-  - `handlers/` - Platform-specific handlers (bbPress, Comments, BuddyPress)
+- **Classes**: Data-driven context engine in `classes/`
+  - `class-editor.php` - Asset/configuration management (don't touch)
+  - `class-handler.php` - Base class with shared editor loading logic
+  - `class-engine.php` - Single engine that processes all contexts identically
+  - `contexts/` - Context config arrays and platform-specific callbacks
 - **Frontend**: TypeScript/React components in `src/` build via `@wordpress/scripts`
 - **Assets**: Compiled JavaScript and SCSS in `build/` directory
 - **Tests**: PHPUnit tests in `tests/` directory
@@ -24,47 +25,49 @@ Blocks Everywhere extends the WordPress Gutenberg block editor to environments o
 
 Main file loads components in sequence:
 1. Define plugin constants and paths
-2. Require class files (Editor, Handler, platform handlers)
-3. Initialize Editor instance
-4. Conditionally initialize platform handlers based on filters/constants
-5. Register WordPress hooks for asset loading and initialization
+2. Require class files (Editor, Handler, Engine, context configs)
+3. Create Engine instance
+4. Register built-in contexts via `blocks_everywhere_contexts` filter (priority 5)
+5. Boot engine on `init` — collects contexts, wires hooks
 
-## Handler System
+## Context Engine System
 
-### Handler Hierarchy
+### How It Works
 
+Instead of handler subclasses, each integration is a **context config array**:
+
+```php
+add_filter( 'blocks_everywhere_contexts', function( $contexts ) {
+    $contexts['my-plugin'] = [
+        'type'      => 'my-plugin',
+        'textarea'  => '#my-textarea',
+        'container' => '.my-editor-container',
+        'trigger'   => 'wp',
+        'condition' => fn() => is_user_logged_in(),
+    ];
+    return $contexts;
+} );
 ```
-Handler (abstract base)
-├── bbPress (forums)
-├── Comments (WordPress native)
-└── BuddyPress (social networks)
-```
 
-### Creating Custom Handlers
+The Engine processes all contexts identically — reads config, wires hooks, loads editor.
 
-All handlers extend `Automattic\Blocks_Everywhere\Handler` and implement:
+### Built-in Contexts
 
-1. **Constructor** - Register hooks into platform
-2. **should_load_editor()** - Detect if editor needed on page
-3. **enable_editor()** - Load editor assets and configuration
-4. **Content processing** - Implement filters to process blocks in content
+**bbPress** (`contexts/bbpress.php` + `contexts/bbpress-callbacks.php`):
+- Trigger: `bbp_template_redirect` (frontend), `bbp_ready` (admin)
+- Content filters: `bbp_get_forum_content`, `bbp_get_topic_content`, `bbp_get_reply_content`
+- KSES workaround for `bbp_encode_bad`
+- Callbacks extracted to standalone functions in `bbpress-callbacks.php`
 
-### Platform Handler Patterns
+**Comments** (`contexts/comments.php`):
+- Trigger: `comment_form_after`
+- Content filter: `comment_text`
+- Context-aware KSES via `wp_kses_allowed_html`
 
-**bbPress Handler** (`class-bbpress.php`):
-- Hooks: `bbp_template_redirect` (frontend), `bbp_ready` (admin)
-- Filters: `bbp_get_forum_content`, `bbp_get_topic_content`, `bbp_get_reply_content`
-- Admin: Topic/reply/forum edit screens
-
-**Comments Handler** (`class-comments.php`):
-- Hooks: `comment_form_default_fields`, `comment_text` filter
-- Supports threaded comment editing
-- Works with all themes
-
-**BuddyPress Handler** (`class-buddypress.php`):
-- Hooks: Activity stream display
-- Integrates with BuddyPress form system
-- Current: Basic support, needs enhancement
+**BuddyPress** (`contexts/buddypress.php`):
+- Trigger: `bp_after_activity_post_form`
+- Content filter: `bp_get_activity_content_body`
+- Admin: `toplevel_page_bp-activity`
 
 ## Build / Lint / Test
 
@@ -230,14 +233,10 @@ add_filter( 'blocks_everywhere_editor_settings', function( $settings ) {
 
 ### Adding Block Support to New Platform
 
-1. Create `Handler\NewPlatform extends Handler`
-2. Implement `__construct()` with hooks
-3. Implement `should_load_editor()` detection
-4. Implement `enable_editor()` initialization
-5. Hook into content output with `do_blocks()`
-6. Register in main plugin file
-7. Add configuration via filter
-8. Test on multiple themes
+1. Create a context config array with required keys (`type`, `textarea`, `trigger`, etc.)
+2. Register via `blocks_everywhere_contexts` filter
+3. If platform needs special callbacks, create a `contexts/platform-callbacks.php` file
+4. Test on multiple themes
 
 ### Customizing Editor Settings
 
@@ -296,14 +295,16 @@ add_filter( 'blocks_everywhere_editor_settings', function( $settings ) {
 
 ```
 blocks-everywhere/
-├── blocks-everywhere.php          (Entry point)
+├── blocks-everywhere.php          (Entry point + bootstrap)
 ├── classes/
-│   ├── class-editor.php           (Asset/config management)
-│   ├── class-handler.php          (Base handler)
-│   └── handlers/
-│       ├── class-bbpress.php      (Forum integration)
-│       ├── class-comments.php     (Comment integration)
-│       └── class-buddypress.php   (Activity integration)
+│   ├── class-editor.php           (Asset/config management — don't touch)
+│   ├── class-handler.php          (Base class with shared editor logic)
+│   ├── class-engine.php           (Context engine — processes all contexts)
+│   └── contexts/
+│       ├── bbpress.php            (bbPress context config)
+│       ├── bbpress-callbacks.php  (bbPress-specific standalone functions)
+│       ├── buddypress.php         (BuddyPress context config)
+│       └── comments.php           (Comments context config)
 ├── src/                           (TypeScript/React source)
 │   ├── index.tsx                  (Main entry)
 │   ├── editor/                    (Editor components)

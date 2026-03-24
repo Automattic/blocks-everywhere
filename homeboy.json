@@ -1,0 +1,19 @@
+{
+  "auto_cleanup": false,
+  "changelog_target": "docs/CHANGELOG.md",
+  "extensions": {
+    "wordpress": {}
+  },
+  "id": "blocks-everywhere",
+  "remote_path": "wp-content/plugins/blocks-everywhere",
+  "version_targets": [
+    {
+      "file": "blocks-everywhere.php",
+      "pattern": "Version:\\s*([0-9.]+)"
+    },
+    {
+      "file": "blocks-everywhere.php",
+      "pattern": "VERSION = '([0-9.]+)'"
+    }
+  ]
+}

@@ -3,7 +3,11 @@
 // Basic WP setup without needing PHPUnit and WP setup together
 require_once dirname( __DIR__ ) . '/classes/class-editor.php';
 require_once dirname( __DIR__ ) . '/classes/class-handler.php';
-require_once dirname( __DIR__ ) . '/classes/handlers/class-bbpress.php';
+require_once dirname( __DIR__ ) . '/classes/class-engine.php';
+require_once dirname( __DIR__ ) . '/classes/contexts/bbpress-callbacks.php';
+require_once dirname( __DIR__ ) . '/classes/contexts/bbpress.php';
+require_once dirname( __DIR__ ) . '/classes/contexts/buddypress.php';
+require_once dirname( __DIR__ ) . '/classes/contexts/comments.php';
 
 function is_admin() {
 	return false;

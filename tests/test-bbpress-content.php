@@ -1,16 +1,15 @@
 <?php
 
-use Automattic\Blocks_Everywhere\Handler;
+use Automattic\Blocks_Everywhere\Contexts;
 use PHPUnit\Framework\TestCase;
 
 // phpcs:ignore
 class bbPress_Content_Test extends TestCase {
 	private function process_content( $content ) {
-		$bbpress = new Handler\bbPress();
-		$content = $bbpress->allow_comments_in_bbp_encode_bad_pre( $content );
+		$content = Contexts\bbpress_allow_comments_pre( $content );
 		$content = bbp_encode_bad( $content );
 
-		return $bbpress->allow_comments_in_bbp_encode_bad_post( $content );
+		return Contexts\bbpress_allow_comments_post( $content );
 	}
 
 	public function testEmpty() {

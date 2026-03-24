@@ -2,6 +2,11 @@
 
 All notable changes to Blocks Everywhere are documented in this file.
 
+## [2.0.1] - 2026-03-24
+
+### Fixed
+- Defer asset registration to `wp_loaded` hook to prevent `wp_register_script` / `wp_register_style` called too early notices on WordPress 6.9
+
 ## [2.0.0] - 2026-03-24
 
 ### BREAKING

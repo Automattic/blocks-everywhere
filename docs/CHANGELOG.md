@@ -2,6 +2,22 @@
 
 All notable changes to Blocks Everywhere are documented in this file.
 
+## [1.26.0] - 2026-03-24
+
+### Added
+- add generic Frontend handler for non-bbPress editor contexts
+
+### Changed
+- update plugin description for 2.0.0 — universal block editor
+- replace handler subclasses with data-driven context engine
+- extract brand-specific styles to consumer layer
+- Inject community endpoints into editor integrations
+- Use configured bbPress draft and media endpoints
+- Treat empty block markup as restorable bbPress draft content
+
+### Fixed
+- Fix editor build and homeboy packaging for WordPress 6.9
+
 ## [1.25.5] - 2026-01-27
 
 ### Changed

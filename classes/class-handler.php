@@ -37,12 +37,14 @@ abstract class Handler {
 	 * The `Blocks_Everywhere::load_handlers()` method that would instantiate, and thereby invoke this, runs on init.
 	 */
 	public function __construct() {
-		// Asset registration deferred to init so we don't call wp_register_script too early.
-		add_action( 'init', [ $this, 'register_default_assets' ], 5 );
+		// Asset registration deferred to wp_loaded so we don't call wp_register_script
+		// before WordPress considers it safe. wp_loaded fires after init but before
+		// any enqueue hooks, so assets are ready when load_editor() needs them.
+		add_action( 'wp_loaded', [ $this, 'register_default_assets' ] );
 	}
 
 	/**
-	 * Register the default plugin assets. Runs on init.
+	 * Register the default plugin assets. Runs on wp_loaded.
 	 *
 	 * @return void
 	 */

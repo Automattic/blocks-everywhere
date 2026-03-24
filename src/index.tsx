@@ -19,6 +19,27 @@ import './styles/style.scss';
 // Expose createEditor globally for dynamic editor initialization (e.g., inline reply forms)
 ( window as any ).blocksEverywhereCreateEditor = createEditor;
 
+/**
+ * Get the content API for an editor instance by its textarea element.
+ *
+ * The ContentBridge component (rendered inside each IBE instance) attaches
+ * a content API object to the textarea. This function provides a clean
+ * lookup without consumers needing to know the internal property name.
+ *
+ * @param textarea - The textarea element the editor was created from.
+ * @returns The content API, or null if the editor isn't ready yet.
+ *
+ * @example
+ *   const api = window.blocksEverywhereGetContentApi( myTextarea );
+ *   if ( api ) {
+ *       api.replaceContent( '<p>Hello world</p>' );
+ *       const html = api.getContent();
+ *   }
+ */
+( window as any ).blocksEverywhereGetContentApi = ( textarea: HTMLTextAreaElement ) => {
+	return textarea?.__blocksEverywhereContentApi ?? null;
+};
+
 const removeNullPostFromFileUploadMiddleware = ( options, next ) => {
 	if ( options.method === 'POST' && options.path === '/wp/v2/media' ) {
 		const formData = options.body;

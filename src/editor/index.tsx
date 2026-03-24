@@ -18,6 +18,7 @@ import IsolatedBlockEditor, { EditorLoaded } from '@chubes4/isolated-block-edito
  * Internal dependencies
  */
 import BuddyPress from './buddypress';
+import ContentBridge from './content-bridge';
 
 /**
  * Save blocks to the comment form
@@ -641,6 +642,7 @@ function createEditorContainer( container, textarea, settings ) {
 				<IframeThemeFixes container={ container } />
 				<EditorLoaded onLoaded={ () => setLoaded( container ) } />
 				<ThemeSupportsDispatcher themeSupports={ settings?.editor?.themeSupports } />
+				<ContentBridge textarea={ textarea } />
 
 				{ settings.editorType === 'buddypress' && <BuddyPress textarea={ textarea } /> }
 				<RemoveBlockVariations />

@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Blocks Everywhere
-Description: Because somewhere is just not enough. Add Gutenberg to WordPress comments, bbPress forums, and BuddyPress streams. Also enables Gutenberg for comment & bbPress moderation.
+Description: Use the Gutenberg block editor anywhere in WordPress. Register a context with a config array and get the full block editing experience on any page.
 Version: 1.25.5
 Author: Automattic
 Text Domain: 'blocks-everywhere'

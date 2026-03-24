@@ -734,7 +734,6 @@ function createEditorContainer( container, textarea, settings ) {
 
 				lastSerializedContent = '';
 				lastSavedPayload = null;
-				textarea.value = '';
 
 				const incoming = await requestDraft( 'GET', {
 					type: 'reply',
@@ -743,13 +742,19 @@ function createEditorContainer( container, textarea, settings ) {
 				} );
 
 				const incomingDraft = incoming?.draft;
-				if ( incomingDraft && String( incomingDraft?.content || '' ).trim() ) {
-					textarea.value = String( incomingDraft.content );
-					lastSerializedContent = textarea.value;
+				const incomingContent = incomingDraft && String( incomingDraft?.content || '' ).trim()
+					? String( incomingDraft.content )
+					: '';
+
+				// Use the ContentBridge API to hot-swap content without remounting.
+				const contentApi = textarea?.__blocksEverywhereContentApi;
+				if ( contentApi ) {
+					contentApi.replaceContent( incomingContent );
 				}
 
-				editorKey += 1;
-				renderEditor();
+				// Keep textarea in sync for onSaveContent and autosave tracking.
+				textarea.value = incomingContent;
+				lastSerializedContent = incomingContent;
 			} catch ( error ) {
 				if ( error?.name === 'AbortError' ) {
 					return;

@@ -115,6 +115,10 @@ class Editor {
 			wp_enqueue_script( 'wp-admin-ui' );
 
 			do_action( 'enqueue_block_editor_assets' );
+			// Also fire enqueue_block_assets so styles from plugins reach the
+			// Gutenberg 22.8+ iframe. enqueue_block_editor_assets only runs on
+			// the host page; enqueue_block_assets fires for both host and iframe.
+			do_action( 'enqueue_block_assets' );
 		}
 
 		$should_inline_styles = apply_filters( 'blocks_everywhere_should_enqueue_styles', true );

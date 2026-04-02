@@ -2,6 +2,11 @@
 
 All notable changes to Blocks Everywhere are documented in this file.
 
+## [2.0.4] - 2026-04-02
+
+### Changed
+- Fire enqueue_block_assets alongside enqueue_block_editor_assets for Gutenberg 22.8+ iframe compatibility
+
 ## [2.0.3] - 2026-03-24
 
 ### Changed

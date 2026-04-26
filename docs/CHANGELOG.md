@@ -2,6 +2,11 @@
 
 All notable changes to Blocks Everywhere are documented in this file.
 
+## [2.0.5] - 2026-04-26
+
+### Fixed
+- repoint @chubes4/isolated-block-editor to canonical workspace checkout
+
 ## [2.0.4] - 2026-04-02
 
 ### Changed

@@ -34,6 +34,11 @@ class Editor {
 	 * @return WP_Theme_JSON_Data|WP_Theme_JSON_Data_Gutenberg
 	 */
 	public function wp_theme_json_data_theme( $json ) {
+		// Merge our customization restrictions into the existing theme.json
+		// data instead of replacing it. Replacing would clobber font-family
+		// definitions that themes register via the same filter to make
+		// @font-face declarations land in the editor iframe via
+		// wp_print_font_faces() — see WP_Font_Face_Resolver::get_fonts_from_theme_json().
 		$data = [
 			'version'  => 2,
 			'settings' => [
@@ -56,11 +61,16 @@ class Editor {
 					'textDecoration'  => false,
 					'textTransform'   => false,
 					'fontSizes'       => [],
-					'fontFamilies'    => [],
 				],
 			],
 		];
 
+		if ( method_exists( $json, 'update_with' ) ) {
+			$json->update_with( $data );
+			return $json;
+		}
+
+		// Fallback for older WP / Gutenberg without update_with().
 		if ( class_exists( 'WP_Theme_JSON_Data_Gutenberg' ) ) {
 			return new WP_Theme_JSON_Data_Gutenberg( $data );
 		}

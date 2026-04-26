@@ -2,6 +2,11 @@
 
 All notable changes to Blocks Everywhere are documented in this file.
 
+## [2.0.6] - 2026-04-26
+
+### Fixed
+- merge into theme.json data instead of replacing it
+
 ## [2.0.5] - 2026-04-26
 
 ### Fixed

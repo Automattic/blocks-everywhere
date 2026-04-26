@@ -12,6 +12,7 @@ import { unregisterFormatType } from '@wordpress/rich-text';
  */
 
 import createEditor from './editor';
+import { registerSlotFill } from './editor/slot-fills';
 import customBlocks from './block-customization';
 import mentionsCompleter from './completer/mentions';
 import './styles/style.scss';
@@ -38,6 +39,19 @@ import './styles/style.scss';
  */
 ( window as any ).blocksEverywhereGetContentApi = ( textarea: HTMLTextAreaElement ) => {
 	return textarea?.__blocksEverywhereContentApi ?? null;
+};
+
+/**
+ * Public namespace for Blocks Everywhere host-page integration APIs.
+ *
+ * Currently exposes:
+ *   - registerSlotFill( slot, renderFn ) — render React content into IBE's
+ *     footer / toolbar / heading slots from outside BE's React tree.
+ *
+ * See src/editor/slot-fills.tsx for the full API contract.
+ */
+( window as any ).blocksEverywhere = {
+	registerSlotFill,
 };
 
 const removeNullPostFromFileUploadMiddleware = ( options, next ) => {

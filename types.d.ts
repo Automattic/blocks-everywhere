@@ -54,6 +54,12 @@ declare interface Window {
 		root?: string;
 		nonce?: string;
 	};
+	blocksEverywhere?: {
+		registerSlotFill: (
+			slot: 'footer' | 'toolbar' | 'heading',
+			renderFn: ( textarea: HTMLTextAreaElement ) => unknown
+		) => () => void;
+	};
 }
 
 declare interface HTMLElement {

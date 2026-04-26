@@ -19,6 +19,7 @@ import IsolatedBlockEditor, { EditorLoaded } from '@chubes4/isolated-block-edito
  */
 import BuddyPress from './buddypress';
 import ContentBridge from './content-bridge';
+import { RegisteredSlotFills } from './slot-fills';
 
 /**
  * Save blocks to the comment form
@@ -643,6 +644,7 @@ function createEditorContainer( container, textarea, settings ) {
 				<EditorLoaded onLoaded={ () => setLoaded( container ) } />
 				<ThemeSupportsDispatcher themeSupports={ settings?.editor?.themeSupports } />
 				<ContentBridge textarea={ textarea } />
+				<RegisteredSlotFills textarea={ textarea } />
 
 				{ settings.editorType === 'buddypress' && <BuddyPress textarea={ textarea } /> }
 				<RemoveBlockVariations />

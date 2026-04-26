@@ -297,6 +297,83 @@ if ( editorSettings?.bbpress ) {
 }
 ```
 
+### Slot Fill API
+
+Host pages can render React content into IBE's footer / toolbar / heading
+slots via `window.blocksEverywhere.registerSlotFill( slot, renderFn )`.
+
+This is the preferred way to surface action chrome (submit buttons, save
+buttons, status indicators, etc.) inside the editor skeleton — content
+rendered into these slots stays visible when the user toggles fullscreen
+mode, because the slots live inside the IBE skeleton itself.
+
+**API**:
+
+```typescript
+window.blocksEverywhere.registerSlotFill(
+    slot: 'footer' | 'toolbar' | 'heading',
+    renderFn: ( textarea: HTMLTextAreaElement ) => ReactNode
+): () => void
+```
+
+The render function is invoked once per editor mount, with the editor's
+textarea passed in. This lets consumers scope their fills to a specific
+editor instance when multiple BE editors live on the same page (e.g.
+inline reply forms).
+
+The return value is an unregister function — call it to remove the fill.
+
+Registrations made before BE mounts are picked up automatically.
+Registrations made after mount are also picked up — already-mounted
+editors re-render to include the new fill.
+
+**Example** (vanilla JS, no React tree of your own):
+
+```javascript
+const { createElement } = window.wp.element;
+
+window.blocksEverywhere.registerSlotFill( 'footer', ( textarea ) => {
+    return createElement(
+        'button',
+        {
+            type: 'button',
+            onClick: () => textarea.form.submit(),
+        },
+        'Submit'
+    );
+} );
+```
+
+**Example** (React component from another tree):
+
+```typescript
+import { createElement, useEffect } from '@wordpress/element';
+
+function StudioComposer() {
+    useEffect( () => {
+        return window.blocksEverywhere?.registerSlotFill( 'footer', ( textarea ) => {
+            return createElement( SubmitButton, { textarea } );
+        } );
+    }, [] );
+
+    // ...rest of the component
+}
+```
+
+**Slots**:
+
+| Slot | IBE component | Where it renders |
+|------|---------------|------------------|
+| `footer` | `FooterSlot` / `ActionArea` | Bottom of editor skeleton (`.edit-post-layout__footer`) |
+| `toolbar` | `ToolbarSlot` | Editor header toolbar |
+| `heading` | `EditorHeadingSlot` | Above the visual canvas |
+
+**Why this pattern matters**: BE mounts IBE inside its own SlotFillProvider,
+so a `<Slot>` rendered outside that provider will not see fills from
+external React trees. The `registerSlotFill` API solves that by feeding
+fills into the IBE tree via the registry, where they reach the slots
+through the shared provider.
+
 ## Working with Imports
 
 ### Proper Import Organization

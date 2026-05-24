@@ -2,6 +2,11 @@
 
 All notable changes to Blocks Everywhere are documented in this file.
 
+## [2.1.4] - 2026-05-24
+
+### Fixed
+- drop padding on block-card inside preview popover
+
 ## [2.1.3] - 2026-05-24
 
 ### Fixed

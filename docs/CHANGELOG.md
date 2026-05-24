@@ -2,6 +2,11 @@
 
 All notable changes to Blocks Everywhere are documented in this file.
 
+## [2.1.2] - 2026-05-24
+
+### Fixed
+- theme block preview popover icons + text for dark mode
+
 ## [2.1.1] - 2026-05-24
 
 ### Changed

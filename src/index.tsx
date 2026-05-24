@@ -23,12 +23,12 @@ import './styles/style.scss';
 /**
  * Get the content API for an editor instance by its textarea element.
  *
- * The ContentBridge component (rendered inside each IBE instance) attaches
+ * The ContentBridge component (rendered inside each editor instance) attaches
  * a content API object to the textarea. This function provides a clean
  * lookup without consumers needing to know the internal property name.
  *
  * @param textarea - The textarea element the editor was created from.
- * @returns The content API, or null if the editor isn't ready yet.
+ * @return The content API, or null if the editor isn't ready yet.
  *
  * @example
  *   const api = window.blocksEverywhereGetContentApi( myTextarea );
@@ -45,7 +45,7 @@ import './styles/style.scss';
  * Public namespace for Blocks Everywhere host-page integration APIs.
  *
  * Currently exposes:
- *   - registerSlotFill( slot, renderFn ) — render React content into IBE's
+ *   - registerSlotFill( slot, renderFn ) — render React content into the editor
  *     footer / toolbar / heading slots from outside BE's React tree.
  *
  * See src/editor/slot-fills.tsx for the full API contract.

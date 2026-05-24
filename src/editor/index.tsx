@@ -2,17 +2,24 @@
  * WordPress dependencies
  */
 import { MediaUpload } from '@wordpress/media-utils';
-import { mediaUpload as blockEditorMediaUpload } from '@wordpress/block-editor';
+import {
+	BlockCanvas,
+	BlockEditorKeyboardShortcuts,
+	BlockEditorProvider,
+	BlockInspector,
+	BlockTools,
+	BlockToolbar,
+	Inserter,
+	ObserveTyping,
+	WritingFlow,
+	mediaUpload as blockEditorMediaUpload,
+} from '@wordpress/block-editor';
 import { mediaUpload as legacyMediaUpload } from '@wordpress/editor';
-import { createRoot, useEffect } from '@wordpress/element';
+import { Slot, SlotFillProvider } from '@wordpress/components';
+import { createRoot, useCallback, useEffect, useState } from '@wordpress/element';
 import { addFilter } from '@wordpress/hooks';
-import { getBlockTypes, serialize, unregisterBlockType } from '@wordpress/blocks';
+import { getBlockTypes, parse, rawHandler, serialize, unregisterBlockType } from '@wordpress/blocks';
 import { useDispatch } from '@wordpress/data';
-
-/**
- * External dependencies
- */
-import IsolatedBlockEditor, { EditorLoaded } from '@chubes4/isolated-block-editor';
 
 /**
  * Internal dependencies
@@ -39,6 +46,94 @@ function setLoaded( container ) {
 	if ( closest ) {
 		closest.classList.remove( 'iso-editor__loading' );
 	}
+}
+
+function EditorLoaded( { onLoaded } ) {
+	useEffect( () => {
+		onLoaded?.();
+	}, [ onLoaded ] );
+
+	return null;
+}
+
+function EmbeddedBlockEditor( { children, className, onChange, onError, onInput, onLoad, onSelection, settings } ) {
+	const [ blocks, setBlocks ] = useState( () => {
+		try {
+			return onLoad ? onLoad( parse, rawHandler ) : [];
+		} catch ( error ) {
+			onError?.( error );
+			return [];
+		}
+	} );
+	const [ selection, setSelection ] = useState( null );
+
+	const updateBlocks = useCallback(
+		( nextBlocks ) => {
+			setBlocks( nextBlocks );
+			onChange?.( nextBlocks );
+		},
+		[ onChange ]
+	);
+	const inputBlocks = useCallback(
+		( nextBlocks ) => {
+			setBlocks( nextBlocks );
+			onInput?.( nextBlocks );
+		},
+		[ onInput ]
+	);
+	const replaceBlocks = useCallback(
+		( nextBlocks ) => {
+			setBlocks( nextBlocks );
+			onChange?.( nextBlocks );
+		},
+		[ onChange ]
+	);
+	const updateSelection = useCallback(
+		( nextSelection ) => {
+			setSelection( nextSelection );
+			onSelection?.( nextSelection );
+		},
+		[ onSelection ]
+	);
+
+	return (
+		<SlotFillProvider>
+			<BlockEditorProvider
+				value={ blocks }
+				onInput={ inputBlocks }
+				onChange={ updateBlocks }
+				selection={ selection }
+				onChangeSelection={ updateSelection }
+				settings={ settings.editor }
+				useSubRegistry={ true }
+			>
+				<div className={ `blocks-everywhere-editor iso-editor block-editor ${ className || '' }` }>
+					<div className="blocks-everywhere-editor__toolbar">
+						<Slot name="blocks-everywhere/heading" />
+						<Inserter rootClientId={ null } />
+						<BlockToolbar hideDragHandle />
+						<Slot name="blocks-everywhere/toolbar" />
+					</div>
+					<div className="blocks-everywhere-editor__body">
+						<BlockEditorKeyboardShortcuts />
+						<BlockEditorKeyboardShortcuts.Register />
+						<BlockTools>
+							<WritingFlow>
+								<ObserveTyping>
+									<BlockCanvas styles={ settings.editor?.styles || [] } />
+								</ObserveTyping>
+							</WritingFlow>
+						</BlockTools>
+					</div>
+					<div className="blocks-everywhere-editor__inspector">
+						<BlockInspector />
+					</div>
+					<Slot name="blocks-everywhere/footer" />
+				</div>
+				{ typeof children === 'function' ? children( { blocks, replaceBlocks } ) : children }
+			</BlockEditorProvider>
+		</SlotFillProvider>
+	);
 }
 
 function removeInlineStylesFromEmptyBlockInserter( iframeDoc ) {
@@ -213,6 +308,8 @@ function RemoveBlockVariations() {
  * Dispatches theme supports to WordPress core store.
  * This enables blocks like core/embed to detect responsive-embeds support
  * and apply proper aspect ratio classes when saving content.
+ * @param root0
+ * @param root0.themeSupports
  */
 function ThemeSupportsDispatcher( { themeSupports } ) {
 	const { receiveCurrentTheme } = useDispatch( 'core' );
@@ -244,7 +341,7 @@ function createEditorContainer( container, textarea, settings ) {
 	let lastSerializedContent = '';
 	let isSubmitting = false;
 	let isContextSwitching = false;
-	let editorKey = 0;
+	const editorKey = 0;
 	const draftRequestControllers = new Set< AbortController >();
 
 	const configuredNonce = settings?.restNonce || window?.wpApiSettings?.nonce || null;
@@ -259,9 +356,7 @@ function createEditorContainer( container, textarea, settings ) {
 			throw new Error( 'Draft endpoint not configured.' );
 		}
 
-		const url = bbpressDraftEndpoint
-			? new URL( bbpressDraftEndpoint )
-			: new URL( restRoot );
+		const url = bbpressDraftEndpoint ? new URL( bbpressDraftEndpoint ) : new URL( restRoot );
 		if ( ( method === 'DELETE' || method === 'GET' ) && payload && typeof payload === 'object' ) {
 			Object.keys( payload ).forEach( ( key ) => {
 				if ( payload[ key ] === undefined || payload[ key ] === null ) {
@@ -579,20 +674,23 @@ function createEditorContainer( container, textarea, settings ) {
 			formData.append( 'target_id', String( topicId ) );
 		}
 
-		const configuredNonce = settings?.restNonce || window?.wpApiSettings?.nonce || null;
-		const headers = configuredNonce ? { 'X-WP-Nonce': configuredNonce } : undefined;
+		const uploadNonce = settings?.restNonce || window?.wpApiSettings?.nonce || null;
+		const headers = uploadNonce ? { 'X-WP-Nonce': uploadNonce } : undefined;
 
 		const restRoot = settings?.restUrl || window?.wpApiSettings?.root || null;
 		if ( ! bbpressMediaEndpoint && ! restRoot ) {
 			throw new Error( 'Media endpoint not configured.' );
 		}
 
-		const response = await window.fetch( ( bbpressMediaEndpoint ? new URL( bbpressMediaEndpoint ) : new URL( restRoot ) ).toString(), {
-			method: 'POST',
-			credentials: 'same-origin',
-			headers,
-			body: formData,
-		} );
+		const response = await window.fetch(
+			( bbpressMediaEndpoint ? new URL( bbpressMediaEndpoint ) : new URL( restRoot ) ).toString(),
+			{
+				method: 'POST',
+				credentials: 'same-origin',
+				headers,
+				body: formData,
+			}
+		);
 
 		if ( ! response.ok ) {
 			let errorMessage = 'Upload failed.';
@@ -612,10 +710,9 @@ function createEditorContainer( container, textarea, settings ) {
 
 	const renderEditor = () => {
 		root.render(
-			<IsolatedBlockEditor
+			<EmbeddedBlockEditor
 				key={ editorKey }
 				settings={ settings }
-				onSaveContent={ ( content ) => saveBlocks( textarea, content ) }
 				onLoad={ ( parser ) => {
 					if ( textarea && textarea.nodeName === 'TEXTAREA' ) {
 						return parser( textarea.value );
@@ -629,27 +726,33 @@ function createEditorContainer( container, textarea, settings ) {
 					document?.body?.classList?.add( 'gutenberg-support-loaded' );
 					setLoaded( container );
 				} }
-				__experimentalOnInput={ ( newBlocks ) => {
+				onInput={ ( newBlocks ) => {
 					settings?.iso.__experimentalOnInput?.( newBlocks );
+					saveBlocks( textarea, serialize( newBlocks ) );
 					scheduleAutosave( newBlocks );
 				} }
-				__experimentalOnChange={ ( newBlocks ) => {
+				onChange={ ( newBlocks ) => {
 					settings?.iso.__experimentalOnChange?.( newBlocks );
+					saveBlocks( textarea, serialize( newBlocks ) );
 					scheduleAutosave( newBlocks );
 				} }
-				__experimentalOnSelection={ ( selection ) => settings?.iso.__experimentalOnSelection?.( selection ) }
+				onSelection={ ( selection ) => settings?.iso.__experimentalOnSelection?.( selection ) }
 				className={ settings?.iso?.className }
 			>
-				<IframeThemeFixes container={ container } />
-				<EditorLoaded onLoaded={ () => setLoaded( container ) } />
-				<ThemeSupportsDispatcher themeSupports={ settings?.editor?.themeSupports } />
-				<ContentBridge textarea={ textarea } />
-				<RegisteredSlotFills textarea={ textarea } />
+				{ ( { blocks, replaceBlocks } ) => (
+					<>
+						<IframeThemeFixes container={ container } />
+						<EditorLoaded onLoaded={ () => setLoaded( container ) } />
+						<ThemeSupportsDispatcher themeSupports={ settings?.editor?.themeSupports } />
+						<ContentBridge textarea={ textarea } blocks={ blocks } replaceBlocks={ replaceBlocks } />
+						<RegisteredSlotFills textarea={ textarea } />
 
-				{ settings.editorType === 'buddypress' && <BuddyPress textarea={ textarea } /> }
-				<RemoveBlockVariations />
-				<RemoveBlockTypes />
-			</IsolatedBlockEditor>
+						{ settings.editorType === 'buddypress' && <BuddyPress textarea={ textarea } /> }
+						<RemoveBlockVariations />
+						<RemoveBlockTypes />
+					</>
+				) }
+			</EmbeddedBlockEditor>
 		);
 	};
 
@@ -744,9 +847,10 @@ function createEditorContainer( container, textarea, settings ) {
 				} );
 
 				const incomingDraft = incoming?.draft;
-				const incomingContent = incomingDraft && String( incomingDraft?.content || '' ).trim()
-					? String( incomingDraft.content )
-					: '';
+				const incomingContent =
+					incomingDraft && String( incomingDraft?.content || '' ).trim()
+						? String( incomingDraft.content )
+						: '';
 
 				// Use the ContentBridge API to hot-swap content without remounting.
 				const contentApi = textarea?.__blocksEverywhereContentApi;

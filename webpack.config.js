@@ -26,7 +26,6 @@ module.exports = {
 		alias: {
 			...( defaultConfig.resolve ? defaultConfig.resolve.alias : {} ),
 			'@wordpress/interface$': path.resolve( __dirname, 'src/wp-interface-shim.ts' ),
-			'@chubes4/isolated-block-editor': path.resolve( __dirname, '../isolated-block-editor' ),
 		},
 	},
 	output: {

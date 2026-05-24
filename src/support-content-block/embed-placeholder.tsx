@@ -5,7 +5,7 @@ import React from 'react';
 /**
  * WordPress dependencies
  */
-import { useEffect } from '@wordpress/element';
+import { useEffect, useState } from '@wordpress/element';
 import { Button, Placeholder } from '@wordpress/components';
 import { _x } from '@wordpress/i18n';
 import classnames from 'classnames';
@@ -13,7 +13,6 @@ import classnames from 'classnames';
  * Internal dependencies
  */
 import './edit.scss';
-import { useState } from '@wordpress/element';
 import { SearchResults } from './search-results';
 
 type EmbedPlaceHolderProps = {
@@ -22,10 +21,10 @@ type EmbedPlaceHolderProps = {
 	className: string;
 	instructions: string;
 	notices?: JSX.Element | undefined;
-	onSubmit(): void;
+	onSubmit: () => void;
 	placeholder: string;
 	url: string;
-	updateUrl( s: string ): void;
+	updateUrl: ( s: string ) => void;
 };
 
 /**

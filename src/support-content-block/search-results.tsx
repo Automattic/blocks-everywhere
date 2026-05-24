@@ -11,7 +11,7 @@ import { useDebounce } from 'use-debounce';
 
 type SearchResultsProps = {
 	search: string;
-	setUrl( url: string ): void;
+	setUrl: ( url: string ) => void;
 };
 
 type SearchResult = {

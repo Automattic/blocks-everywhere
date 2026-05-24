@@ -17,7 +17,7 @@ import {
 	useSettings,
 } from '@wordpress/block-editor';
 import { createBlock } from '@wordpress/blocks';
-import { formatLtr } from '@wordpress/icons';
+import { formatLTR } from '@wordpress/icons';
 
 /**
  * Internal dependencies
@@ -30,7 +30,7 @@ function ParagraphRTLControl( { direction, setDirection } ) {
 	return (
 		isRTL() && (
 			<ToolbarButton
-				icon={ formatLtr }
+				icon={ formatLTR }
 				title={ _x( 'Left to right', 'editor button' ) }
 				isActive={ direction === 'ltr' }
 				onClick={ () => {
@@ -99,8 +99,8 @@ function ParagraphBlock( { attributes, mergeBlocks, onReplace, onRemove, setAttr
 
 	function hijackedReplace( values ) {
 		if ( isPossiblyCode( values ) ) {
-			const content = values.map( ( block ) => block.attributes.content ).join( '\n\n' );
-			const block = createBlock( 'core/code', { content } );
+			const codeContent = values.map( ( block ) => block.attributes.content ).join( '\n\n' );
+			const block = createBlock( 'core/code', { content: codeContent } );
 
 			onReplace( [ block ] );
 			return;

@@ -1,12 +1,12 @@
 /**
  * Slot Fill API for Blocks Everywhere.
  *
- * Lets host pages render React content into IBE's footer / toolbar / heading
+ * Lets host pages render React content into the editor footer / toolbar / heading
  * slots without being inside BE's React tree. Consumers register render
  * functions before any editor mounts; BE reads the registry while rendering
- * <IsolatedBlockEditor> and inserts the resulting React nodes as children.
+ * the embedded editor and inserts the resulting React nodes as children.
  *
- * Because the fills end up inside IBE's own <SlotFillProvider>, they
+ * Because the fills end up inside the editor <SlotFillProvider>, they
  * render in the editor skeleton and stay visible in fullscreen mode.
  *
  * Public API (also exposed on `window.blocksEverywhere`):
@@ -24,16 +24,18 @@
  *       }, 'Submit' );
  *   } );
  *
- * @package Automattic\BlocksEverywhere
+ * @package
  */
 
+/**
+ * WordPress dependencies
+ */
+import { Fill } from '@wordpress/components';
 import { createElement, Fragment, useEffect, useState } from '@wordpress/element';
+/**
+ * External dependencies
+ */
 import type { ReactNode } from 'react';
-import {
-	FooterSlot,
-	ToolbarSlot,
-	EditorHeadingSlot,
-} from '@chubes4/isolated-block-editor';
 
 export type SlotName = 'footer' | 'toolbar' | 'heading';
 
@@ -47,6 +49,18 @@ type RegistryEntry = {
 type Registry = Record< SlotName, RegistryEntry[] >;
 
 const SLOT_NAMES: SlotName[] = [ 'footer', 'toolbar', 'heading' ];
+
+export function FooterSlot( { children }: { children: ReactNode } ): JSX.Element {
+	return createElement( Fill, { name: 'blocks-everywhere/footer' }, children ) as unknown as JSX.Element;
+}
+
+export function ToolbarSlot( { children }: { children: ReactNode } ): JSX.Element {
+	return createElement( Fill, { name: 'blocks-everywhere/toolbar' }, children ) as unknown as JSX.Element;
+}
+
+export function EditorHeadingSlot( { children }: { children: ReactNode } ): JSX.Element {
+	return createElement( Fill, { name: 'blocks-everywhere/heading' }, children ) as unknown as JSX.Element;
+}
 
 /**
  * Per-slot fill list. Mutated via `registerSlotFill` / unregister callback.
@@ -63,8 +77,7 @@ const subscribers = new Set< () => void >();
 
 let nextId = 1;
 
-const isValidSlot = ( slot: string ): slot is SlotName =>
-	( SLOT_NAMES as readonly string[] ).includes( slot );
+const isValidSlot = ( slot: string ): slot is SlotName => ( SLOT_NAMES as readonly string[] ).includes( slot );
 
 const notify = (): void => {
 	subscribers.forEach( ( callback ) => {
@@ -78,7 +91,7 @@ const notify = (): void => {
 };
 
 /**
- * Register a render function for one of IBE's slots.
+ * Register a render function for one of the editor slots.
  *
  * Registrations made before BE mounts an editor are picked up automatically.
  * Registrations made after mount are picked up via the subscription system —
@@ -119,6 +132,7 @@ export function registerSlotFill( slot: SlotName, renderFn: SlotFillRenderFn ): 
 /**
  * Read the current entries for a slot. Internal — use the React component
  * `<RegisteredSlotFills>` to consume entries reactively.
+ * @param slot
  */
 export function getSlotEntries( slot: SlotName ): RegistryEntry[] {
 	return registry[ slot ].slice();
@@ -126,6 +140,7 @@ export function getSlotEntries( slot: SlotName ): RegistryEntry[] {
 
 /**
  * Subscribe to registry changes. Returns an unsubscribe function.
+ * @param callback
  */
 export function subscribe( callback: () => void ): () => void {
 	subscribers.add( callback );
@@ -153,13 +168,15 @@ interface RegisteredSlotFillsProps {
 }
 
 /**
- * Reads the registered fills and renders them into the matching IBE slots.
- * Must be rendered as a child of <IsolatedBlockEditor> so it shares the
- * SlotFillProvider that owns the IBE slots.
+ * Reads the registered fills and renders them into the matching editor slots.
+ * Must be rendered as a child of the embedded editor so it shares the
+ * SlotFillProvider that owns the editor slots.
  *
  * Each registered render function is invoked with the editor's textarea so
  * consumers can scope their fills to a specific editor instance (useful when
  * multiple BE editors live on the same page, e.g. inline reply forms).
+ * @param root0
+ * @param root0.textarea
  */
 export function RegisteredSlotFills( { textarea }: RegisteredSlotFillsProps ): JSX.Element {
 	// Force re-read whenever registrations change.
@@ -184,11 +201,7 @@ export function RegisteredSlotFills( { textarea }: RegisteredSlotFillsProps ): J
 				return null;
 			}
 
-			return createElement(
-				SlotComponent,
-				{ key: `${ slot }-${ entry.id }` },
-				node
-			);
+			return createElement( SlotComponent, { key: `${ slot }-${ entry.id }` }, node );
 		} );
 	};
 

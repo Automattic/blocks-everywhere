@@ -9,12 +9,12 @@ export default function BuddyPress( props ) {
 	const { textarea } = props;
 	const { resetBlocks } = useDispatch( 'core/block-editor' );
 
-	function onClear( mutationsList, observer ) {
-		jQuery( '#whats-new' ).focusin();
-		resetBlocks( [] );
-	}
-
 	useEffect( () => {
+		function onClear() {
+			jQuery( '#whats-new' ).focusin();
+			resetBlocks( [] );
+		}
+
 		// Show the buddypress buttons
 		jQuery( '#whats-new' ).focusin();
 		const observer = new MutationObserver( onClear );
@@ -24,7 +24,7 @@ export default function BuddyPress( props ) {
 		return () => {
 			observer.disconnect();
 		};
-	}, [] );
+	}, [ resetBlocks, textarea ] );
 
 	return null;
 }

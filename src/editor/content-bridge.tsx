@@ -1,10 +1,9 @@
 /**
- * Content Bridge — exposes IBE's content API to external code.
+ * Content Bridge — exposes the embedded editor content API to external code.
  *
- * This component renders inside the IsolatedBlockEditor React tree so it has
- * access to the sub-registry's `isolated/editor` store. It bridges the
- * sub-registry gap by attaching a content API object to the textarea element,
- * allowing external code to read and replace editor content.
+ * This component renders inside the embedded editor React tree and attaches a
+ * content API object to the textarea element, allowing external code to read
+ * and replace editor content.
  *
  * Usage from external code:
  *   const api = textarea.__blocksEverywhereContentApi;
@@ -12,12 +11,16 @@
  *   const html = api.getContent();
  */
 
+/**
+ * WordPress dependencies
+ */
 import { useEffect } from '@wordpress/element';
-import { useDispatch, useSelect } from '@wordpress/data';
 import { parse, serialize } from '@wordpress/blocks';
 
 interface ContentBridgeProps {
 	textarea: HTMLTextAreaElement;
+	blocks: object[];
+	replaceBlocks: ( blocks: object[] ) => void;
 }
 
 export interface BlocksEverywhereContentApi {
@@ -44,14 +47,7 @@ declare global {
 	}
 }
 
-export default function ContentBridge( { textarea }: ContentBridgeProps ) {
-	const { replaceContent } = useDispatch( 'isolated/editor' );
-
-	const blocks = useSelect(
-		( select ) => ( select( 'isolated/editor' ) as any )?.getBlocks?.() ?? [],
-		[]
-	);
-
+export default function ContentBridge( { textarea, blocks, replaceBlocks }: ContentBridgeProps ) {
 	useEffect( () => {
 		if ( ! textarea ) {
 			return;
@@ -60,7 +56,7 @@ export default function ContentBridge( { textarea }: ContentBridgeProps ) {
 		const api: BlocksEverywhereContentApi = {
 			replaceContent( html: string ) {
 				const parsed = parse( html || '' );
-				replaceContent( parsed );
+				replaceBlocks( parsed );
 			},
 			getContent() {
 				return serialize( blocks );
@@ -75,7 +71,7 @@ export default function ContentBridge( { textarea }: ContentBridgeProps ) {
 		return () => {
 			delete textarea.__blocksEverywhereContentApi;
 		};
-	}, [ textarea, replaceContent, blocks ] );
+	}, [ textarea, replaceBlocks, blocks ] );
 
 	return null;
 }

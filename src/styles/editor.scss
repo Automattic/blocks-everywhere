@@ -176,26 +176,6 @@
 		}
 	}
 
-	// Ensure inserter icons inherit theme text color
-	.block-editor-inserter__menu .block-editor-block-types-list__item-icon,
-	.block-editor-inserter__menu .block-editor-block-patterns-list__item-icon,
-	.block-editor-inserter__menu .block-editor-block-types-list__item svg,
-	.block-editor-inserter__menu .block-editor-block-patterns-list__item svg,
-	.block-editor-inserter__menu .block-editor-block-types-list__item svg *,
-	.block-editor-inserter__menu .block-editor-block-patterns-list__item svg *,
-	.block-editor-inserter__menu .block-editor-inserter__tabs button svg,
-	.block-editor-inserter__menu .block-editor-inserter__tabs button svg *,
-	.block-editor-inserter__menu button[aria-label="Close"] svg,
-	.block-editor-inserter__menu button[aria-label="Close"] svg * {
-		color: var(--wp-components-color-icon);
-		fill: currentColor;
-	}
-
-	// Only apply stroke color to elements that actually use strokes.
-	.block-editor-inserter__menu svg [stroke]:not([stroke="none"]) {
-		stroke: currentColor;
-	}
-
 	// Quick inserter popover (in-canvas and other "is-quick" contexts) can render icons black in dark mode.
 	.components-popover.block-editor-inserter__popover.is-quick {
 		color: var(--wp-components-color-foreground);
@@ -276,12 +256,36 @@ body:not(.gutenberg-support-upload) {
 	min-height: 200px;
 }
 
-// Block preview popover (hover preview in the inserter) renders inside
-// .block-editor-inserter__preview-container__popover, which is portaled
-// outside .iso-editor to the document body. Gutenberg hardcodes
-// .block-editor-block-card { color: #1e1e1e }, so the block icon (which
-// inherits currentColor) ends up near-black on dark backgrounds. Scope
-// the fix to body.gutenberg-support so it only applies in BE contexts.
+// ── Inserter menu icons (detached-sidebar-safe) ──
+// IBE's detached-sidebar feature portals the inserter into a target
+// element outside .iso-editor. Scoping inserter rules under .iso-editor
+// therefore misses the detached case. Scope to body.gutenberg-support
+// so the rules apply regardless of where the inserter renders.
+.gutenberg-support .block-editor-inserter__menu .block-editor-block-types-list__item-icon,
+.gutenberg-support .block-editor-inserter__menu .block-editor-block-patterns-list__item-icon,
+.gutenberg-support .block-editor-inserter__menu .block-editor-block-types-list__item svg,
+.gutenberg-support .block-editor-inserter__menu .block-editor-block-patterns-list__item svg,
+.gutenberg-support .block-editor-inserter__menu .block-editor-block-types-list__item svg *,
+.gutenberg-support .block-editor-inserter__menu .block-editor-block-patterns-list__item svg *,
+.gutenberg-support .block-editor-inserter__menu .block-editor-inserter__tabs button svg,
+.gutenberg-support .block-editor-inserter__menu .block-editor-inserter__tabs button svg *,
+.gutenberg-support .block-editor-inserter__menu button[aria-label="Close"] svg,
+.gutenberg-support .block-editor-inserter__menu button[aria-label="Close"] svg * {
+	color: var(--wp-components-color-icon);
+	fill: currentColor;
+}
+
+.gutenberg-support .block-editor-inserter__menu svg [stroke]:not([stroke="none"]) {
+	stroke: currentColor;
+}
+
+// ── Block preview popover (hover-preview in the inserter) ──
+// Renders inside .block-editor-inserter__preview-container__popover, which
+// Gutenberg portals to document.body. Without theming:
+//   - .block-editor-block-card { color: #1e1e1e } → invisible block-card icon in dark mode
+//   - .block-editor-inserter__preview-content { background: #f0f0f0 } → huge light-gray
+//     panel inside the dark popover
+// Both are body-scoped so they apply even when the inserter is detached.
 .gutenberg-support .block-editor-inserter__preview-container__popover,
 .gutenberg-support .block-editor-inserter__preview-container {
 	color: var(--wp-components-color-foreground);
@@ -308,6 +312,15 @@ body:not(.gutenberg-support-upload) {
 
 	svg [stroke]:not([stroke="none"]) {
 		stroke: currentColor;
+	}
+
+	// The actual block-render preview area and its empty/missing-preview
+	// fallback both ship with hardcoded light-gray backgrounds. In dark
+	// mode that leaves a glaring white-ish panel inside the popover.
+	.block-editor-inserter__preview-content,
+	.block-editor-inserter__preview-content-missing {
+		background: var(--card-background);
+		color: var(--wp-components-color-foreground);
 	}
 }
 

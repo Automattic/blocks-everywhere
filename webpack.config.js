@@ -45,7 +45,7 @@ module.exports = {
 		new RemovePlugin( {
 			after: {
 				include: [ './build/theme-compat.min.asset.php', './build/theme-compat.min.js' ],
-				trash: true,
+				trash: false,
 			},
 		} ),
 	],

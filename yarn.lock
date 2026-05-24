@@ -1233,9 +1233,9 @@
     hashery "^1.2.0"
     keyv "^5.5.4"
 
-"@chubes4/isolated-block-editor@file:../../isolated-block-editor":
-  version "3.1.1"
-  resolved "file:../../isolated-block-editor"
+"@chubes4/isolated-block-editor@file:../isolated-block-editor":
+  version "3.3.3"
+  resolved "file:../isolated-block-editor"
   dependencies:
     "@wordpress/a11y" "^4.36.0"
     "@wordpress/annotations" "^3.36.0"

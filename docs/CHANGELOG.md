@@ -2,6 +2,14 @@
 
 All notable changes to Blocks Everywhere are documented in this file.
 
+## [2.2.1] - 2026-05-24
+
+### Changed
+- remove vendor-specific mentions completer (layer purity)
+
+### Fixed
+- seed default paragraph and remove inline BlockInspector
+
 ## [2.2.0] - 2026-05-24
 
 ### Added

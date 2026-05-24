@@ -6,7 +6,6 @@ import {
 	BlockCanvas,
 	BlockEditorKeyboardShortcuts,
 	BlockEditorProvider,
-	BlockInspector,
 	BlockTools,
 	BlockToolbar,
 	Inserter,
@@ -18,7 +17,7 @@ import { mediaUpload as legacyMediaUpload } from '@wordpress/editor';
 import { Slot, SlotFillProvider } from '@wordpress/components';
 import { createRoot, useCallback, useEffect, useState } from '@wordpress/element';
 import { addFilter } from '@wordpress/hooks';
-import { getBlockTypes, parse, rawHandler, serialize, unregisterBlockType } from '@wordpress/blocks';
+import { createBlock, getBlockTypes, parse, rawHandler, serialize, unregisterBlockType } from '@wordpress/blocks';
 import { useDispatch } from '@wordpress/data';
 
 /**
@@ -56,13 +55,21 @@ function EditorLoaded( { onLoaded } ) {
 	return null;
 }
 
+function ensureSeededBlocks( blocks ) {
+	if ( Array.isArray( blocks ) && blocks.length > 0 ) {
+		return blocks;
+	}
+	return [ createBlock( 'core/paragraph' ) ];
+}
+
 function EmbeddedBlockEditor( { children, className, onChange, onError, onInput, onLoad, onSelection, settings } ) {
 	const [ blocks, setBlocks ] = useState( () => {
 		try {
-			return onLoad ? onLoad( parse, rawHandler ) : [];
+			const initial = onLoad ? onLoad( parse, rawHandler ) : [];
+			return ensureSeededBlocks( initial );
 		} catch ( error ) {
 			onError?.( error );
-			return [];
+			return ensureSeededBlocks( [] );
 		}
 	} );
 	const [ selection, setSelection ] = useState( null );
@@ -124,9 +131,6 @@ function EmbeddedBlockEditor( { children, className, onChange, onError, onInput,
 								</ObserveTyping>
 							</WritingFlow>
 						</BlockTools>
-					</div>
-					<div className="blocks-everywhere-editor__inspector">
-						<BlockInspector />
 					</div>
 					<Slot name="blocks-everywhere/footer" />
 				</div>

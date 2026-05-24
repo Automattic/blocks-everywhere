@@ -276,6 +276,41 @@ body:not(.gutenberg-support-upload) {
 	min-height: 200px;
 }
 
+// Block preview popover (hover preview in the inserter) renders inside
+// .block-editor-inserter__preview-container__popover, which is portaled
+// outside .iso-editor to the document body. Gutenberg hardcodes
+// .block-editor-block-card { color: #1e1e1e }, so the block icon (which
+// inherits currentColor) ends up near-black on dark backgrounds. Scope
+// the fix to body.gutenberg-support so it only applies in BE contexts.
+.gutenberg-support .block-editor-inserter__preview-container__popover,
+.gutenberg-support .block-editor-inserter__preview-container {
+	color: var(--wp-components-color-foreground);
+
+	.block-editor-block-card,
+	.block-editor-block-card__title,
+	.block-editor-block-card__description,
+	.block-editor-block-card__name {
+		color: var(--wp-components-color-foreground);
+	}
+
+	.block-editor-block-icon,
+	.block-editor-block-icon.has-colors,
+	.block-editor-block-card .block-editor-block-icon,
+	.block-editor-block-card__child-indicator-icon {
+		color: var(--wp-components-color-icon);
+		fill: currentColor;
+	}
+
+	svg,
+	svg * {
+		fill: currentColor;
+	}
+
+	svg [stroke]:not([stroke="none"]) {
+		stroke: currentColor;
+	}
+}
+
 // Toolbar button active state fix for dark mode
 .gutenberg-support .components-toolbar-button.is-active,
 .gutenberg-support .components-toolbar-button.is-pressed,

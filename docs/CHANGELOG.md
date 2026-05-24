@@ -2,6 +2,11 @@
 
 All notable changes to Blocks Everywhere are documented in this file.
 
+## [2.2.0] - 2026-05-24
+
+### Added
+- replace IBE with embedded Gutenberg shell
+
 ## [2.1.4] - 2026-05-24
 
 ### Fixed

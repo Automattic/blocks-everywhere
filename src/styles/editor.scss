@@ -297,6 +297,14 @@ body:not(.gutenberg-support-upload) {
 		color: var(--wp-components-color-foreground);
 	}
 
+	// Gutenberg ships .block-editor-block-card { padding: 16px } which makes
+	// the icon + name + description row sit way too far below the block
+	// render above it inside this popover. Drop the padding so the card
+	// abuts the preview tightly.
+	.block-editor-block-card {
+		padding: 0;
+	}
+
 	.block-editor-block-icon,
 	.block-editor-block-icon.has-colors,
 	.block-editor-block-card .block-editor-block-icon,

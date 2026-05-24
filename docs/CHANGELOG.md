@@ -2,6 +2,14 @@
 
 All notable changes to Blocks Everywhere are documented in this file.
 
+## [2.1.0] - 2026-05-24
+
+### Added
+- add slot-fill API for rendering host content into IBE footer/toolbar/heading slots from outside BE's React tree
+
+### Fixed
+- update isolated block editor dependency
+
 ## [2.0.6] - 2026-04-26
 
 ### Fixed

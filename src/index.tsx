@@ -14,7 +14,6 @@ import { unregisterFormatType } from '@wordpress/rich-text';
 import createEditor from './editor';
 import { registerSlotFill } from './editor/slot-fills';
 import customBlocks from './block-customization';
-import mentionsCompleter from './completer/mentions';
 import './styles/style.scss';
 
 // Expose createEditor globally for dynamic editor initialization (e.g., inline reply forms)
@@ -88,9 +87,14 @@ domReady( () => {
 	unregisterFormatType( 'core/language' );
 	unregisterFormatType( 'core/math' );
 
+	// Strip Gutenberg's default `users` completer in bbPress contexts. The
+	// default completer queries /wp/v2/users and lists post authors, which is
+	// not meaningful for forum topics/replies. Consumers register their own
+	// completers (e.g. @mentions of forum users) via the standard
+	// `editor.Autocomplete.completers` filter.
 	if ( wpBlocksEverywhere.editorType === 'bbpress' && wpBlocksEverywhere.autocompleter ) {
-		addFilter( 'editor.Autocomplete.completers', 'blocks-everywhere/autocompleters', ( completers = [] ) => {
-			return completers.filter( ( completer ) => completer.name !== 'users' ).concat( [ mentionsCompleter ] );
+		addFilter( 'editor.Autocomplete.completers', 'blocks-everywhere/strip-default-users-completer', ( completers = [] ) => {
+			return completers.filter( ( completer ) => completer.name !== 'users' );
 		} );
 	}
 

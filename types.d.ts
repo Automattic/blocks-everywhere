@@ -4,13 +4,27 @@ declare interface Blocks {
 	allowBlocks: string[];
 }
 
-declare interface Iso {
+declare interface Toolbar {
+	/** Document-level block inserter button. Default: true. */
+	inserter?: boolean;
+	/** Undo button (delegates to core editor history). Default: true. */
+	undo?: boolean;
+	/** Redo button (delegates to core editor history). Default: true. */
+	redo?: boolean;
+	/** List view toggle + dropdown panel. Default: true. */
+	listView?: boolean;
+	/** Selected-block format toolbar (contextual paragraph/bold/link buttons). Default: true. */
+	blockTools?: boolean;
+}
+
+declare interface BlocksEverywhere {
 	allowEmbeds: string[];
 	blocks: Blocks;
 	__experimentalOnInput?: ( block: unknown ) => unknown;
 	__experimentalOnChange?: ( block: unknown ) => unknown;
 	__experimentalOnSelection?: ( selection: unknown ) => unknown;
 	className?: string;
+	toolbar?: Toolbar;
 }
 
 declare const wpBlocksEverywhere: {
@@ -18,7 +32,7 @@ declare const wpBlocksEverywhere: {
 	pluginsUrl: string;
 	allowUrlEmbed: boolean;
 	editorType: string;
-	iso: Iso;
+	blocksEverywhere: BlocksEverywhere;
 	container: string;
 	pastePlainText: boolean;
 	replaceParagraphCode: boolean;

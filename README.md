@@ -14,12 +14,7 @@ The condition of the Gutenberg replacements are:
 -   comments - alright
 -   BuddyPress - needs a lot of work
 
-The plugin uses the [Isolated Block Editor](https://github.com/Automattic/isolated-block-editor/). This can also be found in:
-
--   [Plain Text Editor](https://github.com/Automattic/isolated-block-editor/blob/trunk/src/browser/README.md) - standalone JS file that can replace any `textarea` on any page with a full Gutenberg editor
--   [Gutenberg Chrome Extension](https://github.com/Automattic/gutenberg-everywhere-chrome/) - a Chrome extension that allows Gutenberg to be used on any page
--   [Gutenberg Desktop](https://github.com/Automattic/gutenberg-desktop/) - a desktop editor that supports the loading and saving of HTML and Markdown files
--   [P2](https://wordpress.com/p2/) - WordPress as a collaborative workspace (coming soon for self-hosted)
+The plugin mounts Gutenberg directly against the `@wordpress/block-editor` primitives shipped with WordPress core (no wrapping editor framework). Earlier releases used [Isolated Block Editor](https://github.com/Automattic/isolated-block-editor/); that dependency was removed in v2.2.0 and the embedded shell now renders directly against current Gutenberg.
 
 Blocks Everywhere can be downloaded from WordPress.org:
 
@@ -77,8 +72,42 @@ Some settings are available through the settings object, which is filterable wit
 `blocksEverywhere.__experimentalOnChange` - An optional callback that is triggered when the blocks are changed.
 `blocksEverywhere.__experimentalOnInput` - An optional callback that is triggered when text is input.
 `blocksEverywhere.__experimentalOnSelection` - An optional callback when a block is selected.
+`blocksEverywhere.toolbar` - Per-primitive opt-out for the editor toolbar (see below). Default matches the upstream wp-admin post editor.
 
-> **Breaking change (v3.0.0):** the settings key formerly named `iso` is now `blocksEverywhere`. The previous name dated from when BE wrapped Isolated Block Editor; PR #6 removed that dependency and this rename completes the migration. Consumers of `blocks_everywhere_editor_settings` must update `$settings['iso']` → `$settings['blocksEverywhere']`.
+#### Toolbar configuration
+
+`blocksEverywhere.toolbar` accepts a map of per-primitive booleans. Defaults match the upstream wp-admin post editor — every primitive is enabled. Consumers opt OUT of individual primitives; they never need to opt IN. Any key left `unset` is treated as `true`.
+
+| Key          | Default | Description                                                                                  |
+| ------------ | ------- | -------------------------------------------------------------------------------------------- |
+| `inserter`   | `true`  | Document-level `+` block inserter button. Effectively suppressed when a persistent detached sidebar is mounted (the sidebar already exposes the inserter). |
+| `undo`       | `true`  | Undo button. Delegates to the core editor history; no-op when no entity is being edited.     |
+| `redo`       | `true`  | Redo button. Delegates to the core editor history; no-op when no entity is being edited.    |
+| `listView`   | `true`  | List view toggle + dropdown panel of the editor's blocks.                                    |
+| `blockTools` | `true`  | Selected-block format toolbar (the contextual `¶ B I link` row shown when a block is selected). |
+
+Default (matches wp-admin):
+
+```php
+add_filter( 'blocks_everywhere_editor_settings', function ( $settings ) {
+	// No toolbar config needed — defaults to the full upstream toolbar shape.
+	return $settings;
+} );
+```
+
+Opt out of specific primitives:
+
+```php
+add_filter( 'blocks_everywhere_editor_settings', function ( $settings ) {
+	$settings['blocksEverywhere']['toolbar'] = array(
+		'undo'     => false,
+		'redo'     => false,
+		'listView' => false,
+		// `inserter` and `blockTools` default to true.
+	);
+	return $settings;
+} );
+```
 
 ### Theme compatibility
 

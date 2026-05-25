@@ -15,13 +15,18 @@ import {
 	// @ts-ignore __experimentalLibrary is an unstable API but is the only
 	// way to render the inline block inserter panel (same surface IBE used).
 	__experimentalLibrary as Library,
+	// @ts-ignore __experimentalListView is unstable but is the public surface
+	// for the block list-view tree; the public ListView alias has not landed.
+	__experimentalListView as ListView,
 } from '@wordpress/block-editor';
-import { mediaUpload as legacyMediaUpload } from '@wordpress/editor';
-import { Slot, SlotFillProvider } from '@wordpress/components';
+import { EditorHistoryRedo, EditorHistoryUndo, mediaUpload as legacyMediaUpload } from '@wordpress/editor';
+import { Button, Dropdown, Slot, SlotFillProvider } from '@wordpress/components';
 import { createRoot, useCallback, useEffect, useState } from '@wordpress/element';
 import { addFilter } from '@wordpress/hooks';
 import { createBlock, getBlockTypes, parse, rawHandler, serialize, unregisterBlockType } from '@wordpress/blocks';
 import { useDispatch } from '@wordpress/data';
+import { __ } from '@wordpress/i18n';
+import { listView as listViewIcon } from '@wordpress/icons';
 
 /**
  * Internal dependencies
@@ -80,6 +85,90 @@ function EditorLoaded( { onLoaded } ) {
 	return null;
 }
 
+/**
+ * Toolbar configuration shape.
+ *
+ * Default toolbar matches the upstream wp-admin post editor (every primitive
+ * enabled). Consumers opt OUT individual primitives via
+ * `settings.blocksEverywhere.toolbar`; they never need to opt IN. Any key left
+ * `undefined` is treated as `true`.
+ *
+ * - `inserter` — document-level "+" block inserter button. May be effectively
+ *   suppressed when a persistent detached sidebar is mounted (the sidebar
+ *   always shows the inserter panel, making the toolbar button redundant).
+ * - `undo` / `redo` — delegate to the core editor history. They are no-ops
+ *   when no entity is being edited (BE mounts without a `postEntity` do not
+ *   accumulate undo state); the buttons render disabled in that case, which
+ *   matches the upstream behavior for an empty post.
+ * - `listView` — block list-view tree. Renders a toggle button on the toolbar
+ *   that opens a dropdown panel containing the live list view of the editor's
+ *   blocks. Self-contained (no external sidebar wiring required).
+ * - `blockTools` — selected-block format toolbar (the contextual `¶ B I link`
+ *   row Gutenberg shows when a block is selected).
+ */
+interface ResolvedToolbarConfig {
+	inserter: boolean;
+	undo: boolean;
+	redo: boolean;
+	listView: boolean;
+	blockTools: boolean;
+}
+
+function resolveToolbarConfig(
+	raw: Partial< ResolvedToolbarConfig > | undefined,
+	suppressInserter: boolean
+): ResolvedToolbarConfig {
+	const requested: ResolvedToolbarConfig = {
+		inserter: raw?.inserter !== false,
+		undo: raw?.undo !== false,
+		redo: raw?.redo !== false,
+		listView: raw?.listView !== false,
+		blockTools: raw?.blockTools !== false,
+	};
+
+	// Persistent detached sidebar already exposes the inserter; the toolbar
+	// button becomes redundant chrome. Suppression is orthogonal to the
+	// consumer's `toolbar.inserter` config — it modifies the effective value.
+	if ( suppressInserter ) {
+		requested.inserter = false;
+	}
+
+	return requested;
+}
+
+/**
+ * Toggle button + dropdown panel that exposes the block list view.
+ *
+ * Built on the public `@wordpress/block-editor` `__experimentalListView`
+ * surface, which reads from `core/block-editor` state directly — so it works
+ * the same whether or not the host mounts an `EditorProvider`. The dropdown
+ * keeps the panel self-contained inside the BE toolbar; no external sidebar
+ * plumbing is required.
+ */
+function ListViewToggle() {
+	return (
+		<Dropdown
+			className="blocks-everywhere-editor__list-view-toggle"
+			contentClassName="blocks-everywhere-editor__list-view-panel"
+			popoverProps={ { placement: 'bottom-start' } }
+			renderToggle={ ( { isOpen, onToggle } ) => (
+				<Button
+					icon={ listViewIcon }
+					label={ __( 'Document Overview' ) }
+					onClick={ onToggle }
+					aria-expanded={ isOpen }
+					isPressed={ isOpen }
+					showTooltip
+				/>
+			) }
+			renderContent={ () => (
+				/* @ts-ignore __experimentalListView is unstable */
+				<ListView />
+			) }
+		/>
+	);
+}
+
 function ensureSeededBlocks( blocks ) {
 	if ( Array.isArray( blocks ) && blocks.length > 0 ) {
 		return blocks;
@@ -111,7 +200,12 @@ function EmbeddedBlockEditor( { children, className, onChange, onError, onInput,
 	// button becomes redundant chrome. Suppress it in that case.
 	// Non-persistent detached sidebars (or the default in-shell sidebar)
 	// keep the toolbar button as the trigger.
-	const showToolbarInserter = ! ( hasDetachedSidebar && detachedSidebar?.persistent );
+	const suppressToolbarInserter = Boolean( hasDetachedSidebar && detachedSidebar?.persistent );
+
+	// Resolve the toolbar config (consumer overrides + persistent-sidebar
+	// inserter suppression). Defaults match the upstream wp-admin post editor:
+	// every primitive on, consumers opt OUT individually.
+	const toolbar = resolveToolbarConfig( settings?.blocksEverywhere?.toolbar, suppressToolbarInserter );
 
 	const updateBlocks = useCallback(
 		( nextBlocks ) => {
@@ -156,8 +250,11 @@ function EmbeddedBlockEditor( { children, className, onChange, onError, onInput,
 				<div className={ `blocks-everywhere-editor block-editor ${ className || '' }` }>
 					<div className="blocks-everywhere-editor__toolbar">
 						<Slot name="blocks-everywhere/heading" />
-						{ showToolbarInserter && <Inserter rootClientId={ null } /> }
-						<BlockToolbar hideDragHandle />
+						{ toolbar.inserter && <Inserter rootClientId={ null } /> }
+						{ toolbar.undo && <EditorHistoryUndo /> }
+						{ toolbar.redo && <EditorHistoryRedo /> }
+						{ toolbar.listView && <ListViewToggle /> }
+						{ toolbar.blockTools && <BlockToolbar hideDragHandle /> }
 						<Slot name="blocks-everywhere/toolbar" />
 					</div>
 					<div className="blocks-everywhere-editor__body">

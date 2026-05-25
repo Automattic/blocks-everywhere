@@ -211,8 +211,8 @@ Editor settings passed via filter:
 
 ```php
 add_filter( 'blocks_everywhere_editor_settings', function( $settings ) {
-    $settings['iso']['blocks']['allowBlocks'] = [ 'core/paragraph', ... ];
-    $settings['iso']['allowEmbeds'] = [ 'youtube', 'twitter' ];
+    $settings['blocksEverywhere']['blocks']['allowBlocks'] = [ 'core/paragraph', ... ];
+    $settings['blocksEverywhere']['allowEmbeds'] = [ 'youtube', 'twitter' ];
     return $settings;
 } );
 ```
@@ -243,17 +243,24 @@ add_filter( 'blocks_everywhere_editor_settings', function( $settings ) {
 ```php
 add_filter( 'blocks_everywhere_editor_settings', function( $settings ) {
     // Restrict blocks
-    $settings['iso']['blocks']['allowBlocks'] = [ ... ];
-    
+    $settings['blocksEverywhere']['blocks']['allowBlocks'] = [ ... ];
+
     // Configure embeds
-    $settings['iso']['allowEmbeds'] = [ ... ];
-    
+    $settings['blocksEverywhere']['allowEmbeds'] = [ ... ];
+
     // Custom styling
-    $settings['iso']['className'] = 'my-custom-editor';
-    
+    $settings['blocksEverywhere']['className'] = 'my-custom-editor';
+
+    // Opt out of specific toolbar primitives (defaults: all enabled, matching wp-admin)
+    $settings['blocksEverywhere']['toolbar'] = [
+        'undo'     => false,
+        'redo'     => false,
+        'listView' => false,
+    ];
+
     // Add bbPress-specific config
     $settings['bbpress'] = [ ... ];
-    
+
     return $settings;
 } );
 ```

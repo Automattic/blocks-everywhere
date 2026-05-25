@@ -74,12 +74,13 @@ Some settings are available through the settings object, which is filterable wit
 `replaceParagraphCode` - Enable the custom paragraph that converts HTML and PHP code into a code block
 `pastePlainText` - Convert all pasted content to plain text
 `patchEmoji` - set to `true` to stop twemoji from affecting the editor
-`iso.allowEmbeds` - List of enabled embeds
-`iso.blocks.allowBlocks` - List of enabled blocks
-`iso.className` - String of classes to be assigned to the editor.
-`iso.__experimentalOnChange` - An optional callback that is triggered when the blocks are changed.
-`iso.__experimentalOnInput` - An optional callback that is triggered when text is input.
-`iso.__experimentalOnSelection` - An optional callback when a block is selected.
+`blocksEverywhere.allowEmbeds` - List of enabled embeds
+`blocksEverywhere.blocks.allowBlocks` - List of enabled blocks
+`blocksEverywhere.className` - String of classes to be assigned to the editor.
+`blocksEverywhere.__experimentalOnChange` - An optional callback that is triggered when the blocks are changed.
+`blocksEverywhere.__experimentalOnInput` - An optional callback that is triggered when text is input.
+`blocksEverywhere.__experimentalOnSelection` - An optional callback when a block is selected.
+`blocksEverywhere.toolbar` - Per-primitive opt-out for the editor toolbar (`inserter`, `undo`, `redo`, `listView`, `blockTools`). Defaults match the upstream wp-admin post editor (all enabled); consumers opt OUT individual primitives.
 
 == Theme compatibility ==
 
@@ -107,7 +108,7 @@ To enable Content Embed block in the editor, pass these settings to `blocks_ever
 
 `
 add_filter( 'blocks_everywhere_editor_settings', function( $settings ) {
-	$settings['iso']['blocks']['allowBlocks'][] = 'blocks-everywhere/support-content';
+	$settings['blocksEverywhere']['blocks']['allowBlocks'][] = 'blocks-everywhere/support-content';
 	return $settings;
 } );
 `

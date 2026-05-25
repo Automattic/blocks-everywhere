@@ -35,17 +35,24 @@
 // Outer PHP-rendered wrapper (`<div class="blocks-everywhere ...">` from
 // classes/class-handler.php::the_editor). Establish a flex column so
 // `.blocks-everywhere-editor` (the React shell mounted inside) can
-// `flex: 1` upward into whatever height the host gives us. The wrapper
-// itself does NOT impose a min-height — that decision stays with the
-// host, consistent with PR #19's intent (canvas follows parent +
-// content). Hosts that constrain BE (Studio's compose card uses
-// `min-height: 400px`; bbPress reply form is grid-sized; the loading
-// state below sets its own 200px floor) get a canvas that stretches to
-// fill. Hosts that give BE no height context get a canvas that sizes to
-// intrinsic content (today's behavior for empty editors is unchanged).
+// `flex: 1` upward into whatever height the host gives us.
+//
+// Default `min-height: 400px` gives an empty editor a sensible writing
+// surface when no host parent constrains BE (the bbPress reply form is
+// grid-sized by its template, but doesn't enforce a useful minimum on
+// its own; without this, the canvas collapses to intrinsic content
+// height which leaves the empty-block placeholder cramped against the
+// toolbar). The selector is low specificity on purpose — consumers
+// override via their own `.<parent-context> .blocks-everywhere`
+// declaration without needing `!important` (e.g. Studio's existing
+// `.ec-studio-compose-editor .blocks-everywhere { min-height: 400px }`
+// already wins by virtue of the parent selector chain). Consumers that
+// want a smaller editor simply set their own value:
+//   .my-context .blocks-everywhere { min-height: 200px; }
 .gutenberg-support .blocks-everywhere {
 	display: flex;
 	flex-direction: column;
+	min-height: 400px;
 }
 
 // Basic editor container styles
@@ -69,19 +76,13 @@
 	flex: 1;
 	min-height: 0;
 
-	// NOTE: BE intentionally does NOT impose a min-height on the editor
-	// canvas iframe. The previous default (400px desktop / 300px tablet /
-	// 240px mobile) was inherited from isolated-block-editor's one-size-
-	// fits-all sizing and broke layouts where the host constrained its
-	// parent container shorter than 400px (the iframe burst out and
-	// overlapped host UI below it — e.g. Studio's compose layout, bbPress
-	// reply form's Submit button).
-	//
-	// Canvas height now follows its parent container + intrinsic content.
-	// Consumers that want a guaranteed minimum can add their own CSS:
-	//   .my-context .blocks-everywhere-editor iframe[name="editor-canvas"] {
-	//       min-height: 240px;
-	//   }
+	// The min-height policy lives on `.blocks-everywhere` (the outer PHP
+	// wrapper) at 400px default — see the rule above for the override
+	// pattern. We do NOT also set a min-height on the iframe itself; the
+	// flex chain below (`flex: 1; min-height: 0` on this shell + the body)
+	// stretches the canvas to fill whatever vertical room the wrapper has,
+	// without locking the iframe to a fixed minimum that would clip oversized
+	// content or burst out of shorter host containers.
 
 	// Body fills the remaining space below the toolbar. `min-height: 0`
 	// is required so the flex item can shrink below its content's

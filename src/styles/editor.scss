@@ -119,6 +119,7 @@
 	// Lay out the toolbar contents on a single row. The toolbar div is a
 	// flat container for any combination of:
 	//   - <Inserter /> document-level "+" button
+	//   - undo / redo / list-view document tools
 	//   - <BlockToolbar /> block format buttons (only when a block is selected)
 	//   - host-page slot fills (blocks-everywhere/heading, /toolbar)
 	// Without an explicit flex layout, each child stacks block-level — the
@@ -133,6 +134,18 @@
 		background-color: var(--background-color);
 		color: var(--text-color);
 		border-bottom: 1px solid var(--border-color);
+	}
+
+	// Override Gutenberg's default `.block-editor-block-contextual-toolbar
+	// { width: 100% }` rule inside BE's flex toolbar. That width:100%
+	// forces <BlockToolbar /> to claim a full row by itself, breaking
+	// the single-row layout of the toolbar even when there's plenty of
+	// horizontal space for the format buttons to sit inline next to the
+	// document tools (inserter / undo / redo / list-view). Letting the
+	// contextual toolbar size to its own content fixes the wrap.
+	.blocks-everywhere-editor__toolbar .block-editor-block-contextual-toolbar {
+		width: auto;
+		flex-shrink: 1;
 	}
 
 	// Font size fixes

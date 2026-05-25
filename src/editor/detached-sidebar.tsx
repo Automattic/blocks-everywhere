@@ -16,14 +16,14 @@ import type { ReactNode } from 'react';
  * Popovers rendered inside the detached subtree (e.g. the inserter preview)
  * are scoped to this slot via Popover.__unstableSlotNameProvider so they
  * render in the same stacking context as their anchors, instead of falling
- * back to the default Popover.Slot inside `.iso-editor` (which is isolated
- * via `isolation: isolate` and therefore paints behind the editor canvas
- * when the anchor lives outside it).
+ * back to the default Popover.Slot inside `.blocks-everywhere-editor`
+ * (which is isolated via `isolation: isolate` and therefore paints behind
+ * the editor canvas when the anchor lives outside it).
  *
  * Comment ported verbatim from isolated-block-editor's DetachedSidebar.
  * The `isolation: isolate` constraint is load-bearing: the editor shell
- * still uses the legacy `.iso-editor` class for IBE CSS compatibility, so
- * the same stacking-context trap applies in Blocks Everywhere.
+ * uses `.blocks-everywhere-editor` as its stacking-context root, so the
+ * same stacking-context trap applies in Blocks Everywhere.
  */
 const DETACHED_POPOVER_SLOT_NAME = 'blocks-everywhere/detached-sidebar';
 

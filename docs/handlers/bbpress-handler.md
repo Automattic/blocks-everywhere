@@ -157,7 +157,7 @@ Customize what blocks are available in BBPress:
 ```php
 add_filter( 'blocks_everywhere_editor_settings', function( $settings ) {
     // Restrict to basic blocks only
-    $settings['iso']['blocks']['allowBlocks'] = [
+    $settings['blocksEverywhere']['blocks']['allowBlocks'] = [
         'core/paragraph',
         'core/heading',
         'core/list',
@@ -166,7 +166,7 @@ add_filter( 'blocks_everywhere_editor_settings', function( $settings ) {
     ];
     
     // Disable embeds in forum
-    $settings['iso']['allowEmbeds'] = [];
+    $settings['blocksEverywhere']['allowEmbeds'] = [];
     
     return $settings;
 } );
@@ -213,8 +213,8 @@ BBPress allows any block that complies with WordPress KSES. By default, these bl
 ```php
 add_filter( 'blocks_everywhere_editor_settings', function( $settings ) {
     // Remove embeds and galleries from BBPress
-    $settings['iso']['blocks']['allowBlocks'] = array_diff(
-        $settings['iso']['blocks']['allowBlocks'],
+    $settings['blocksEverywhere']['blocks']['allowBlocks'] = array_diff(
+        $settings['blocksEverywhere']['blocks']['allowBlocks'],
         [ 'core/embed', 'core/gallery' ]
     );
     
@@ -278,7 +278,7 @@ If blocks are present but empty:
 
 ```php
 add_filter( 'blocks_everywhere_editor_settings', function( $settings ) {
-    $settings['iso']['className'] = 'bbpress-editor-custom';
+    $settings['blocksEverywhere']['className'] = 'bbpress-editor-custom';
     return $settings;
 } );
 ```
@@ -431,14 +431,14 @@ add_filter( 'blocks_everywhere_bbpress', '__return_true' );
 // Customize editor for forum
 add_filter( 'blocks_everywhere_editor_settings', function( $settings ) {
     // Only allow specific blocks
-    $settings['iso']['blocks']['allowBlocks'] = [
+    $settings['blocksEverywhere']['blocks']['allowBlocks'] = [
         'core/paragraph',
         'core/image',
         'core/quote',
     ];
     
     // Add custom class
-    $settings['iso']['className'] = 'my-forum-editor';
+    $settings['blocksEverywhere']['className'] = 'my-forum-editor';
     
     return $settings;
 } );

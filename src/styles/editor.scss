@@ -33,7 +33,7 @@
 }
 
 // Basic editor container styles
-.gutenberg-support .iso-editor {
+.gutenberg-support .blocks-everywhere-editor {
 	border: 1px solid var(--border-color);
 	background-color: var(--background-color);
 
@@ -56,48 +56,11 @@
 		}
 	}
 
-	// When the top bar wraps and block tools drop to their own row (phones + tablets),
-	// keep theme background + separator on the contextual toolbar.
-	@media (max-width: 781px) {
-		.block-editor-block-contextual-toolbar.is-fixed,
-		.block-editor-block-contextual-toolbar.is-unstyled {
-			background-color: var(--background-color);
-			border-bottom: 1px solid var(--border-color);
-		}
-	}
-
-	// Header and footer styling
-	.interface-interface-skeleton__header,
-	.interface-interface-skeleton__footer {
-		background-color: var(--background-color);
-		color: var(--text-color);
-	}
-
-	.interface-interface-skeleton__header,
-	.interface-interface-skeleton__header .edit-post-header,
-	.interface-interface-skeleton__header .edit-post-editor-regions__header {
+	// Keep theme background + separator on the BE toolbar bar.
+	.blocks-everywhere-editor__toolbar {
 		background-color: var(--background-color);
 		color: var(--text-color);
 		border-bottom: 1px solid var(--border-color);
-	}
-
-	.interface-interface-skeleton__footer {
-		border-top: 1px solid var(--border-color);
-		padding: var(--spacing-xs) var(--spacing-sm);
-		font-size: var(--font-size-sm);
-		line-height: 1.1;
-	}
-
-	.interface-interface-skeleton__footer .edit-post-layout__footer {
-		padding: 0;
-	}
-
-	.iso-editor .edit-post-editor-regions__header {
-		margin: 0 15px;
-	}
-
-	.edit-post-header-toolbar__left {
-		padding-left: 15px;
 	}
 
 	// Font size fixes
@@ -114,7 +77,6 @@
 	}
 
 	// Icon hover highlight
-	.edit-post-header__toolbar button:hover svg,
 	.block-editor-block-types-list__list-item:hover span {
 		color: var(--accent);
 		fill: currentColor;
@@ -252,15 +214,16 @@ body:not(.gutenberg-support-upload) {
 }
 
 // Loading state
-.blocks-everywhere.iso-editor__loading {
+.blocks-everywhere.blocks-everywhere-editor__loading {
 	min-height: 200px;
 }
 
 // ── Inserter menu icons (detached-sidebar-safe) ──
-// IBE's detached-sidebar feature portals the inserter into a target
-// element outside .iso-editor. Scoping inserter rules under .iso-editor
-// therefore misses the detached case. Scope to body.gutenberg-support
-// so the rules apply regardless of where the inserter renders.
+// The detached-sidebar feature portals the inserter into a target
+// element outside .blocks-everywhere-editor. Scoping inserter rules
+// under .blocks-everywhere-editor therefore misses the detached case.
+// Scope to body.gutenberg-support so the rules apply regardless of
+// where the inserter renders.
 .gutenberg-support .block-editor-inserter__menu .block-editor-block-types-list__item-icon,
 .gutenberg-support .block-editor-inserter__menu .block-editor-block-patterns-list__item-icon,
 .gutenberg-support .block-editor-inserter__menu .block-editor-block-types-list__item svg,

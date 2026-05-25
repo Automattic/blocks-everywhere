@@ -10,11 +10,7 @@
 	}
 
 	// Let popovers show outside the editor
-	#bbpress-forums,
-	.interface-interface-skeleton,
-	.interface-interface-skeleton__body,
-	.interface-interface-skeleton__content,
-	.interface-interface-skeleton__editor {
+	#bbpress-forums {
 		overflow: inherit;
 	}
 
@@ -29,12 +25,6 @@
 			padding: 11px 16px;
 			height: 100%;
 		}
-	}
-
-	.block-editor-block-contextual-toolbar.is-fixed {
-		// Offset the admin bar
-		top: 32px;
-		width: 100%;
 	}
 
 	.bbp-reply-form fieldset.bbp-form,
@@ -81,7 +71,7 @@ body:not(.gutenberg-support-loaded) .blocks-everywhere {
 	margin-bottom: 57px;
 }
 
-body:not(.gutenberg-support-loaded) .iso-editor {
+body:not(.gutenberg-support-loaded) .blocks-everywhere-editor {
 	display: none;
 }
 

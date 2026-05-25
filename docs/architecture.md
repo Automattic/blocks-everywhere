@@ -417,13 +417,13 @@ if ( should_load_block_editor_scripts_and_styles() ) {
 ```php
 add_filter( 'blocks_everywhere_editor_settings', function( $settings ) {
     // Add custom blocks
-    $settings['iso']['blocks']['allowBlocks'][] = 'custom/block';
+    $settings['blocksEverywhere']['blocks']['allowBlocks'][] = 'custom/block';
     
     // Modify allowed embeds
-    $settings['iso']['allowEmbeds'] = [ 'youtube', 'twitter' ];
+    $settings['blocksEverywhere']['allowEmbeds'] = [ 'youtube', 'twitter' ];
     
     // Custom CSS classes
-    $settings['iso']['className'] = 'my-custom-editor-class';
+    $settings['blocksEverywhere']['className'] = 'my-custom-editor-class';
     
     return $settings;
 } );
@@ -434,7 +434,7 @@ add_filter( 'blocks_everywhere_editor_settings', function( $settings ) {
 ```php
 add_filter( 'blocks_everywhere_editor_settings', function( $settings ) {
     // Only allow basic blocks
-    $settings['iso']['blocks']['allowBlocks'] = [
+    $settings['blocksEverywhere']['blocks']['allowBlocks'] = [
         'core/paragraph',
         'core/heading',
         'core/list',

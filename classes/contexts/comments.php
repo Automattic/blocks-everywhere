@@ -26,7 +26,7 @@ function comments_context( Engine $engine ) {
 	// Comment form container.
 	add_filter( 'comment_form_defaults', function ( $defaults ) {
 		$defaults['class_container'] .= ' gutenberg-comments';
-		$defaults['comment_field']   .= '<div class="blocks-everywhere iso-editor__loading"></div>';
+		$defaults['comment_field']   .= '<div class="blocks-everywhere blocks-everywhere-editor__loading"></div>';
 		return $defaults;
 	} );
 

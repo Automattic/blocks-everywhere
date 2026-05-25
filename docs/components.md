@@ -265,7 +265,7 @@ Isolated Block Editor setup
 ```php
 add_filter( 'blocks_everywhere_editor_settings', function( $settings ) {
     // Modify JavaScript settings
-    $settings['iso']['blocks']['allowBlocks'] = [
+    $settings['blocksEverywhere']['blocks']['allowBlocks'] = [
         'core/paragraph',
         'core/image',
         'core/list',
@@ -288,7 +288,7 @@ add_filter( 'blocks_everywhere_editor_settings', function( $settings ) {
 // Access settings passed from PHP
 const editorSettings = window.wpBlocksEverywhere?.settings;
 
-if ( editorSettings?.iso?.blocks?.allowBlocks ) {
+if ( editorSettings?.blocksEverywhere?.blocks?.allowBlocks ) {
     // Use custom blocks list
 }
 

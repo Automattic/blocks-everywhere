@@ -129,7 +129,7 @@ abstract class Handler {
 	public function the_editor( $editor ) {
 		$editor = preg_replace( '@.*?(<textarea.*?</textarea>).*@', '$1', $editor );
 
-		return '<div class="blocks-everywhere iso-editor__loading wp-exclude-emoji">' . $editor . '</div>';
+		return '<div class="blocks-everywhere blocks-everywhere-editor__loading wp-exclude-emoji">' . $editor . '</div>';
 	}
 
 	public function wp_editor_settings( $settings ) {
@@ -341,7 +341,7 @@ abstract class Handler {
 	protected function load_view_assets() {
 		$settings = apply_filters( 'blocks_everywhere_editor_settings', $this->get_default_settings() );
 
-		if ( in_array( 'blocks-everywhere/support-content', $settings['iso']['blocks']['allowBlocks'], true ) ) {
+		if ( in_array( 'blocks-everywhere/support-content', $settings['blocksEverywhere']['blocks']['allowBlocks'], true ) ) {
 			register_block_type(
 				'blocks-everywhere/support-content',
 				[
@@ -370,7 +370,7 @@ abstract class Handler {
 	private function get_default_settings() {
 		$default_settings = [
 			'editor' => [],
-			'iso' => [
+			'blocksEverywhere' => [
 				'blocks' => [
 					'allowBlocks' => $this->get_allowed_blocks(),
 				],
@@ -479,7 +479,7 @@ abstract class Handler {
 			}
 		}
 
-		if ( in_array( 'blocks-everywhere/support-content', $settings['iso']['blocks']['allowBlocks'], true ) ) {
+		if ( in_array( 'blocks-everywhere/support-content', $settings['blocksEverywhere']['blocks']['allowBlocks'], true ) ) {
 			$this->enqueue_assets(
 				'support-content-editor',
 				'support-content-editor.min.asset.php',

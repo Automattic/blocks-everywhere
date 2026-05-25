@@ -65,10 +65,10 @@ function saveBlocks( textarea: HTMLTextAreaElement, content: string ): void {
 }
 
 function setLoaded( container ) {
-	const closest = container.closest( '.iso-editor__loading' );
+	const closest = container.closest( '.blocks-everywhere-editor__loading' );
 
 	if ( closest ) {
-		closest.classList.remove( 'iso-editor__loading' );
+		closest.classList.remove( 'blocks-everywhere-editor__loading' );
 	}
 }
 
@@ -99,17 +99,16 @@ function EmbeddedBlockEditor( { children, className, onChange, onError, onInput,
 	} );
 	const [ selection, setSelection ] = useState( null );
 
-	// Public API restored after IBE removal (#6) so consumers' existing
-	// `settings.iso.sidebar.detached` config keeps working. Shape mirrors
-	// IBE: `{ target, className?, persistent?, defaultView? }`.
+	// Public API for a detached sidebar portal:
+	// `settings.blocksEverywhere.sidebar.detached = { target, className?, persistent?, defaultView? }`.
 	// `target` is required to enable the detached portal. `defaultView`
 	// currently supports only `'inserter'`; `'list-view'` is reserved and
 	// falls back to the inserter panel (BE has no list-view chrome yet).
-	const detachedSidebar = settings?.iso?.sidebar?.detached || null;
+	const detachedSidebar = settings?.blocksEverywhere?.sidebar?.detached || null;
 	const hasDetachedSidebar = Boolean( detachedSidebar?.target );
 	// When the detached sidebar is persistent, the inserter panel is always
 	// visible in the host's portal target — so the toolbar's "+" inserter
-	// button becomes redundant chrome. Match IBE's behavior and suppress it.
+	// button becomes redundant chrome. Suppress it in that case.
 	// Non-persistent detached sidebars (or the default in-shell sidebar)
 	// keep the toolbar button as the trigger.
 	const showToolbarInserter = ! ( hasDetachedSidebar && detachedSidebar?.persistent );
@@ -154,7 +153,7 @@ function EmbeddedBlockEditor( { children, className, onChange, onError, onInput,
 				settings={ settings.editor }
 				useSubRegistry={ false }
 			>
-				<div className={ `blocks-everywhere-editor iso-editor block-editor ${ className || '' }` }>
+				<div className={ `blocks-everywhere-editor block-editor ${ className || '' }` }>
 					<div className="blocks-everywhere-editor__toolbar">
 						<Slot name="blocks-everywhere/heading" />
 						{ showToolbarInserter && <Inserter rootClientId={ null } /> }
@@ -326,7 +325,7 @@ function RemoveBlockTypes() {
 			}
 
 			blocks
-				.filter( ( block ) => wpBlocksEverywhere?.iso?.blocks?.allowBlocks?.indexOf( block.name ) === -1 )
+				.filter( ( block ) => wpBlocksEverywhere?.blocksEverywhere?.blocks?.allowBlocks?.indexOf( block.name ) === -1 )
 				.forEach( ( block ) => unregisterBlockType( block.name ) );
 		} catch ( error ) {
 			// Avoid hard-fail if registry API shape changes.
@@ -796,17 +795,17 @@ function createEditorContainer( container, textarea, settings ) {
 						setLoaded( container );
 					} }
 					onInput={ ( newBlocks ) => {
-						settings?.iso.__experimentalOnInput?.( newBlocks );
+						settings?.blocksEverywhere?.__experimentalOnInput?.( newBlocks );
 						saveBlocks( textarea, serialize( newBlocks ) );
 						scheduleAutosave( newBlocks );
 					} }
 					onChange={ ( newBlocks ) => {
-						settings?.iso.__experimentalOnChange?.( newBlocks );
+						settings?.blocksEverywhere?.__experimentalOnChange?.( newBlocks );
 						saveBlocks( textarea, serialize( newBlocks ) );
 						scheduleAutosave( newBlocks );
 					} }
-					onSelection={ ( selection ) => settings?.iso.__experimentalOnSelection?.( selection ) }
-					className={ settings?.iso?.className }
+					onSelection={ ( selection ) => settings?.blocksEverywhere?.__experimentalOnSelection?.( selection ) }
+					className={ settings?.blocksEverywhere?.className }
 				>
 					{ ( { blocks, replaceBlocks } ) => (
 						<>
@@ -845,7 +844,7 @@ function createEditorContainer( container, textarea, settings ) {
 
 		container.__extrachillDraftSubmitInstalled = true;
 		form.addEventListener( 'submit', ( event ) => {
-			if ( event.submitter && event.submitter.closest( '.iso-editor' ) ) {
+			if ( event.submitter && event.submitter.closest( '.blocks-everywhere-editor' ) ) {
 				return;
 			}
 
@@ -1001,7 +1000,7 @@ function insulateForm( container ) {
 
 	if ( form ) {
 		form.addEventListener( 'submit', ( ev ) => {
-			if ( ev.submitter && ev.submitter.closest( '.iso-editor' ) ) {
+			if ( ev.submitter && ev.submitter.closest( '.blocks-everywhere-editor' ) ) {
 				ev.stopPropagation();
 				ev.preventDefault();
 			}

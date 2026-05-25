@@ -3,12 +3,6 @@
 }
 
 .gutenberg-support #bbpress-forums fieldset.bbp-form {
-	.edit-post-visual-editor button,
-	.interface-interface-skeleton__header button {
-		padding: inherit;
-		font-size: inherit;
-	}
-
 	.components-dropdown__content button.components-button,
 	.block-editor-block-switcher__popover button.components-button {
 		padding: 6px 8px 6px 8px;
@@ -17,10 +11,6 @@
 	fieldset legend {
 		font-weight: inherit;
 		font-size: inherit;
-	}
-
-	.edit-post-visual-editor .block-editor-block-list__block .components-button {
-		padding: 6px 12px;
 	}
 
 	.blocks-everywhere input {
@@ -165,14 +155,6 @@
 		color: var(--text-color);
 	}
 
-	.edit-post-header__settings button.components-button {
-		padding-right: 0;
-	}
-
-	.edit-post-header-toolbar__left button.components-button {
-		padding: 0;
-	}
-
 	.components-dropdown-menu__popover button.components-button {
 		padding: 12px 10px;
 	}
@@ -280,14 +262,4 @@ body:not(.gutenberg-support-upload) {
 
 .gutenberg-support .blocks-everywhere .components-popover.block-editor-block-list__block-side-inserter-popover {
 	z-index: 30;
-}
-
-.wporg-support.gutenberg-support .block-editor-block-contextual-toolbar.is-fixed {
-	top: 92px;
-}
-
-@media (min-height: 800px) and (min-width: 890px) {
-	.wporg-support.gutenberg-support .block-editor-block-contextual-toolbar.is-fixed {
-		top: 122px;
-	}
 }

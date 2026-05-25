@@ -119,7 +119,7 @@ Custom Gutenberg blocks can be enabled by extending editor settings:
 
 ```php
 add_filter( 'blocks_everywhere_editor_settings', function( $settings ) {
-    $settings['iso']['blocks']['allowBlocks'][] = 'namespace/custom-block';
+    $settings['blocksEverywhere']['blocks']['allowBlocks'][] = 'namespace/custom-block';
     return $settings;
 } );
 ```

@@ -2,6 +2,11 @@
 
 All notable changes to Blocks Everywhere are documented in this file.
 
+## [3.2.0] - 2026-05-25
+
+### Added
+- restore sensible 400px min-height default on editor wrapper
+
 ## [3.1.0] - 2026-05-25
 
 ### Added

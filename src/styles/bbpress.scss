@@ -20,24 +20,9 @@
 
 	#bbpress-forums,
 	.bbp-topic-form {
-		/* Override bbPress list styles */
-		.editor-styles-wrapper li,
-		.editor-styles-wrapper ul {
-			list-style: inherit;
-			margin: inherit;
-			padding: inherit;
-			font-size: inherit;
-		}
-
-		.editor-styles-wrapper ul {
-			padding-left: 15px;
-		}
-
-		.editor-styles-wrapper li {
-			margin-top: 0;
-			padding-left: 5px;
-			margin-bottom: 0.5em;
-		}
+		// .editor-styles-wrapper list rules (bbPress overrides) moved to
+		// classes/class-editor.php::get_iframe_canvas_css() so they reach the
+		// iframe via the canonical editor_settings['styles'][] path.
 
 		// Clean up the link popup
 		fieldset.bbp-form .block-editor-link-control input[type="text"] {
@@ -100,27 +85,10 @@ body:not(.gutenberg-support-loaded) .iso-editor {
 	display: none;
 }
 
-/* Reset bbPress code style */
-body.page .bbp-topic-form,
-body.single-topic .bbp-reply-form,
-body.topic-edit .bbp-topic-form,
-body.reply-edit .bbp-reply-form,
-body.single-forum .bbp-topic-form {
-	.editor-styles-wrapper code {
-		border: none;
-		background-color: inherit;
-		font-size: inherit;
-		padding: 0;
-		margin-top: 0;
-		width: inherit;
-		display: inline;
-	}
-
-	.editor-styles-wrapper pre {
-		margin-top: 16px;
-		margin-bottom: 16px;
-	}
-}
+/* Reset bbPress code style — .editor-styles-wrapper rules moved to
+ * classes/class-editor.php::get_iframe_canvas_css() so they reach the iframe
+ * via the canonical editor_settings['styles'][] path instead of the
+ * iframe-compat clone. */
 
 @keyframes loading-fade {
 	0% {

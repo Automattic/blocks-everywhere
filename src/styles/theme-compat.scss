@@ -186,20 +186,10 @@
 		z-index: 100;
 	}
 
-	.editor-styles-wrapper {
-		background-color: var(--background-color);
-		color: var(--text-color);
-	}
-
-	.editor-styles-wrapper .wp-block code {
-		background-color: var(--card-background);
-		padding-left: 5px;
-		padding-right: 5px;
-	}
-
-	.editor-styles-wrapper ol.wp-block-list {
-		margin-left: 10px;
-	}
+	// .editor-styles-wrapper rules moved to classes/class-editor.php::get_iframe_canvas_css()
+	// so they reach the iframe via the canonical editor_settings['styles'][] path
+	// instead of the iframe-compat clone, which produced a console warning for
+	// every host stylesheet matching .editor-styles-wrapper/.wp-block selectors.
 }
 
 body:not(.gutenberg-support-upload) {

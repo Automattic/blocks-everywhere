@@ -94,6 +94,27 @@
 		min-height: 0;
 	}
 
+	// Default canvas iframe sizing. Gutenberg's `<BlockCanvas height="100%">`
+	// already gives us 100% inside the flex chain (see editor/index.tsx),
+	// but on hosts where the wrapper's flex parent doesn't resolve to a
+	// useful height the iframe collapses to its intrinsic content (just
+	// the empty-block placeholder, ~80px tall). The 400px floor here is
+	// the same kind of "sensible empty-state height" that wp-admin's
+	// post editor gives via `.editor-visual-editor { min-height: ... }`.
+	//
+	// Selector is intentionally low specificity. Consumers override via
+	// their own parent-scoped declaration without `!important`:
+	//   .my-context .blocks-everywhere-editor iframe[name="editor-canvas"] {
+	//       min-height: 200px;
+	//   }
+	iframe[name="editor-canvas"] {
+		box-sizing: border-box;
+		display: block;
+		height: 100%;
+		width: 100%;
+		min-height: 400px;
+	}
+
 	// Keep theme background + separator on the BE toolbar bar.
 	// Lay out the toolbar contents on a single row. The toolbar div is a
 	// flat container for any combination of:

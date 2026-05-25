@@ -2,6 +2,15 @@
 
 All notable changes to Blocks Everywhere are documented in this file.
 
+## [2.4.0] - 2026-05-25
+
+### Added
+- restore detached sidebar from IBE removal (closes #13)
+
+### Fixed
+- thread host theme tokens into editor iframe via styles[] (closes #14)
+- suppress toolbar inserter when persistent detached sidebar is active
+
 ## [2.3.0] - 2026-05-25
 
 ### Added

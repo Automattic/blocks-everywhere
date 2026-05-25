@@ -32,10 +32,42 @@
 	--wp-components-color-gray-950: var(--text-color);
 }
 
+// Outer PHP-rendered wrapper (`<div class="blocks-everywhere ...">` from
+// classes/class-handler.php::the_editor). Establish a flex column so
+// `.blocks-everywhere-editor` (the React shell mounted inside) can
+// `flex: 1` upward into whatever height the host gives us. The wrapper
+// itself does NOT impose a min-height — that decision stays with the
+// host, consistent with PR #19's intent (canvas follows parent +
+// content). Hosts that constrain BE (Studio's compose card uses
+// `min-height: 400px`; bbPress reply form is grid-sized; the loading
+// state below sets its own 200px floor) get a canvas that stretches to
+// fill. Hosts that give BE no height context get a canvas that sizes to
+// intrinsic content (today's behavior for empty editors is unchanged).
+.gutenberg-support .blocks-everywhere {
+	display: flex;
+	flex-direction: column;
+}
+
 // Basic editor container styles
 .gutenberg-support .blocks-everywhere-editor {
 	border: 1px solid var(--border-color);
 	background-color: var(--background-color);
+
+	// Lay the editor shell out as a flex column so the canvas body can
+	// stretch to fill whatever vertical space the host gives BE. Without
+	// this, `.blocks-everywhere-editor__body` collapses to intrinsic
+	// height and `<BlockCanvas height="100%" />` (see editor/index.tsx)
+	// has nothing to resolve `100%` against — so the iframe falls back to
+	// 0 / its default 300px and leaves dead space below it when the host
+	// container is taller (e.g. Studio's compose surface is min-height:
+	// 400px; bbPress reply form is sized by its parent grid). Pairing
+	// `flex: 1` on the shell with `flex-direction: column` and `flex: 1`
+	// on the body matches what wp-admin's <VisualEditor> /
+	// <ResizableEditor> chain does for the post editor canvas.
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-height: 0;
 
 	// NOTE: BE intentionally does NOT impose a min-height on the editor
 	// canvas iframe. The previous default (400px desktop / 300px tablet /
@@ -50,6 +82,16 @@
 	//   .my-context .blocks-everywhere-editor iframe[name="editor-canvas"] {
 	//       min-height: 240px;
 	//   }
+
+	// Body fills the remaining space below the toolbar. `min-height: 0`
+	// is required so the flex item can shrink below its content's
+	// intrinsic height — without it, an iframe taller than the available
+	// space would push the shell beyond its container instead of fitting
+	// into the allocated flex slot.
+	.blocks-everywhere-editor__body {
+		flex: 1;
+		min-height: 0;
+	}
 
 	// Keep theme background + separator on the BE toolbar bar.
 	// Lay out the toolbar contents on a single row. The toolbar div is a

@@ -263,7 +263,30 @@ function EmbeddedBlockEditor( { children, className, onChange, onError, onInput,
 						<BlockTools>
 							<WritingFlow>
 								<ObserveTyping>
-									<BlockCanvas styles={ settings.editor?.styles || [] } />
+									{ /*
+									 * `<BlockCanvas>` defaults `height` to `'300px'` (see
+									 * `@wordpress/block-editor/src/components/block-canvas/index.js`)
+									 * and sets that as an inline style on its wrapping
+									 * `<BlockTools>` div. The iframe inside (`.block-editor-iframe__container`
+									 * and `.block-editor-iframe__scale-container`, both
+									 * `height: 100%`) then resolves to a hard 300px tall
+									 * canvas regardless of how much vertical room the host
+									 * gives BE. When the host card is taller than 300px
+									 * (Studio's compose surface is `min-height: 400px`),
+									 * the leftover space below the iframe shows up as a
+									 * dead strip between the canvas content and the BE
+									 * wrapper's bottom border.
+									 *
+									 * wp-admin's `<VisualEditor>` (and the old IBE
+									 * `visual-editor.js`) both pass `height="100%"` here
+									 * and rely on the editor wrapper being a flex column
+									 * so the canvas fills the remaining space below the
+									 * toolbar. We do the same: `height="100%"` here, paired
+									 * with `display: flex; flex-direction: column` on
+									 * `.blocks-everywhere-editor` and `flex: 1` on
+									 * `.blocks-everywhere-editor__body` (see editor.scss).
+									 */ }
+									<BlockCanvas height="100%" styles={ settings.editor?.styles || [] } />
 								</ObserveTyping>
 							</WritingFlow>
 						</BlockTools>

@@ -76,6 +76,19 @@ domReady( () => {
 	// Modify any blocks we need to
 	addFilter( 'blocks.registerBlockType', 'blocks-everywhere/modify-blocks', customBlocks );
 
+	// Register core blocks once per page. WordPress enqueues `wp-block-library`
+	// which exposes `wp.blockLibrary.registerCoreBlocks` on the global, but
+	// nothing calls it on the host page — so without this, `getBlockType()`
+	// returns undefined for every block name, and `createBlock()` recurses on
+	// `core/missing` until the stack overflows (see Extra-Chill/blocks-everywhere#9).
+	// IBE used to call this from its own initializer; PR #6 dropped IBE but
+	// didn't carry this call forward.
+	const blockLibrary = ( window as any ).wp?.blockLibrary;
+	if ( blockLibrary?.registerCoreBlocks && ! ( window as any ).blocksEverywhereCoreBlocksRegistered ) {
+		blockLibrary.registerCoreBlocks();
+		( window as any ).blocksEverywhereCoreBlocksRegistered = true;
+	}
+
 	// Remove some formatting options
 	unregisterFormatType( 'core/text-color' );
 	unregisterFormatType( 'core/image' );

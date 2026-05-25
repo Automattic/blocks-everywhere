@@ -113,7 +113,7 @@ function EmbeddedBlockEditor( { children, className, onChange, onError, onInput,
 				selection={ selection }
 				onChangeSelection={ updateSelection }
 				settings={ settings.editor }
-				useSubRegistry={ true }
+				useSubRegistry={ false }
 			>
 				<div className={ `blocks-everywhere-editor iso-editor block-editor ${ className || '' }` }>
 					<div className="blocks-everywhere-editor__toolbar">

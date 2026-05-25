@@ -52,7 +52,20 @@
 	//   }
 
 	// Keep theme background + separator on the BE toolbar bar.
+	// Lay out the toolbar contents on a single row. The toolbar div is a
+	// flat container for any combination of:
+	//   - <Inserter /> document-level "+" button
+	//   - <BlockToolbar /> block format buttons (only when a block is selected)
+	//   - host-page slot fills (blocks-everywhere/heading, /toolbar)
+	// Without an explicit flex layout, each child stacks block-level — the
+	// inserter ends up on its own row above the format buttons, which doesn't
+	// match upstream Gutenberg's single-row toolbar shape. IBE used to provide
+	// this via its InterfaceSkeleton wrapper (dropped in #6).
 	.blocks-everywhere-editor__toolbar {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: var(--spacing-xs, 4px);
 		background-color: var(--background-color);
 		color: var(--text-color);
 		border-bottom: 1px solid var(--border-color);

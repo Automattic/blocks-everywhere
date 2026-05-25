@@ -529,7 +529,14 @@ abstract class Handler {
 		}
 
 		if ( $css_file ) {
-			wp_register_style( $name, plugins_url( 'build/' . $css_file, $plugin ), [], $version );
+			// CSS-only changes don't bump the JS asset.php hash, so use the CSS
+			// file's mtime as its own cache-buster. Otherwise pure CSS edits
+			// (theme tweaks, layout fixes, etc.) ship as content-on-disk but
+			// keep the same `?ver=` query string, and browsers serve the
+			// stale cached copy indefinitely.
+			$css_path    = dirname( __DIR__ ) . '/build/' . $css_file;
+			$css_version = file_exists( $css_path ) ? filemtime( $css_path ) : $version;
+			wp_register_style( $name, plugins_url( 'build/' . $css_file, $plugin ), [], $css_version );
 		}
 
 		return $version;

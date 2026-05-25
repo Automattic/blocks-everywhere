@@ -107,6 +107,12 @@ function EmbeddedBlockEditor( { children, className, onChange, onError, onInput,
 	// falls back to the inserter panel (BE has no list-view chrome yet).
 	const detachedSidebar = settings?.iso?.sidebar?.detached || null;
 	const hasDetachedSidebar = Boolean( detachedSidebar?.target );
+	// When the detached sidebar is persistent, the inserter panel is always
+	// visible in the host's portal target — so the toolbar's "+" inserter
+	// button becomes redundant chrome. Match IBE's behavior and suppress it.
+	// Non-persistent detached sidebars (or the default in-shell sidebar)
+	// keep the toolbar button as the trigger.
+	const showToolbarInserter = ! ( hasDetachedSidebar && detachedSidebar?.persistent );
 
 	const updateBlocks = useCallback(
 		( nextBlocks ) => {
@@ -151,7 +157,7 @@ function EmbeddedBlockEditor( { children, className, onChange, onError, onInput,
 				<div className={ `blocks-everywhere-editor iso-editor block-editor ${ className || '' }` }>
 					<div className="blocks-everywhere-editor__toolbar">
 						<Slot name="blocks-everywhere/heading" />
-						<Inserter rootClientId={ null } />
+						{ showToolbarInserter && <Inserter rootClientId={ null } /> }
 						<BlockToolbar hideDragHandle />
 						<Slot name="blocks-everywhere/toolbar" />
 					</div>

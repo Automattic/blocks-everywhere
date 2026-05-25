@@ -12,6 +12,9 @@ import {
 	ObserveTyping,
 	WritingFlow,
 	mediaUpload as blockEditorMediaUpload,
+	// @ts-ignore __experimentalLibrary is an unstable API but is the only
+	// way to render the inline block inserter panel (same surface IBE used).
+	__experimentalLibrary as Library,
 } from '@wordpress/block-editor';
 import { mediaUpload as legacyMediaUpload } from '@wordpress/editor';
 import { Slot, SlotFillProvider } from '@wordpress/components';
@@ -25,8 +28,29 @@ import { useDispatch } from '@wordpress/data';
  */
 import BuddyPress from './buddypress';
 import ContentBridge from './content-bridge';
+import DetachedSidebar from './detached-sidebar';
 import PostEntityShell, { EditorEditsBridge, type PostEntityRef } from './post-entity-shell';
 import { RegisteredSlotFills } from './slot-fills';
+
+/**
+ * Inline block inserter panel rendered into the detached sidebar portal.
+ *
+ * Mirrors the surface IBE's `InserterSidebar` exposed via
+ * `__experimentalLibrary`. We deliberately keep this minimal — no close
+ * button, no tab filtering — because the BE detached sidebar is intended
+ * for persistent host-owned slots (e.g. Studio's compose sidebar). Tab
+ * filtering can be reintroduced if/when a consumer needs it.
+ */
+function DetachedInserterPanel() {
+	return (
+		<div className="blocks-everywhere-editor__detached-inserter edit-widgets-layout__inserter-panel">
+			<div className="edit-widgets-layout__inserter-panel-content blocks-everywhere-editor__inserter-tabs">
+				{ /* @ts-ignore __experimentalLibrary is unstable */ }
+				<Library showMostUsedBlocks={ false } showInserterHelpPanel />
+			</div>
+		</div>
+	);
+}
 
 /**
  * Save blocks to the comment form
@@ -74,6 +98,15 @@ function EmbeddedBlockEditor( { children, className, onChange, onError, onInput,
 		}
 	} );
 	const [ selection, setSelection ] = useState( null );
+
+	// Public API restored after IBE removal (#6) so consumers' existing
+	// `settings.iso.sidebar.detached` config keeps working. Shape mirrors
+	// IBE: `{ target, className?, persistent?, defaultView? }`.
+	// `target` is required to enable the detached portal. `defaultView`
+	// currently supports only `'inserter'`; `'list-view'` is reserved and
+	// falls back to the inserter panel (BE has no list-view chrome yet).
+	const detachedSidebar = settings?.iso?.sidebar?.detached || null;
+	const hasDetachedSidebar = Boolean( detachedSidebar?.target );
 
 	const updateBlocks = useCallback(
 		( nextBlocks ) => {
@@ -135,6 +168,14 @@ function EmbeddedBlockEditor( { children, className, onChange, onError, onInput,
 					</div>
 					<Slot name="blocks-everywhere/footer" />
 				</div>
+				{ hasDetachedSidebar && (
+					<DetachedSidebar
+						target={ detachedSidebar.target }
+						className={ detachedSidebar.className }
+					>
+						<DetachedInserterPanel />
+					</DetachedSidebar>
+				) }
 				{ typeof children === 'function' ? children( { blocks, replaceBlocks } ) : children }
 			</BlockEditorProvider>
 		</SlotFillProvider>

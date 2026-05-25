@@ -2,6 +2,14 @@
 
 All notable changes to Blocks Everywhere are documented in this file.
 
+## [2.3.0] - 2026-05-25
+
+### Added
+- opt-in postEntity wiring for canonical-post BE consumers (closes #10)
+
+### Fixed
+- restore IBE-removal regression handling for embedded editor
+
 ## [2.2.1] - 2026-05-24
 
 ### Changed

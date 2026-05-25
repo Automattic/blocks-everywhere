@@ -2,6 +2,11 @@
 
 All notable changes to Blocks Everywhere are documented in this file.
 
+## [3.2.1] - 2026-05-25
+
+### Fixed
+- add 400px min-height to canvas iframe (consumer-overridable)
+
 ## [3.2.0] - 2026-05-25
 
 ### Added

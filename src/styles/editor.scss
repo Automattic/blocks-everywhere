@@ -37,24 +37,19 @@
 	border: 1px solid var(--border-color);
 	background-color: var(--background-color);
 
-	// Editor canvas iframe min-height for better UX
-	iframe[name="editor-canvas"] {
-		min-height: 400px;
-	}
-
-	// Tablet: reduce editor height.
-	@media (min-width: 601px) and (max-width: 768px) {
-		iframe[name="editor-canvas"] {
-			min-height: 300px;
-		}
-	}
-
-	// Mobile: reduce editor height.
-	@media (max-width: 600px) {
-		iframe[name="editor-canvas"] {
-			min-height: 240px;
-		}
-	}
+	// NOTE: BE intentionally does NOT impose a min-height on the editor
+	// canvas iframe. The previous default (400px desktop / 300px tablet /
+	// 240px mobile) was inherited from isolated-block-editor's one-size-
+	// fits-all sizing and broke layouts where the host constrained its
+	// parent container shorter than 400px (the iframe burst out and
+	// overlapped host UI below it — e.g. Studio's compose layout, bbPress
+	// reply form's Submit button).
+	//
+	// Canvas height now follows its parent container + intrinsic content.
+	// Consumers that want a guaranteed minimum can add their own CSS:
+	//   .my-context .blocks-everywhere-editor iframe[name="editor-canvas"] {
+	//       min-height: 240px;
+	//   }
 
 	// Keep theme background + separator on the BE toolbar bar.
 	.blocks-everywhere-editor__toolbar {

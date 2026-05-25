@@ -2,6 +2,14 @@
 
 All notable changes to Blocks Everywhere are documented in this file.
 
+## [3.0.0] - 2026-05-25
+
+### Changed
+- clean-cut migration off IBE-shaped names and dead-DOM CSS selectors
+
+### Fixed
+- drop hardcoded canvas iframe min-height defaults
+
 ## [2.4.0] - 2026-05-25
 
 ### Added

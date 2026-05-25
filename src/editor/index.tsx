@@ -25,6 +25,7 @@ import { useDispatch } from '@wordpress/data';
  */
 import BuddyPress from './buddypress';
 import ContentBridge from './content-bridge';
+import PostEntityShell, { EditorEditsBridge, type PostEntityRef } from './post-entity-shell';
 import { RegisteredSlotFills } from './slot-fills';
 
 /**
@@ -713,50 +714,71 @@ function createEditorContainer( container, textarea, settings ) {
 	};
 
 	const renderEditor = () => {
-		root.render(
-			<EmbeddedBlockEditor
-				key={ editorKey }
-				settings={ settings }
-				onLoad={ ( parser ) => {
-					if ( textarea && textarea.nodeName === 'TEXTAREA' ) {
-						return parser( textarea.value );
-					}
-					return [];
-				} }
-				onError={ ( error ) => {
-					// eslint-disable-next-line no-console
-					console.error( 'Blocks Everywhere: editor initialization failed', error );
-					container?.classList?.add( 'blocks-everywhere--error' );
-					document?.body?.classList?.add( 'gutenberg-support-loaded' );
-					setLoaded( container );
-				} }
-				onInput={ ( newBlocks ) => {
-					settings?.iso.__experimentalOnInput?.( newBlocks );
-					saveBlocks( textarea, serialize( newBlocks ) );
-					scheduleAutosave( newBlocks );
-				} }
-				onChange={ ( newBlocks ) => {
-					settings?.iso.__experimentalOnChange?.( newBlocks );
-					saveBlocks( textarea, serialize( newBlocks ) );
-					scheduleAutosave( newBlocks );
-				} }
-				onSelection={ ( selection ) => settings?.iso.__experimentalOnSelection?.( selection ) }
-				className={ settings?.iso?.className }
-			>
-				{ ( { blocks, replaceBlocks } ) => (
-					<>
-						<IframeThemeFixes container={ container } />
-						<EditorLoaded onLoaded={ () => setLoaded( container ) } />
-						<ThemeSupportsDispatcher themeSupports={ settings?.editor?.themeSupports } />
-						<ContentBridge textarea={ textarea } blocks={ blocks } replaceBlocks={ replaceBlocks } />
-						<RegisteredSlotFills textarea={ textarea } />
+		// Opt-in postEntity wiring: when the consumer declares this BE mount is
+		// backed by a canonical WP post, wrap the editor in <EditorProvider> so
+		// `core/editor` is populated. <AutosaveMonitor> + <LocalAutosaveMonitor>
+		// then fire on the standard WordPress autosave path with no per-consumer
+		// debounce/in-flight/sendBeacon code required.
+		//
+		// When postEntity is absent or has no id, PostEntityShell is a pass-through
+		// — existing textarea-only behavior is preserved.
+		const postEntity: PostEntityRef | null =
+			settings?.postEntity && typeof settings.postEntity === 'object'
+				? {
+						type: String( settings.postEntity.type || '' ),
+						id: Number( settings.postEntity.id ) || 0,
+				  }
+				: null;
 
-						{ settings.editorType === 'buddypress' && <BuddyPress textarea={ textarea } /> }
-						<RemoveBlockVariations />
-						<RemoveBlockTypes />
-					</>
-				) }
-			</EmbeddedBlockEditor>
+		root.render(
+			<PostEntityShell postEntity={ postEntity } editorSettings={ settings?.editor }>
+				<EmbeddedBlockEditor
+					key={ editorKey }
+					settings={ settings }
+					onLoad={ ( parser ) => {
+						if ( textarea && textarea.nodeName === 'TEXTAREA' ) {
+							return parser( textarea.value );
+						}
+						return [];
+					} }
+					onError={ ( error ) => {
+						// eslint-disable-next-line no-console
+						console.error( 'Blocks Everywhere: editor initialization failed', error );
+						container?.classList?.add( 'blocks-everywhere--error' );
+						document?.body?.classList?.add( 'gutenberg-support-loaded' );
+						setLoaded( container );
+					} }
+					onInput={ ( newBlocks ) => {
+						settings?.iso.__experimentalOnInput?.( newBlocks );
+						saveBlocks( textarea, serialize( newBlocks ) );
+						scheduleAutosave( newBlocks );
+					} }
+					onChange={ ( newBlocks ) => {
+						settings?.iso.__experimentalOnChange?.( newBlocks );
+						saveBlocks( textarea, serialize( newBlocks ) );
+						scheduleAutosave( newBlocks );
+					} }
+					onSelection={ ( selection ) => settings?.iso.__experimentalOnSelection?.( selection ) }
+					className={ settings?.iso?.className }
+				>
+					{ ( { blocks, replaceBlocks } ) => (
+						<>
+							<IframeThemeFixes container={ container } />
+							<EditorLoaded onLoaded={ () => setLoaded( container ) } />
+							<ThemeSupportsDispatcher themeSupports={ settings?.editor?.themeSupports } />
+							<ContentBridge textarea={ textarea } blocks={ blocks } replaceBlocks={ replaceBlocks } />
+							<RegisteredSlotFills textarea={ textarea } />
+
+							{ /* Forward block changes to core/editor edits so <AutosaveMonitor> sees dirty state. */ }
+							{ postEntity?.id > 0 && <EditorEditsBridge blocks={ blocks } /> }
+
+							{ settings.editorType === 'buddypress' && <BuddyPress textarea={ textarea } /> }
+							<RemoveBlockVariations />
+							<RemoveBlockTypes />
+						</>
+					) }
+				</EmbeddedBlockEditor>
+			</PostEntityShell>
 		);
 	};
 

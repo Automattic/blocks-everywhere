@@ -2,6 +2,14 @@
 
 All notable changes to Blocks Everywhere are documented in this file.
 
+## [3.1.0] - 2026-05-25
+
+### Added
+- configurable toolbar API with upstream-matching defaults
+
+### Fixed
+- pass height="100%" to BlockCanvas and flex the editor shell so the canvas fills its host container
+
 ## [3.0.1] - 2026-05-25
 
 ### Fixed

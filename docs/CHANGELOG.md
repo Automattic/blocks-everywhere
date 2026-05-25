@@ -2,6 +2,11 @@
 
 All notable changes to Blocks Everywhere are documented in this file.
 
+## [3.0.1] - 2026-05-25
+
+### Fixed
+- single-row toolbar layout + per-file CSS cache-busting
+
 ## [3.0.0] - 2026-05-25
 
 ### Changed

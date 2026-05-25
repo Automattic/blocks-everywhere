@@ -2,6 +2,11 @@
 
 All notable changes to Blocks Everywhere are documented in this file.
 
+## [3.2.2] - 2026-05-25
+
+### Fixed
+- prevent BlockToolbar from claiming full toolbar row
+
 ## [3.2.1] - 2026-05-25
 
 ### Fixed

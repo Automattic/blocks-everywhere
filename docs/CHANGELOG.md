@@ -2,6 +2,11 @@
 
 All notable changes to Blocks Everywhere are documented in this file.
 
+## [3.2.4] - 2026-05-26
+
+### Changed
+- extract <EmbeddedEditorShell> for toolbar + canvas composition
+
 ## [3.2.3] - 2026-05-26
 
 ### Fixed

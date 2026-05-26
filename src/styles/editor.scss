@@ -118,19 +118,29 @@
 	// Keep theme background + separator on the BE toolbar bar.
 	// Lay out the toolbar contents on a single row. The toolbar div is a
 	// flat container for any combination of:
-	//   - <Inserter /> document-level "+" button
-	//   - undo / redo / list-view document tools
+	//   - <Toolbar label="Document tools"> wrapping inserter / undo / redo / list-view
+	//     (.components-accessible-toolbar — see editor/index.tsx)
 	//   - <BlockToolbar /> block format buttons (only when a block is selected)
 	//   - host-page slot fills (blocks-everywhere/heading, /toolbar)
 	// Without an explicit flex layout, each child stacks block-level — the
-	// inserter ends up on its own row above the format buttons, which doesn't
-	// match upstream Gutenberg's single-row toolbar shape. IBE used to provide
-	// this via its InterfaceSkeleton wrapper (dropped in #6).
+	// document tools group ends up on its own row above the format buttons,
+	// which doesn't match upstream Gutenberg's single-row toolbar shape. IBE
+	// used to provide this via its InterfaceSkeleton wrapper (dropped in #6).
+	//
+	// `min-height: 48px` matches the canonical toolbar-button contract
+	// (see `@wordpress/components/build-style/style.css` lines 3789-3848:
+	// `.components-accessible-toolbar .components-button { height: 48px }`).
+	// Without it the wrapper sizes to its tallest child, which works in
+	// practice but leaves no visual breathing room and makes the
+	// `border-bottom` look glued to the buttons. An explicit min-height
+	// guarantees the bar matches its 48px children even before any
+	// toolbar primitives have mounted.
 	.blocks-everywhere-editor__toolbar {
 		display: flex;
 		align-items: center;
 		flex-wrap: wrap;
 		gap: var(--spacing-xs, 4px);
+		min-height: 48px;
 		background-color: var(--background-color);
 		color: var(--text-color);
 		border-bottom: 1px solid var(--border-color);
@@ -146,6 +156,25 @@
 	.blocks-everywhere-editor__toolbar .block-editor-block-contextual-toolbar {
 		width: auto;
 		flex-shrink: 1;
+	}
+
+	// `.components-accessible-toolbar` ships a default
+	// `border: 1px solid var(--wp-components-color-foreground)` (see
+	// `@wordpress/components/build-style/style.css` line 3769). BE's
+	// toolbar bar is itself already bordered (the `border-bottom` above)
+	// and lives inside the editor card's outer border, so the default
+	// per-group border produces visible double-bordering around BOTH the
+	// document-tools <Toolbar> and the <BlockToolbar />'s internal
+	// accessible toolbar. Strip the per-group border inside BE's toolbar
+	// bar — the bar itself is the only visual frame we want.
+	.blocks-everywhere-editor__toolbar .components-accessible-toolbar {
+		border: 0;
+	}
+	// <BlockToolbar />'s contextual wrapper renders `.components-toolbar`
+	// (the legacy ToolbarGroup container) in some compositions. Same
+	// double-border story; strip it.
+	.blocks-everywhere-editor__toolbar .components-toolbar {
+		border: 0;
 	}
 
 	// Font size fixes

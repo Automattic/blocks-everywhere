@@ -20,7 +20,7 @@ import {
 	__experimentalListView as ListView,
 } from '@wordpress/block-editor';
 import { EditorHistoryRedo, EditorHistoryUndo, mediaUpload as legacyMediaUpload } from '@wordpress/editor';
-import { Button, Dropdown, Slot, SlotFillProvider } from '@wordpress/components';
+import { Button, Dropdown, Slot, SlotFillProvider, Toolbar, ToolbarItem } from '@wordpress/components';
 import { createRoot, useCallback, useEffect, useState } from '@wordpress/element';
 import { addFilter } from '@wordpress/hooks';
 import { createBlock, getBlockTypes, parse, rawHandler, serialize, unregisterBlockType } from '@wordpress/blocks';
@@ -144,6 +144,14 @@ function resolveToolbarConfig(
  * the same whether or not the host mounts an `EditorProvider`. The dropdown
  * keeps the panel self-contained inside the BE toolbar; no external sidebar
  * plumbing is required.
+ *
+ * The toggle button is rendered through `<ToolbarItem as={ Button } />` so
+ * when this component is mounted inside the document-tools `<Toolbar>`
+ * (`.components-accessible-toolbar`), the button participates in the
+ * toolbar's roving tabindex and inherits the 48px size contract from
+ * `.components-accessible-toolbar .components-button.has-icon`. Rendered
+ * outside an accessible toolbar context, `ToolbarItem` falls back to the
+ * `as` component without modification, so this stays usable in isolation.
  */
 function ListViewToggle() {
 	return (
@@ -152,7 +160,8 @@ function ListViewToggle() {
 			contentClassName="blocks-everywhere-editor__list-view-panel"
 			popoverProps={ { placement: 'bottom-start' } }
 			renderToggle={ ( { isOpen, onToggle } ) => (
-				<Button
+				<ToolbarItem
+					as={ Button }
 					icon={ listViewIcon }
 					label={ __( 'Document Overview' ) }
 					onClick={ onToggle }
@@ -250,10 +259,46 @@ function EmbeddedBlockEditor( { children, className, onChange, onError, onInput,
 				<div className={ `blocks-everywhere-editor block-editor ${ className || '' }` }>
 					<div className="blocks-everywhere-editor__toolbar">
 						<Slot name="blocks-everywhere/heading" />
-						{ toolbar.inserter && <Inserter rootClientId={ null } /> }
-						{ toolbar.undo && <EditorHistoryUndo /> }
-						{ toolbar.redo && <EditorHistoryRedo /> }
-						{ toolbar.listView && <ListViewToggle /> }
+						{ /*
+						 * Document tools (inserter, undo, redo, list view) get wrapped
+						 * in `<Toolbar label="Document tools">` from `@wordpress/components`
+						 * — the same primitive `NavigableToolbar` mounts internally (see
+						 * `@wordpress/block-editor/src/components/navigable-toolbar/index.js`
+						 * lines 229-239) and the same shape upstream's wp-admin
+						 * `<DocumentTools>` uses (see
+						 * `@wordpress/editor/src/components/document-tools/index.js`
+						 * lines 102-162). `<Toolbar label>` renders
+						 * `.components-accessible-toolbar`, which opts every child
+						 * `<Button>` into the canonical 48px contract defined by
+						 * `@wordpress/components/build-style/style.css` lines 3789-3848
+						 * (`.components-accessible-toolbar .components-button { height: 48px }`
+						 * and `.has-icon.has-icon { min-width: 48px }`). Without this
+						 * wrapper the document tools rendered as bare `<Button>`s at
+						 * ~36-40px tall and visually mismatched the adjacent
+						 * `<BlockToolbar />` format buttons (which self-wrap in their
+						 * own accessible toolbar at 48px).
+						 *
+						 * Each child uses `<ToolbarItem as={ ... } />` so it participates
+						 * in the toolbar's roving tabindex and gets `data-toolbar-item`
+						 * tagged for `NavigableToolbar`'s focus heuristic. The `<Inserter>`
+						 * component supports `toggleProps={ { as } }` for swapping the
+						 * default `<Button>` for `<ToolbarItem>`. Slot fills stay outside
+						 * the wrapper — consumers may put arbitrary host content there,
+						 * not necessarily toolbar buttons.
+						 */ }
+						{ ( toolbar.inserter || toolbar.undo || toolbar.redo || toolbar.listView ) && (
+							<Toolbar label={ __( 'Document tools' ) }>
+								{ toolbar.inserter && (
+									<Inserter
+										rootClientId={ null }
+										toggleProps={ { as: ToolbarItem } }
+									/>
+								) }
+								{ toolbar.undo && <ToolbarItem as={ EditorHistoryUndo } /> }
+								{ toolbar.redo && <ToolbarItem as={ EditorHistoryRedo } /> }
+								{ toolbar.listView && <ListViewToggle /> }
+							</Toolbar>
+						) }
 						{ toolbar.blockTools && <BlockToolbar hideDragHandle /> }
 						<Slot name="blocks-everywhere/toolbar" />
 					</div>

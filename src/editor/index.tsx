@@ -3,30 +3,18 @@
  */
 import { MediaUpload } from '@wordpress/media-utils';
 import {
-	BlockCanvas,
-	BlockEditorKeyboardShortcuts,
 	BlockEditorProvider,
-	BlockTools,
-	BlockToolbar,
-	Inserter,
-	ObserveTyping,
-	WritingFlow,
 	mediaUpload as blockEditorMediaUpload,
 	// @ts-ignore __experimentalLibrary is an unstable API but is the only
 	// way to render the inline block inserter panel (same surface IBE used).
 	__experimentalLibrary as Library,
-	// @ts-ignore __experimentalListView is unstable but is the public surface
-	// for the block list-view tree; the public ListView alias has not landed.
-	__experimentalListView as ListView,
 } from '@wordpress/block-editor';
-import { EditorHistoryRedo, EditorHistoryUndo, mediaUpload as legacyMediaUpload } from '@wordpress/editor';
-import { Button, Dropdown, Slot, SlotFillProvider, Toolbar, ToolbarItem } from '@wordpress/components';
+import { mediaUpload as legacyMediaUpload } from '@wordpress/editor';
+import { SlotFillProvider } from '@wordpress/components';
 import { createRoot, useCallback, useEffect, useState } from '@wordpress/element';
 import { addFilter } from '@wordpress/hooks';
 import { createBlock, getBlockTypes, parse, rawHandler, serialize, unregisterBlockType } from '@wordpress/blocks';
 import { useDispatch } from '@wordpress/data';
-import { __ } from '@wordpress/i18n';
-import { listView as listViewIcon } from '@wordpress/icons';
 
 /**
  * Internal dependencies
@@ -34,6 +22,7 @@ import { listView as listViewIcon } from '@wordpress/icons';
 import BuddyPress from './buddypress';
 import ContentBridge from './content-bridge';
 import DetachedSidebar from './detached-sidebar';
+import EmbeddedEditorShell, { type ResolvedToolbarConfig } from './embedded-editor-shell';
 import PostEntityShell, { EditorEditsBridge, type PostEntityRef } from './post-entity-shell';
 import { RegisteredSlotFills } from './slot-fills';
 
@@ -86,13 +75,15 @@ function EditorLoaded( { onLoaded } ) {
 }
 
 /**
- * Toolbar configuration shape.
+ * Resolve the consumer's toolbar configuration into a fully-specified
+ * `ResolvedToolbarConfig`.
  *
  * Default toolbar matches the upstream wp-admin post editor (every primitive
  * enabled). Consumers opt OUT individual primitives via
  * `settings.blocksEverywhere.toolbar`; they never need to opt IN. Any key left
  * `undefined` is treated as `true`.
  *
+ * Notes on the underlying primitives (rendered by `<EmbeddedEditorShell>`):
  * - `inserter` — document-level "+" block inserter button. May be effectively
  *   suppressed when a persistent detached sidebar is mounted (the sidebar
  *   always shows the inserter panel, making the toolbar button redundant).
@@ -100,20 +91,14 @@ function EditorLoaded( { onLoaded } ) {
  *   when no entity is being edited (BE mounts without a `postEntity` do not
  *   accumulate undo state); the buttons render disabled in that case, which
  *   matches the upstream behavior for an empty post.
- * - `listView` — block list-view tree. Renders a toggle button on the toolbar
- *   that opens a dropdown panel containing the live list view of the editor's
- *   blocks. Self-contained (no external sidebar wiring required).
+ * - `listView` — block list-view tree. Toggle button + dropdown panel on the
+ *   toolbar, owned by the shell.
  * - `blockTools` — selected-block format toolbar (the contextual `¶ B I link`
  *   row Gutenberg shows when a block is selected).
+ *
+ * @param raw              Consumer-supplied partial toolbar config from `settings.blocksEverywhere.toolbar`, or undefined.
+ * @param suppressInserter When true, forces `inserter: false` regardless of consumer config. Used when a persistent detached sidebar already exposes the inserter panel.
  */
-interface ResolvedToolbarConfig {
-	inserter: boolean;
-	undo: boolean;
-	redo: boolean;
-	listView: boolean;
-	blockTools: boolean;
-}
-
 function resolveToolbarConfig(
 	raw: Partial< ResolvedToolbarConfig > | undefined,
 	suppressInserter: boolean
@@ -134,48 +119,6 @@ function resolveToolbarConfig(
 	}
 
 	return requested;
-}
-
-/**
- * Toggle button + dropdown panel that exposes the block list view.
- *
- * Built on the public `@wordpress/block-editor` `__experimentalListView`
- * surface, which reads from `core/block-editor` state directly — so it works
- * the same whether or not the host mounts an `EditorProvider`. The dropdown
- * keeps the panel self-contained inside the BE toolbar; no external sidebar
- * plumbing is required.
- *
- * The toggle button is rendered through `<ToolbarItem as={ Button } />` so
- * when this component is mounted inside the document-tools `<Toolbar>`
- * (`.components-accessible-toolbar`), the button participates in the
- * toolbar's roving tabindex and inherits the 48px size contract from
- * `.components-accessible-toolbar .components-button.has-icon`. Rendered
- * outside an accessible toolbar context, `ToolbarItem` falls back to the
- * `as` component without modification, so this stays usable in isolation.
- */
-function ListViewToggle() {
-	return (
-		<Dropdown
-			className="blocks-everywhere-editor__list-view-toggle"
-			contentClassName="blocks-everywhere-editor__list-view-panel"
-			popoverProps={ { placement: 'bottom-start' } }
-			renderToggle={ ( { isOpen, onToggle } ) => (
-				<ToolbarItem
-					as={ Button }
-					icon={ listViewIcon }
-					label={ __( 'Document Overview' ) }
-					onClick={ onToggle }
-					aria-expanded={ isOpen }
-					isPressed={ isOpen }
-					showTooltip
-				/>
-			) }
-			renderContent={ () => (
-				/* @ts-ignore __experimentalListView is unstable */
-				<ListView />
-			) }
-		/>
-	);
 }
 
 function ensureSeededBlocks( blocks ) {
@@ -256,88 +199,11 @@ function EmbeddedBlockEditor( { children, className, onChange, onError, onInput,
 				settings={ settings.editor }
 				useSubRegistry={ false }
 			>
-				<div className={ `blocks-everywhere-editor block-editor ${ className || '' }` }>
-					<div className="blocks-everywhere-editor__toolbar">
-						<Slot name="blocks-everywhere/heading" />
-						{ /*
-						 * Document tools (inserter, undo, redo, list view) get wrapped
-						 * in `<Toolbar label="Document tools">` from `@wordpress/components`
-						 * — the same primitive `NavigableToolbar` mounts internally (see
-						 * `@wordpress/block-editor/src/components/navigable-toolbar/index.js`
-						 * lines 229-239) and the same shape upstream's wp-admin
-						 * `<DocumentTools>` uses (see
-						 * `@wordpress/editor/src/components/document-tools/index.js`
-						 * lines 102-162). `<Toolbar label>` renders
-						 * `.components-accessible-toolbar`, which opts every child
-						 * `<Button>` into the canonical 48px contract defined by
-						 * `@wordpress/components/build-style/style.css` lines 3789-3848
-						 * (`.components-accessible-toolbar .components-button { height: 48px }`
-						 * and `.has-icon.has-icon { min-width: 48px }`). Without this
-						 * wrapper the document tools rendered as bare `<Button>`s at
-						 * ~36-40px tall and visually mismatched the adjacent
-						 * `<BlockToolbar />` format buttons (which self-wrap in their
-						 * own accessible toolbar at 48px).
-						 *
-						 * Each child uses `<ToolbarItem as={ ... } />` so it participates
-						 * in the toolbar's roving tabindex and gets `data-toolbar-item`
-						 * tagged for `NavigableToolbar`'s focus heuristic. The `<Inserter>`
-						 * component supports `toggleProps={ { as } }` for swapping the
-						 * default `<Button>` for `<ToolbarItem>`. Slot fills stay outside
-						 * the wrapper — consumers may put arbitrary host content there,
-						 * not necessarily toolbar buttons.
-						 */ }
-						{ ( toolbar.inserter || toolbar.undo || toolbar.redo || toolbar.listView ) && (
-							<Toolbar label={ __( 'Document tools' ) }>
-								{ toolbar.inserter && (
-									<Inserter
-										rootClientId={ null }
-										toggleProps={ { as: ToolbarItem } }
-									/>
-								) }
-								{ toolbar.undo && <ToolbarItem as={ EditorHistoryUndo } /> }
-								{ toolbar.redo && <ToolbarItem as={ EditorHistoryRedo } /> }
-								{ toolbar.listView && <ListViewToggle /> }
-							</Toolbar>
-						) }
-						{ toolbar.blockTools && <BlockToolbar hideDragHandle /> }
-						<Slot name="blocks-everywhere/toolbar" />
-					</div>
-					<div className="blocks-everywhere-editor__body">
-						<BlockEditorKeyboardShortcuts />
-						<BlockEditorKeyboardShortcuts.Register />
-						<BlockTools>
-							<WritingFlow>
-								<ObserveTyping>
-									{ /*
-									 * `<BlockCanvas>` defaults `height` to `'300px'` (see
-									 * `@wordpress/block-editor/src/components/block-canvas/index.js`)
-									 * and sets that as an inline style on its wrapping
-									 * `<BlockTools>` div. The iframe inside (`.block-editor-iframe__container`
-									 * and `.block-editor-iframe__scale-container`, both
-									 * `height: 100%`) then resolves to a hard 300px tall
-									 * canvas regardless of how much vertical room the host
-									 * gives BE. When the host card is taller than 300px
-									 * (Studio's compose surface is `min-height: 400px`),
-									 * the leftover space below the iframe shows up as a
-									 * dead strip between the canvas content and the BE
-									 * wrapper's bottom border.
-									 *
-									 * wp-admin's `<VisualEditor>` (and the old IBE
-									 * `visual-editor.js`) both pass `height="100%"` here
-									 * and rely on the editor wrapper being a flex column
-									 * so the canvas fills the remaining space below the
-									 * toolbar. We do the same: `height="100%"` here, paired
-									 * with `display: flex; flex-direction: column` on
-									 * `.blocks-everywhere-editor` and `flex: 1` on
-									 * `.blocks-everywhere-editor__body` (see editor.scss).
-									 */ }
-									<BlockCanvas height="100%" styles={ settings.editor?.styles || [] } />
-								</ObserveTyping>
-							</WritingFlow>
-						</BlockTools>
-					</div>
-					<Slot name="blocks-everywhere/footer" />
-				</div>
+				<EmbeddedEditorShell
+					toolbar={ toolbar }
+					styles={ settings.editor?.styles || [] }
+					className={ className }
+				/>
 				{ hasDetachedSidebar && (
 					<DetachedSidebar
 						target={ detachedSidebar.target }

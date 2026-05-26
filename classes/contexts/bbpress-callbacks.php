@@ -6,7 +6,7 @@
  * - bbp_encode_bad workarounds for block comment preservation
  * - Email block stripping
  * - Pasted image cleanup
- * - Attachment reparenting (EC-specific, hookable)
+ * - Attachment reparenting
  * - Content display with embed normalization
  *
  * @package Automattic\Blocks_Everywhere\Contexts
@@ -240,8 +240,6 @@ function bbpress_get_current_forum_id() {
 /**
  * Reparent pending content embed attachments to their topic.
  *
- * This is EC-specific and hookable — it only runs when hooked via the context config.
- *
  * @param int   $topic_id       Topic ID.
  * @param int   $forum_id       Forum ID.
  * @param array $anonymous_data Anonymous data.
@@ -250,6 +248,10 @@ function bbpress_get_current_forum_id() {
 function bbpress_reparent_attachments( $topic_id, $forum_id, $anonymous_data, $topic_author ) {
 	$topic_id = (int) $topic_id;
 	if ( ! $topic_id ) {
+		return;
+	}
+
+	if ( ! bbpress_should_reparent_pending_attachments( $topic_id, $forum_id, $topic_author ) ) {
 		return;
 	}
 
@@ -268,6 +270,8 @@ function bbpress_reparent_attachments( $topic_id, $forum_id, $anonymous_data, $t
 	if ( empty( $attachment_ids ) ) {
 		return;
 	}
+
+	$pending_parent_meta_key = bbpress_get_pending_attachment_parent_meta_key( $topic_id, $forum_id, $topic_author );
 
 	foreach ( $attachment_ids as $attachment_id ) {
 		$attachment_id = (int) $attachment_id;
@@ -288,7 +292,7 @@ function bbpress_reparent_attachments( $topic_id, $forum_id, $anonymous_data, $t
 			continue;
 		}
 
-		if ( ! get_post_meta( $attachment_id, '_extrachill_content_embed_pending_parent', true ) ) {
+		if ( ! get_post_meta( $attachment_id, $pending_parent_meta_key, true ) ) {
 			continue;
 		}
 
@@ -299,8 +303,47 @@ function bbpress_reparent_attachments( $topic_id, $forum_id, $anonymous_data, $t
 			]
 		);
 
-		delete_post_meta( $attachment_id, '_extrachill_content_embed_pending_parent' );
+		delete_post_meta( $attachment_id, $pending_parent_meta_key );
 	}
+}
+
+/**
+ * Check whether pending attachment reparenting should run for a new topic.
+ *
+ * @param int $topic_id     Topic ID.
+ * @param int $forum_id     Forum ID.
+ * @param int $topic_author Topic author ID.
+ * @return bool
+ */
+function bbpress_should_reparent_pending_attachments( $topic_id, $forum_id, $topic_author ) {
+	return (bool) apply_filters(
+		'blocks_everywhere_reparent_pending_attachments',
+		false,
+		(int) $topic_id,
+		(int) $forum_id,
+		(int) $topic_author
+	);
+}
+
+/**
+ * Get the meta key used to mark pending content embed attachment parents.
+ *
+ * @param int $topic_id     Topic ID.
+ * @param int $forum_id     Forum ID.
+ * @param int $topic_author Topic author ID.
+ * @return string
+ */
+function bbpress_get_pending_attachment_parent_meta_key( $topic_id = 0, $forum_id = 0, $topic_author = 0 ) {
+	$default_meta_key = '_blocks_everywhere_content_embed_pending_parent';
+	$meta_key         = apply_filters(
+		'blocks_everywhere_pending_attachment_parent_meta_key',
+		$default_meta_key,
+		(int) $topic_id,
+		(int) $forum_id,
+		(int) $topic_author
+	);
+
+	return is_string( $meta_key ) && '' !== $meta_key ? $meta_key : $default_meta_key;
 }
 
 /**

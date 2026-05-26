@@ -50,7 +50,7 @@ function bbpress_context( Engine $engine ) {
 		return $settings;
 	} );
 
-	// Attachment reparenting (EC-specific, hookable).
+	// Attachment reparenting is opt-in via the callback filters.
 	add_action( 'bbp_new_topic', __NAMESPACE__ . '\\bbpress_reparent_attachments', 10, 4 );
 
 	$save_filters = [

@@ -225,5 +225,3 @@ For detailed technical documentation, see the `/docs/` directory:
   - [bbpress-handler.md](docs/handlers/bbpress-handler.md) - BBPress forum integration
   - [comments-handler.md](docs/handlers/comments-handler.md) - WordPress comments integration
   - [buddypress-handler.md](docs/handlers/buddypress-handler.md) - BuddyPress activity integration
-
-For developers working on this plugin, see **[CLAUDE.md](CLAUDE.md)** for architectural guidance, coding standards, and development patterns.

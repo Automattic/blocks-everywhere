@@ -179,5 +179,3 @@ The plugin is simple to install:
 
 = 1.20.0 =
 * Now compatible with Gutenberg 16
-
-For older changelog entries, see [docs/CHANGELOG.md](https://github.com/Automattic/blocks-everywhere/blob/trunk/docs/CHANGELOG.md).

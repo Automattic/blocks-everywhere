@@ -141,6 +141,7 @@
 		flex-wrap: wrap;
 		gap: var(--spacing-xs, 4px);
 		min-height: 48px;
+		padding: var(--spacing-xs, 4px) var(--spacing-sm, 8px);
 		background-color: var(--background-color);
 		color: var(--text-color);
 		border-bottom: 1px solid var(--border-color);

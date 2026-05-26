@@ -697,17 +697,17 @@ function createEditorContainer( container, textarea, settings ) {
 		}
 
 		const forumSelect = document.getElementById( 'bbp_forum_id' );
-		if ( ! forumSelect || forumSelect.__extrachillDraftMoveInstalled ) {
+		if ( ! forumSelect || forumSelect.__blocksEverywhereDraftMoveInstalled ) {
 			return;
 		}
 
-		forumSelect.__extrachillDraftMoveInstalled = true;
+		forumSelect.__blocksEverywhereDraftMoveInstalled = true;
 		currentForumId = getForumIdFromDom();
 
 		if ( isTopicDraft() ) {
 			const titleInput = document.getElementById( 'bbp_topic_title' );
-			if ( titleInput && ! titleInput.__extrachillDraftTitleInstalled ) {
-				titleInput.__extrachillDraftTitleInstalled = true;
+			if ( titleInput && ! titleInput.__blocksEverywhereDraftTitleInstalled ) {
+				titleInput.__blocksEverywhereDraftTitleInstalled = true;
 				titleInput.addEventListener( 'input', () => {
 					scheduleAutosaveFromContent( lastSerializedContent || textarea?.value || '' );
 				} );
@@ -867,7 +867,7 @@ function createEditorContainer( container, textarea, settings ) {
 			return;
 		}
 
-		if ( ! container || container.__extrachillDraftSubmitInstalled ) {
+		if ( ! container || container.__blocksEverywhereDraftSubmitInstalled ) {
 			return;
 		}
 
@@ -876,7 +876,7 @@ function createEditorContainer( container, textarea, settings ) {
 			return;
 		}
 
-		container.__extrachillDraftSubmitInstalled = true;
+		container.__blocksEverywhereDraftSubmitInstalled = true;
 		form.addEventListener( 'submit', ( event ) => {
 			if ( event.submitter && event.submitter.closest( '.blocks-everywhere-editor' ) ) {
 				return;
@@ -896,11 +896,11 @@ function createEditorContainer( container, textarea, settings ) {
 			return;
 		}
 
-		if ( ! container || container.__extrachillReplyDraftContextInstalled ) {
+		if ( ! container || container.__blocksEverywhereReplyDraftContextInstalled ) {
 			return;
 		}
 
-		container.__extrachillReplyDraftContextInstalled = true;
+		container.__blocksEverywhereReplyDraftContextInstalled = true;
 
 		const handler = async ( event ) => {
 			if ( ! event?.detail || event.detail.type !== 'reply' ) {
@@ -978,7 +978,7 @@ function createEditorContainer( container, textarea, settings ) {
 			}
 		};
 
-		document.addEventListener( 'extrachill:bbpressDraftContextChange', handler );
+		document.addEventListener( 'blocksEverywhere:bbpressDraftContextChange', handler );
 	};
 
 	if ( settings?.editorType === 'bbpress' ) {

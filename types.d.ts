@@ -80,10 +80,10 @@ declare interface Window {
 }
 
 declare interface HTMLElement {
-	__extrachillDraftMoveInstalled?: boolean;
-	__extrachillDraftTitleInstalled?: boolean;
-	__extrachillDraftSubmitInstalled?: boolean;
-	__extrachillReplyDraftContextInstalled?: boolean;
+	__blocksEverywhereDraftMoveInstalled?: boolean;
+	__blocksEverywhereDraftTitleInstalled?: boolean;
+	__blocksEverywhereDraftSubmitInstalled?: boolean;
+	__blocksEverywhereReplyDraftContextInstalled?: boolean;
 }
 
 declare const jQuery: ( selector: string | Element ) => {

@@ -2,6 +2,11 @@
 
 All notable changes to Blocks Everywhere are documented in this file.
 
+## [3.2.3] - 2026-05-26
+
+### Fixed
+- wrap document tools in <Toolbar> for 48px toolbar contract
+
 ## [3.2.2] - 2026-05-25
 
 ### Fixed

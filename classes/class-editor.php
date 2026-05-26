@@ -256,9 +256,9 @@ class Editor {
 	 *     tokens (--text-color, --background-color, --accent, etc.) onto Gutenberg's
 	 *     own component tokens (--wp-components-color-*). Host :root variables do NOT
 	 *     cascade across document boundaries into the iframe; consumers must re-declare
-	 *     them inside the iframe document. The default mapping references the same
-	 *     variable names Extra Chill themes ship; consumers with different naming
-	 *     should filter the result via 'blocks_everywhere_iframe_inline_css'.
+	 *     them inside the iframe document. The default mapping references common host
+	 *     theme variable names; consumers with different naming should filter the
+	 *     result via 'blocks_everywhere_iframe_inline_css'.
 	 *   - In-iframe popover/inserter and modal styles (these can render inside the
 	 *     iframe when the inserter is anchored to a block in the canvas).
 	 *

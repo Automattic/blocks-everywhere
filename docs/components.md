@@ -349,7 +349,7 @@ window.blocksEverywhere.registerSlotFill( 'footer', ( textarea ) => {
 ```typescript
 import { createElement, useEffect } from '@wordpress/element';
 
-function StudioComposer() {
+function HostComposer() {
     useEffect( () => {
         return window.blocksEverywhere?.registerSlotFill( 'footer', ( textarea ) => {
             return createElement( SubmitButton, { textarea } );

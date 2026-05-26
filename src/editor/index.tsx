@@ -32,7 +32,7 @@ import { RegisteredSlotFills } from './slot-fills';
  * Mirrors the surface IBE's `InserterSidebar` exposed via
  * `__experimentalLibrary`. We deliberately keep this minimal — no close
  * button, no tab filtering — because the BE detached sidebar is intended
- * for persistent host-owned slots (e.g. Studio's compose sidebar). Tab
+ * for persistent host-owned slots (e.g. a host application sidebar). Tab
  * filtering can be reintroduced if/when a consumer needs it.
  */
 function DetachedInserterPanel() {

@@ -80,7 +80,7 @@ domReady( () => {
 	// which exposes `wp.blockLibrary.registerCoreBlocks` on the global, but
 	// nothing calls it on the host page — so without this, `getBlockType()`
 	// returns undefined for every block name, and `createBlock()` recurses on
-	// `core/missing` until the stack overflows (see Extra-Chill/blocks-everywhere#9).
+	// `core/missing` until the stack overflows (see the linked upstream issue).
 	// IBE used to call this from its own initializer; PR #6 dropped IBE but
 	// didn't carry this call forward.
 	const blockLibrary = ( window as any ).wp?.blockLibrary;

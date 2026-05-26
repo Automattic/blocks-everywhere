@@ -9,7 +9,7 @@
  * Context config shape (only 'type' and 'textarea' are required):
  *
  *     [
- *         'type'         => 'studio',                      // Editor type identifier
+ *         'type'         => 'compose',                     // Editor type identifier
  *         'textarea'     => '#my-textarea',                 // CSS selector for textarea
  *         'container'    => '.blocks-everywhere',           // CSS selector for editor container
  *         'trigger'      => 'wp',                           // Action hook that triggers editor load

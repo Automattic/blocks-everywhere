@@ -44,10 +44,10 @@
 // height which leaves the empty-block placeholder cramped against the
 // toolbar). The selector is low specificity on purpose — consumers
 // override via their own `.<parent-context> .blocks-everywhere`
-// declaration without needing `!important` (e.g. Studio's existing
-// `.ec-studio-compose-editor .blocks-everywhere { min-height: 400px }`
-// already wins by virtue of the parent selector chain). Consumers that
-// want a smaller editor simply set their own value:
+// declaration without needing `!important` (e.g. a parent-scoped override
+// such as `.my-compose-surface .blocks-everywhere { min-height: 400px }`
+// wins by virtue of the parent selector chain). Consumers that want a
+// smaller editor simply set their own value:
 //   .my-context .blocks-everywhere { min-height: 200px; }
 .gutenberg-support .blocks-everywhere {
 	display: flex;
@@ -66,8 +66,8 @@
 	// height and `<BlockCanvas height="100%" />` (see editor/index.tsx)
 	// has nothing to resolve `100%` against — so the iframe falls back to
 	// 0 / its default 300px and leaves dead space below it when the host
-	// container is taller (e.g. Studio's compose surface is min-height:
-	// 400px; bbPress reply form is sized by its parent grid). Pairing
+	// container is taller (e.g. a compose surface with min-height: 400px;
+	// bbPress reply form is sized by its parent grid). Pairing
 	// `flex: 1` on the shell with `flex-direction: column` and `flex: 1`
 	// on the body matches what wp-admin's <VisualEditor> /
 	// <ResizableEditor> chain does for the post editor canvas.

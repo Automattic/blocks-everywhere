@@ -9,7 +9,7 @@
  * sessionStorage backup, recovery flows).
  *
  * Vendor-agnostic by design. The shell knows nothing about specific post types,
- * specific consumers (Studio, forum drafts, etc.), or specific endpoints. It
+ * specific consumers (host applications, forum drafts, etc.), or specific endpoints. It
  * just wires the standard WP editor primitives when a post entity is available.
  *
  * When no `postEntity` is supplied — or the entity hasn't loaded yet — the

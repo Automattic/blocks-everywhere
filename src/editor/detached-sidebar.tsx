@@ -67,9 +67,9 @@ export default function DetachedSidebar( { target, className, children }: Detach
 			return undefined;
 		}
 
-		// The consumer's target element may mount late in the React tree
-		// (e.g. Studio's `.ec-studio-compose-sidebar__slot` is rendered by a
-		// sibling component that may not exist on first render). Watch for
+		// The consumer-provided target element may mount late in the React tree
+		// (e.g. a host application sidebar slot rendered by a sibling component
+		// that may not exist on first render). Watch for
 		// it via MutationObserver and re-resolve when it appears.
 		const observer = new MutationObserver( () => {
 			const observedTarget = resolveTarget( target );

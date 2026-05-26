@@ -20,6 +20,7 @@ declare interface Toolbar {
 declare interface BlocksEverywhere {
 	allowEmbeds: string[];
 	blocks: Blocks;
+	mediaUploadEndpoint?: string;
 	__experimentalOnInput?: ( block: unknown ) => unknown;
 	__experimentalOnChange?: ( block: unknown ) => unknown;
 	__experimentalOnSelection?: ( selection: unknown ) => unknown;
@@ -47,6 +48,8 @@ declare const wpBlocksEverywhere: {
 		forumId?: number;
 		isTopicEdit?: boolean;
 		isReplyEdit?: boolean;
+		draftEndpoint?: string;
+		mediaEndpoint?: string;
 	};
 };
 

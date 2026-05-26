@@ -416,6 +416,10 @@ function createEditorContainer( container, textarea, settings ) {
 	const bbpressTopicId = bbpress?.topicId ? Number( bbpress.topicId ) : 0;
 	const bbpressDraftEndpoint = bbpress?.draftEndpoint || null;
 	const bbpressMediaEndpoint = bbpress?.mediaEndpoint || null;
+	const blocksEverywhereMediaEndpoint = settings?.blocksEverywhere?.mediaUploadEndpoint || null;
+	const configuredMediaUploadEndpoint = bbpressMediaEndpoint || blocksEverywhereMediaEndpoint || null;
+	const hasBbpressMediaUploadSupport =
+		settings?.editor?.hasUploadPermissions === true && Boolean( configuredMediaUploadEndpoint );
 
 	let currentForumId = bbpress?.forumId ? Number( bbpress.forumId ) : 0;
 	let autosaveTimer = null;
@@ -748,7 +752,7 @@ function createEditorContainer( container, textarea, settings ) {
 		} );
 	};
 
-	const uploadViaExtraChillApi = async ( file, topicId = 0 ) => {
+	const uploadViaConfiguredMediaEndpoint = async ( file, topicId = 0 ) => {
 		const formData = new FormData();
 		formData.append( 'file', file );
 		formData.append( 'context', 'content_embed' );
@@ -759,13 +763,12 @@ function createEditorContainer( container, textarea, settings ) {
 		const uploadNonce = settings?.restNonce || window?.wpApiSettings?.nonce || null;
 		const headers = uploadNonce ? { 'X-WP-Nonce': uploadNonce } : undefined;
 
-		const restRoot = settings?.restUrl || window?.wpApiSettings?.root || null;
-		if ( ! bbpressMediaEndpoint && ! restRoot ) {
+		if ( ! configuredMediaUploadEndpoint ) {
 			throw new Error( 'Media endpoint not configured.' );
 		}
 
 		const response = await window.fetch(
-			( bbpressMediaEndpoint ? new URL( bbpressMediaEndpoint ) : new URL( restRoot ) ).toString(),
+			new URL( configuredMediaUploadEndpoint, window.location.origin ).toString(),
 			{
 				method: 'POST',
 				credentials: 'same-origin',
@@ -982,29 +985,34 @@ function createEditorContainer( container, textarea, settings ) {
 		maybeInstallForumMoveHandler();
 		maybeInstallSubmitHandler();
 		maybeInstallReplyDraftContextHandler();
-		settings.editor.mediaUpload = ( { filesList, onFileChange, onError } ) => {
-			const files = Array.from( filesList );
-			const topicId = bbpressTopicId;
 
-			Promise.all(
-				files.map( async ( file ) => {
-					const result = await uploadViaExtraChillApi( file, topicId );
-					const attachment = result?.attachment;
-					if ( attachment ) {
-						return attachment;
-					}
+		if ( ! hasBbpressMediaUploadSupport ) {
+			settings.editor.mediaUpload = null;
+		} else {
+			settings.editor.mediaUpload = ( { filesList, onFileChange, onError } ) => {
+				const files = Array.from( filesList );
+				const topicId = bbpressTopicId;
 
-					return {
-						id: result?.attachment_id,
-						url: result?.url,
-					};
-				} )
-			)
-				.then( ( mediaItems ) => onFileChange( mediaItems ) )
-				.catch( ( error ) => onError( error ) );
-		};
+				Promise.all(
+					files.map( async ( file ) => {
+						const result = await uploadViaConfiguredMediaEndpoint( file, topicId );
+						const attachment = result?.attachment;
+						if ( attachment ) {
+							return attachment;
+						}
 
-		addFilter( 'editor.MediaUpload', 'blocks-everywhere/media-upload', () => MediaUpload );
+						return {
+							id: result?.attachment_id,
+							url: result?.url,
+						};
+					} )
+				)
+					.then( ( mediaItems ) => onFileChange( mediaItems ) )
+					.catch( ( error ) => onError( error ) );
+			};
+
+			addFilter( 'editor.MediaUpload', 'blocks-everywhere/media-upload', () => MediaUpload );
+		}
 	} else if ( settings?.editor?.hasUploadPermissions ) {
 		// Prefer block-editor mediaUpload; fall back to legacy editor if absent.
 		const resolvedMediaUpload = blockEditorMediaUpload || legacyMediaUpload || null;

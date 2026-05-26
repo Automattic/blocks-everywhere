@@ -2,6 +2,11 @@
 
 All notable changes to Blocks Everywhere are documented in this file.
 
+## [3.2.5] - 2026-05-26
+
+### Fixed
+- add horizontal/vertical padding to toolbar wrapper
+
 ## [3.2.4] - 2026-05-26
 
 ### Changed

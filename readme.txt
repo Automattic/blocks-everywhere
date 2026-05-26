@@ -3,8 +3,8 @@ Contributors: johnny5, automattic
 Tags: gutenberg, comments, bbpress, buddypress
 Requires at least: 6.9
 Tested up to: 6.9
-Stable tag: 1.25.3
-Requires PHP: 8.4
+Stable tag: 3.2.5
+Requires PHP: 7.4
 License: GPLv3
 
 Puts the Gutenberg block editor everywhere it can - bbPress, comments, and BuddyPress.
@@ -36,7 +36,7 @@ The loading of Gutenberg will also increase the page size of any page it is load
 
 This doesn't yet work on block-based themes - it must be a 'classic' theme.
 
-You must use the specific version of Gutenberg listed in the changelog.
+Use a recent WordPress or Gutenberg plugin version that provides the editor packages required by this release, and test against your target site configuration before production use.
 
 == Usage ==
 

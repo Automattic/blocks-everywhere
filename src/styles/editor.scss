@@ -3,12 +3,19 @@
 // This approach ensures all WP components automatically inherit theme colors.
 .gutenberg-support {
 	// Core color mappings
+	// Audit 2026-05-26 (issue #31): every variable here is verified to be
+	// consumed by at least one rule in node_modules/@wordpress/components
+	// or related @wordpress/* build-style CSS. Five formerly-mapped variables
+	// (--wp-components-color-gray-200 / -900 / -950, -icon, -icon-inverted)
+	// were dropped after the audit confirmed they are dead across the full
+	// @wordpress/* package set. Re-run the diff if upstream renames or adds
+	// component tokens in a Gutenberg minor:
+	//   comm -23 <(grep -oE -- "--wp-components-color-[a-z0-9-]+" src/styles/editor.scss | sort -u) \
+	//            <(grep -hoE -- "--wp-components-color-[a-z0-9-]+" node_modules/@wordpress/components/build-style/style.css | sort -u)
 	--wp-components-color-foreground: var(--text-color);
 	--wp-components-color-foreground-inverted: var(--background-color);
 	--wp-components-color-background: var(--background-color);
-	--wp-components-color-icon: var(--text-color);
-	--wp-components-color-icon-inverted: var(--background-color);
-	
+
 	// Accent colors
 	--wp-components-color-accent: var(--accent);
 	--wp-components-color-accent-darker-10: var(--accent-hover);
@@ -19,17 +26,14 @@
 	--wp-admin-theme-color: var(--accent);
 	--wp-admin-theme-color-darker-10: var(--accent-hover);
 	--wp-admin-theme-color-darker-20: var(--accent-hover);
-	
+
 	// Gray scale mapping for dark mode
 	--wp-components-color-gray-100: var(--card-background);
-	--wp-components-color-gray-200: var(--border-color);
 	--wp-components-color-gray-300: var(--border-color);
 	--wp-components-color-gray-400: var(--muted-text);
 	--wp-components-color-gray-600: var(--muted-text);
 	--wp-components-color-gray-700: var(--text-color);
 	--wp-components-color-gray-800: var(--text-color);
-	--wp-components-color-gray-900: var(--text-color);
-	--wp-components-color-gray-950: var(--text-color);
 }
 
 // Outer PHP-rendered wrapper (`<div class="blocks-everywhere ...">` from

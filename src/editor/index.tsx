@@ -218,121 +218,6 @@ function EmbeddedBlockEditor( { children, className, onChange, onError, onInput,
 	);
 }
 
-function removeInlineStylesFromEmptyBlockInserter( iframeDoc ) {
-	// Gutenberg sets `style="color:#fff;background:#fff"` on this toggle in some states.
-	// Since inline styles win over CSS, remove them so theme-token CSS can apply.
-	const toggles = iframeDoc.querySelectorAll(
-		'.block-editor-block-list__empty-block-inserter .block-editor-inserter__toggle.has-icon'
-	);
-
-	toggles.forEach( ( toggle ) => {
-		if ( toggle.hasAttribute( 'style' ) ) {
-			toggle.removeAttribute( 'style' );
-		}
-
-		toggle.style.removeProperty( 'color' );
-		toggle.style.removeProperty( 'background' );
-		toggle.style.removeProperty( 'background-color' );
-	} );
-}
-
-function installIframeThemeFixes( container ) {
-	if ( ! container ) {
-		return () => undefined;
-	}
-
-	let iframeObserver;
-	let docObserver;
-	let attachedIframe;
-	let attachedIframeLoadHandler;
-
-	const attachToIframe = ( iframe ) => {
-		if ( ! iframe || iframe === attachedIframe ) {
-			return;
-		}
-
-		if ( attachedIframe && attachedIframeLoadHandler ) {
-			attachedIframe.removeEventListener( 'load', attachedIframeLoadHandler );
-		}
-
-		attachedIframe = iframe;
-
-		const refresh = () => {
-			const iframeDoc = iframe.contentDocument;
-			if ( ! iframeDoc ) {
-				return;
-			}
-
-			removeInlineStylesFromEmptyBlockInserter( iframeDoc );
-
-			docObserver?.disconnect?.();
-			docObserver = new MutationObserver( ( mutations ) => {
-				for ( const mutation of mutations ) {
-					if (
-						mutation.type === 'attributes' &&
-						mutation.target instanceof Element &&
-						mutation.target.matches( '.block-editor-inserter__toggle.has-icon' )
-					) {
-						removeInlineStylesFromEmptyBlockInserter( iframeDoc );
-						continue;
-					}
-
-					if (
-						mutation.type === 'childList' &&
-						( mutation.addedNodes?.length || mutation.removedNodes?.length )
-					) {
-						removeInlineStylesFromEmptyBlockInserter( iframeDoc );
-					}
-				}
-			} );
-
-			docObserver.observe( iframeDoc.documentElement, {
-				subtree: true,
-				childList: true,
-				attributes: true,
-				attributeFilter: [ 'style', 'class' ],
-			} );
-		};
-
-		attachedIframeLoadHandler = refresh;
-		iframe.addEventListener( 'load', refresh );
-		refresh();
-	};
-
-	const findAndAttach = () => {
-		const iframe = container.querySelector( 'iframe[name="editor-canvas"]' );
-		if ( iframe ) {
-			attachToIframe( iframe );
-			return true;
-		}
-
-		return false;
-	};
-
-	if ( ! findAndAttach() ) {
-		iframeObserver = new MutationObserver( () => {
-			if ( findAndAttach() ) {
-				iframeObserver.disconnect();
-			}
-		} );
-		iframeObserver.observe( container, { subtree: true, childList: true } );
-	}
-
-	return () => {
-		iframeObserver?.disconnect?.();
-		docObserver?.disconnect?.();
-
-		if ( attachedIframe && attachedIframeLoadHandler ) {
-			attachedIframe.removeEventListener( 'load', attachedIframeLoadHandler );
-		}
-	};
-}
-
-function IframeThemeFixes( { container } ) {
-	useEffect( () => installIframeThemeFixes( container ), [ container ] );
-	return null;
-}
-
 function createContainer( textarea, existingContainer ) {
 	if ( existingContainer && ! existingContainer.contains( textarea ) ) {
 		return existingContainer;
@@ -843,7 +728,6 @@ function createEditorContainer( container, textarea, settings ) {
 				>
 					{ ( { blocks, replaceBlocks } ) => (
 						<>
-							<IframeThemeFixes container={ container } />
 							<EditorLoaded onLoaded={ () => setLoaded( container ) } />
 							<ThemeSupportsDispatcher themeSupports={ settings?.editor?.themeSupports } />
 							<ContentBridge textarea={ textarea } blocks={ blocks } replaceBlocks={ replaceBlocks } />

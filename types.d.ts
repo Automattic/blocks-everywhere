@@ -17,6 +17,35 @@ declare interface Toolbar {
 	blockTools?: boolean;
 }
 
+declare interface ContentBridgeHelpers {
+	parse: ( content: string ) => object[];
+	rawHandler: ( options: unknown ) => object[];
+	serialize: ( blocks: object[] ) => string;
+	getTextareaContent: () => string;
+	setTextareaContent: ( content: string ) => void;
+	textarea: HTMLTextAreaElement | null;
+	settings: typeof wpBlocksEverywhere;
+}
+
+declare interface ContentBridgeContext {
+	textarea: HTMLTextAreaElement | null;
+	settings: typeof wpBlocksEverywhere;
+	editorType?: string;
+}
+
+declare interface ContentBridge {
+	/** Preserve the default textarea write-through behavior. Default: true. */
+	syncTextarea?: boolean;
+	/** Override or transform initial content loading. Return block objects or serialized markup. */
+	load?: ( helpers: ContentBridgeHelpers, context: ContentBridgeContext ) => object[] | string | void;
+	/** Override serialized block markup before any save forwarding runs. */
+	serialize?: ( blocks: object[], context: ContentBridgeContext, helpers: ContentBridgeHelpers ) => string | void;
+	/** Receive parsed blocks and serialized markup whenever editor content changes. */
+	save?: ( blocks: object[], serialized: string, context: ContentBridgeContext, helpers: ContentBridgeHelpers ) => void;
+	/** Transform hot replacement content before it is parsed into the mounted editor. */
+	replaceContent?: ( content: string, context: ContentBridgeContext, helpers: ContentBridgeHelpers ) => object[] | string | void;
+}
+
 declare interface BlocksEverywhere {
 	allowEmbeds: string[];
 	blocks: Blocks;
@@ -26,6 +55,7 @@ declare interface BlocksEverywhere {
 	__experimentalOnSelection?: ( selection: unknown ) => unknown;
 	className?: string;
 	toolbar?: Toolbar;
+	contentBridge?: ContentBridge;
 }
 
 declare interface BlocksEverywhereMountOptions {
@@ -88,11 +118,18 @@ declare interface Window {
 			options?: BlocksEverywhereMountOptions
 		) => BlocksEverywhereMount | null;
 		unmount: ( target: BlocksEverywhereMount | HTMLTextAreaElement ) => boolean;
+		getContentApi: ( textarea: HTMLTextAreaElement ) => BlocksEverywhereContentApi | null;
 		registerSlotFill: (
 			slot: 'footer' | 'toolbar' | 'heading',
 			renderFn: ( textarea: HTMLTextAreaElement ) => unknown
 		) => () => void;
 	};
+}
+
+declare interface BlocksEverywhereContentApi {
+	replaceContent: ( html: string ) => void;
+	getContent: () => string;
+	getBlocks: () => object[];
 }
 
 declare interface HTMLElement {

@@ -27,7 +27,7 @@ import './styles/style.scss';
  * lookup without consumers needing to know the internal property name.
  *
  * @param {HTMLTextAreaElement} textarea The textarea element the editor was created from.
- * @return {Object|null} The content API, or null if the editor isn't ready yet.
+ * @return {BlocksEverywhereContentApi|null} Content API for the editor instance.
  *
  * @example
  *   const api = window.blocksEverywhereGetContentApi( myTextarea );
@@ -36,9 +36,11 @@ import './styles/style.scss';
  *       const html = api.getContent();
  *   }
  */
-( window as any ).blocksEverywhereGetContentApi = ( textarea: HTMLTextAreaElement ) => {
+const getContentApi = ( textarea: HTMLTextAreaElement ) => {
 	return textarea?.__blocksEverywhereContentApi ?? null;
 };
+
+( window as any ).blocksEverywhereGetContentApi = getContentApi;
 
 /**
  * Public namespace for Blocks Everywhere host-page integration APIs.
@@ -46,6 +48,8 @@ import './styles/style.scss';
  * Currently exposes:
  *   - mountEditor( textarea, options? ) — mount a dynamic editor instance.
  *   - unmount( mountOrTextarea ) — unmount a previously-mounted editor.
+ *   - getContentApi( textarea ) — read or hot-replace an editor instance's
+ *     serialized block content.
  *   - registerSlotFill( slot, renderFn ) — render React content into the editor
  *     footer / toolbar / heading slots from outside BE's React tree.
  *
@@ -54,6 +58,7 @@ import './styles/style.scss';
 ( window as any ).blocksEverywhere = {
 	mountEditor,
 	unmount: unmountEditor,
+	getContentApi,
 	registerSlotFill,
 };
 

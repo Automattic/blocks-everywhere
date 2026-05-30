@@ -73,6 +73,104 @@ function saveBlocks( textarea: HTMLTextAreaElement, content: string ): void {
 	}
 }
 
+function createContentBridgeHelpers( textarea, settings ) {
+	return {
+		parse,
+		rawHandler,
+		serialize,
+		getTextareaContent() {
+			return textarea?.value || '';
+		},
+		setTextareaContent( content ) {
+			if ( textarea ) {
+				textarea.value = String( content || '' );
+			}
+		},
+		textarea,
+		settings,
+	};
+}
+
+function createContentBridgeContext( textarea, settings ) {
+	return {
+		textarea,
+		settings,
+		editorType: settings?.editorType,
+	};
+}
+
+function normalizeLoadedBlocks( value, helpers ) {
+	if ( Array.isArray( value ) ) {
+		return value;
+	}
+
+	if ( typeof value === 'string' ) {
+		return helpers.parse( value );
+	}
+
+	return null;
+}
+
+function createContentBridgeController( textarea, settings ) {
+	const bridge = settings?.blocksEverywhere?.contentBridge || null;
+	const helpers = createContentBridgeHelpers( textarea, settings );
+	const context = createContentBridgeContext( textarea, settings );
+	const syncTextarea = bridge?.syncTextarea !== false;
+	const serializeBlocks = ( blocks ) => {
+		const serialized = helpers.serialize( blocks );
+
+		if ( typeof bridge?.serialize !== 'function' ) {
+			return serialized;
+		}
+
+		const nextSerialized = bridge.serialize( blocks, context, helpers );
+		return typeof nextSerialized === 'string' ? nextSerialized : serialized;
+	};
+
+	return {
+		bridge,
+		helpers,
+		context,
+		load() {
+			if ( typeof bridge?.load === 'function' ) {
+				const loaded = normalizeLoadedBlocks( bridge.load( helpers, context ), helpers );
+				if ( loaded ) {
+					return loaded;
+				}
+			}
+
+			return textarea && textarea.nodeName === 'TEXTAREA' ? helpers.parse( textarea.value ) : [];
+		},
+		serializeBlocks,
+		save( blocks ) {
+			const serialized = serializeBlocks( blocks );
+
+			if ( syncTextarea ) {
+				saveBlocks( textarea, serialized );
+			}
+
+			if ( typeof bridge?.save === 'function' ) {
+				bridge.save( blocks, serialized, context, helpers );
+			}
+
+			return serialized;
+		},
+		replaceContent( content ) {
+			let nextContent = content;
+
+			if ( typeof bridge?.replaceContent === 'function' ) {
+				const replaced = bridge.replaceContent( content, context, helpers );
+				if ( replaced !== undefined ) {
+					nextContent = replaced;
+				}
+			}
+
+			const nextBlocks = normalizeLoadedBlocks( nextContent, helpers );
+			return nextBlocks || [];
+		},
+	};
+}
+
 function setLoaded( container ) {
 	const closest = container.closest( '.blocks-everywhere-editor__loading' );
 
@@ -330,6 +428,7 @@ function createEditorContainer( container, textarea, settings ) {
 	let isUnmounted = false;
 	const editorKey = 0;
 	const draftRequestControllers = new Set< AbortController >();
+	const contentBridge = createContentBridgeController( textarea, settings );
 
 	const configuredNonce = settings?.restNonce || window?.wpApiSettings?.nonce || null;
 	const restHeaders = configuredNonce ? { 'X-WP-Nonce': configuredNonce } : {};
@@ -587,9 +686,8 @@ function createEditorContainer( container, textarea, settings ) {
 		}, 800 );
 	};
 
-	const scheduleAutosave = ( nextBlocks ) => {
-		const serialized = Array.isArray( nextBlocks ) ? serialize( nextBlocks ) : '';
-		scheduleAutosaveFromContent( serialized );
+	const scheduleAutosave = ( serializedContent ) => {
+		scheduleAutosaveFromContent( typeof serializedContent === 'string' ? serializedContent : '' );
 	};
 
 	const maybeInstallForumMoveHandler = () => {
@@ -728,12 +826,7 @@ function createEditorContainer( container, textarea, settings ) {
 				<EmbeddedBlockEditor
 					key={ editorKey }
 					settings={ settings }
-					onLoad={ ( parser ) => {
-						if ( textarea && textarea.nodeName === 'TEXTAREA' ) {
-							return parser( textarea.value );
-						}
-						return [];
-					} }
+					onLoad={ () => contentBridge.load() }
 					onError={ ( error ) => {
 						// eslint-disable-next-line no-console
 						console.error( 'Blocks Everywhere: editor initialization failed', error );
@@ -743,13 +836,13 @@ function createEditorContainer( container, textarea, settings ) {
 					} }
 					onInput={ ( newBlocks ) => {
 						settings?.blocksEverywhere?.__experimentalOnInput?.( newBlocks );
-						saveBlocks( textarea, serialize( newBlocks ) );
-						scheduleAutosave( newBlocks );
+						const serialized = contentBridge.save( newBlocks );
+						scheduleAutosave( serialized );
 					} }
 					onChange={ ( newBlocks ) => {
 						settings?.blocksEverywhere?.__experimentalOnChange?.( newBlocks );
-						saveBlocks( textarea, serialize( newBlocks ) );
-						scheduleAutosave( newBlocks );
+						const serialized = contentBridge.save( newBlocks );
+						scheduleAutosave( serialized );
 					} }
 					onSelection={ ( selection ) =>
 						settings?.blocksEverywhere?.__experimentalOnSelection?.( selection )
@@ -760,7 +853,12 @@ function createEditorContainer( container, textarea, settings ) {
 						<>
 							<EditorLoaded onLoaded={ () => setLoaded( container ) } />
 							<ThemeSupportsDispatcher themeSupports={ settings?.editor?.themeSupports } />
-							<ContentBridge textarea={ textarea } blocks={ blocks } replaceBlocks={ replaceBlocks } />
+							<ContentBridge
+								textarea={ textarea }
+								blocks={ blocks }
+								replaceBlocks={ replaceBlocks }
+								contentBridge={ contentBridge }
+							/>
 							<RegisteredSlotFills textarea={ textarea } />
 
 							{ /* Forward block changes to core/editor edits so <AutosaveMonitor> sees dirty state. */ }

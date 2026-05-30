@@ -21,6 +21,10 @@ interface ContentBridgeProps {
 	textarea: HTMLTextAreaElement;
 	blocks: object[];
 	replaceBlocks: ( blocks: object[] ) => void;
+	contentBridge?: {
+		serializeBlocks: ( blocks: object[] ) => string;
+		replaceContent: ( html: string ) => object[];
+	};
 }
 
 export interface BlocksEverywhereContentApi {
@@ -47,7 +51,7 @@ declare global {
 	}
 }
 
-export default function ContentBridge( { textarea, blocks, replaceBlocks }: ContentBridgeProps ) {
+export default function ContentBridge( { textarea, blocks, replaceBlocks, contentBridge }: ContentBridgeProps ) {
 	useEffect( () => {
 		if ( ! textarea ) {
 			return;
@@ -55,11 +59,13 @@ export default function ContentBridge( { textarea, blocks, replaceBlocks }: Cont
 
 		const api: BlocksEverywhereContentApi = {
 			replaceContent( html: string ) {
-				const parsed = parse( html || '' );
+				const parsed = contentBridge?.replaceContent
+					? contentBridge.replaceContent( html || '' )
+					: parse( html || '' );
 				replaceBlocks( parsed );
 			},
 			getContent() {
-				return serialize( blocks );
+				return contentBridge?.serializeBlocks ? contentBridge.serializeBlocks( blocks ) : serialize( blocks );
 			},
 			getBlocks() {
 				return blocks;
@@ -71,7 +77,7 @@ export default function ContentBridge( { textarea, blocks, replaceBlocks }: Cont
 		return () => {
 			delete textarea.__blocksEverywhereContentApi;
 		};
-	}, [ textarea, replaceBlocks, blocks ] );
+	}, [ textarea, replaceBlocks, blocks, contentBridge ] );
 
 	return null;
 }

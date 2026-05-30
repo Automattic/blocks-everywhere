@@ -30,8 +30,22 @@ export type EditorMountSettings = typeof wpBlocksEverywhere;
 
 export interface EditorMountOptions {
 	container?: HTMLElement | string | null;
-	settings?: EditorMountSettings;
+	mode?: string | string[];
+	settings?: Partial< EditorMountSettings >;
+	settingsTransforms?: SettingsTransform[];
 }
+
+type SettingsTransformContext = {
+	mode?: string;
+	modes: string[];
+	options: EditorMountOptions;
+	settings: EditorMountSettings;
+	textarea: HTMLTextAreaElement | null;
+};
+
+type SettingsTransform =
+	| Record< string, unknown >
+	| ( ( settings: EditorMountSettings, context: SettingsTransformContext ) => Record< string, unknown > | void );
 
 export interface EditorMount {
 	container: HTMLElement;
@@ -478,7 +492,7 @@ function createContainer( textarea, existingContainer ) {
 	return { container, inserted: true };
 }
 
-function RemoveBlockTypes() {
+function RemoveBlockTypes( { settings } ) {
 	useEffect( () => {
 		try {
 			const blocks = getBlockTypes();
@@ -488,16 +502,14 @@ function RemoveBlockTypes() {
 			}
 
 			blocks
-				.filter(
-					( block ) => wpBlocksEverywhere?.blocksEverywhere?.blocks?.allowBlocks?.indexOf( block.name ) === -1
-				)
+				.filter( ( block ) => settings?.blocksEverywhere?.blocks?.allowBlocks?.indexOf( block.name ) === -1 )
 				.forEach( ( block ) => unregisterBlockType( block.name ) );
 		} catch ( error ) {
 			// Avoid hard-fail if registry API shape changes.
 			// eslint-disable-next-line no-console
 			console.error( 'Blocks Everywhere: failed to prune blocks', error );
 		}
-	}, [] );
+	}, [ settings ] );
 
 	return null;
 }
@@ -1077,7 +1089,7 @@ function createEditorContainer( container, textarea, settings ) {
 
 							{ settings.editorType === 'buddypress' && <BuddyPress textarea={ textarea } /> }
 							<RemoveBlockVariations />
-							<RemoveBlockTypes />
+							<RemoveBlockTypes settings={ settings } />
 						</>
 					) }
 				</EmbeddedBlockEditor>
@@ -1326,17 +1338,203 @@ function resolveContainerOption( container ) {
 	return container || null;
 }
 
-function resolveMountSettings( settings ) {
-	return {
-		...settings,
-		bbpress: settings?.bbpress ? { ...settings.bbpress } : undefined,
-		blocksEverywhere: settings?.blocksEverywhere ? { ...settings.blocksEverywhere } : undefined,
-		editor: settings?.editor ? { ...settings.editor } : {},
-	};
+function isPlainObject( value ) {
+	return Boolean( value ) && typeof value === 'object' && ! Array.isArray( value );
+}
+
+function cloneSettingsValue( value ) {
+	if ( Array.isArray( value ) ) {
+		return [ ...value ];
+	}
+
+	if ( isPlainObject( value ) ) {
+		return Object.keys( value ).reduce( ( next, key ) => {
+			next[ key ] = cloneSettingsValue( value[ key ] );
+			return next;
+		}, {} );
+	}
+
+	return value;
+}
+
+function mergeSettingsValue( base, override ) {
+	if ( override === undefined ) {
+		return cloneSettingsValue( base );
+	}
+
+	if ( Array.isArray( override ) ) {
+		return [ ...override ];
+	}
+
+	if ( isPlainObject( base ) && isPlainObject( override ) ) {
+		const merged = { ...cloneSettingsValue( base ) };
+		Object.keys( override ).forEach( ( key ) => {
+			merged[ key ] = mergeSettingsValue( merged[ key ], override[ key ] );
+		} );
+
+		return merged;
+	}
+
+	return cloneSettingsValue( override );
+}
+
+function mergeSettings( base, override ) {
+	return mergeSettingsValue( base || {}, override || {} );
+}
+
+function normalizeModeNames( mode ) {
+	const modes = Array.isArray( mode ) ? mode : [ mode ];
+	return modes.map( ( name ) => String( name || '' ).trim() ).filter( Boolean );
+}
+
+function normalizeTransformPatch( patch ) {
+	if ( ! isPlainObject( patch ) ) {
+		return null;
+	}
+
+	const rootPatch = { ...patch };
+	const blocksEverywherePatch = {};
+	const editorPatch = {};
+
+	[
+		'allowEmbeds',
+		'blocks',
+		'chrome',
+		'className',
+		'contentBridge',
+		'defaultPreferences',
+		'features',
+		'lifecycle',
+		'mode',
+		'modes',
+		'preferenceKey',
+		'services',
+		'settingsTransforms',
+		'sidebar',
+		'toolbar',
+	].forEach( ( key ) => {
+		if ( Object.prototype.hasOwnProperty.call( rootPatch, key ) ) {
+			blocksEverywherePatch[ key ] = rootPatch[ key ];
+			delete rootPatch[ key ];
+		}
+	} );
+
+	if ( Object.prototype.hasOwnProperty.call( rootPatch, 'allowedBlocks' ) ) {
+		blocksEverywherePatch.blocks = {
+			...( blocksEverywherePatch.blocks || {} ),
+			allowBlocks: rootPatch.allowedBlocks,
+		};
+		delete rootPatch.allowedBlocks;
+	}
+
+	if ( Object.prototype.hasOwnProperty.call( rootPatch, 'disallowedBlocks' ) ) {
+		blocksEverywherePatch.blocks = {
+			...( blocksEverywherePatch.blocks || {} ),
+			disallowBlocks: rootPatch.disallowedBlocks,
+		};
+		delete rootPatch.disallowedBlocks;
+	}
+
+	[ 'template', 'templateLock' ].forEach( ( key ) => {
+		if ( Object.prototype.hasOwnProperty.call( rootPatch, key ) ) {
+			editorPatch[ key ] = rootPatch[ key ];
+			delete rootPatch[ key ];
+		}
+	} );
+
+	if ( Object.keys( blocksEverywherePatch ).length > 0 ) {
+		rootPatch.blocksEverywhere = mergeSettingsValue( rootPatch.blocksEverywhere || {}, blocksEverywherePatch );
+	}
+
+	if ( Object.keys( editorPatch ).length > 0 ) {
+		rootPatch.editor = mergeSettingsValue( rootPatch.editor || {}, editorPatch );
+	}
+
+	return rootPatch;
+}
+
+function applySettingsTransform( settings, transform, context ) {
+	const patch = typeof transform === 'function' ? transform( settings, context ) : transform;
+	const normalizedPatch = normalizeTransformPatch( patch );
+
+	if ( ! normalizedPatch ) {
+		return settings;
+	}
+
+	return mergeSettings( settings, normalizedPatch );
+}
+
+function resolveModeTransforms( settings, modes ) {
+	const configuredModes = settings?.blocksEverywhere?.modes;
+	if ( ! isPlainObject( configuredModes ) ) {
+		return [];
+	}
+
+	return modes.map( ( mode ) => configuredModes[ mode ] ).filter( Boolean );
+}
+
+function resolveAllowedBlocks( settings ) {
+	const allowedBlocks = settings?.blocksEverywhere?.blocks?.allowBlocks;
+	const disallowedBlocks = settings?.blocksEverywhere?.blocks?.disallowBlocks || [];
+
+	if ( ! Array.isArray( allowedBlocks ) ) {
+		return;
+	}
+
+	const nextAllowedBlocks = allowedBlocks.filter( ( blockName ) => disallowedBlocks.indexOf( blockName ) === -1 );
+	settings.blocksEverywhere.blocks.allowBlocks = nextAllowedBlocks;
+	settings.editor.allowedBlockTypes = nextAllowedBlocks;
+}
+
+function resolveMountSettings(
+	settings,
+	options: EditorMountOptions = {},
+	textarea: HTMLTextAreaElement | null = null
+) {
+	let resolvedSettings = mergeSettings( {}, settings ) as EditorMountSettings;
+	resolvedSettings.editor = resolvedSettings?.editor || {};
+	resolvedSettings.blocksEverywhere = resolvedSettings?.blocksEverywhere || {};
+
+	const modes = [
+		...normalizeModeNames( resolvedSettings.blocksEverywhere?.mode ),
+		...normalizeModeNames( options.mode ),
+	].filter( ( mode, index, allModes ) => allModes.indexOf( mode ) === index );
+
+	const transforms = [
+		...( Array.isArray( resolvedSettings.blocksEverywhere?.settingsTransforms )
+			? resolvedSettings.blocksEverywhere.settingsTransforms
+			: [] ),
+		...resolveModeTransforms( resolvedSettings, modes ),
+		...( Array.isArray( options.settingsTransforms ) ? options.settingsTransforms : [] ),
+	];
+
+	transforms.forEach( ( transform ) => {
+		resolvedSettings = applySettingsTransform( resolvedSettings, transform, {
+			mode: modes[ 0 ],
+			modes,
+			options,
+			settings: resolvedSettings,
+			textarea,
+		} ) as EditorMountSettings;
+		resolvedSettings.editor = resolvedSettings?.editor || {};
+		resolvedSettings.blocksEverywhere = resolvedSettings?.blocksEverywhere || {};
+	} );
+
+	if ( modes.length > 0 ) {
+		resolvedSettings.blocksEverywhere.mode = modes.length === 1 ? modes[ 0 ] : modes;
+	}
+
+	resolveAllowedBlocks( resolvedSettings );
+
+	return resolvedSettings;
 }
 
 export function mountEditor( node: HTMLTextAreaElement, options: EditorMountOptions = {} ): EditorMount | null {
-	const baseSettings = options.settings || ( typeof wpBlocksEverywhere !== 'undefined' ? wpBlocksEverywhere : null );
+	const globalSettings = typeof wpBlocksEverywhere !== 'undefined' ? wpBlocksEverywhere : null;
+	const baseSettings =
+		options.settings && globalSettings
+			? mergeSettings( globalSettings, options.settings )
+			: options.settings || globalSettings;
 	if ( ! baseSettings?.container ) {
 		// eslint-disable-next-line no-console
 		console.error( 'Blocks Everywhere: settings object missing; cannot initialize editor.' );
@@ -1350,7 +1548,7 @@ export function mountEditor( node: HTMLTextAreaElement, options: EditorMountOpti
 	}
 
 	let containerSource = resolveContainerOption( options.container );
-	const settings = resolveMountSettings( baseSettings );
+	const settings = resolveMountSettings( baseSettings, options, node );
 
 	// Prefer enclosing containers, so check if one exists outside.
 	const outerContainerNode = node.closest( settings.container );

@@ -33,6 +33,22 @@ class Context_Bootstrap_Test extends TestCase {
 
 						return $settings;
 					},
+					'mode'                  => [ 'comment', 'compact' ],
+					'modes'                 => [
+						'comment' => [
+							'toolbar' => [ 'listView' => false ],
+						],
+						'compact' => [
+							'chrome'        => [ 'mode' => 'compact', 'footer' => false ],
+							'preferenceKey' => 'portable-compact',
+						],
+					],
+					'settings_transforms'   => [
+						[
+							'template'     => [ [ 'core/paragraph', [ 'placeholder' => 'Start writing' ] ] ],
+							'templateLock' => false,
+						],
+					],
 					'allowed_blocks'        => [ 'core/paragraph', 'core/image' ],
 					'disallowed_blocks'     => [ 'core/image' ],
 					'features'              => [ 'portableToolbar' => true ],
@@ -83,6 +99,12 @@ class Context_Bootstrap_Test extends TestCase {
 		$this->assertSame( [ '#portable-content', '.portable-editor' ], $engine->loaded );
 		$this->assertSame( [ 'assets', 'after_load' ], $events );
 		$this->assertTrue( $settings['blocksEverywhere']['portable'] );
+		$this->assertSame( [ 'comment', 'compact' ], $settings['blocksEverywhere']['mode'] );
+		$this->assertFalse( $settings['blocksEverywhere']['modes']['comment']['toolbar']['listView'] );
+		$this->assertSame( 'compact', $settings['blocksEverywhere']['modes']['compact']['chrome']['mode'] );
+		$this->assertSame( 'portable-compact', $settings['blocksEverywhere']['modes']['compact']['preferenceKey'] );
+		$this->assertSame( [ [ 'core/paragraph', [ 'placeholder' => 'Start writing' ] ] ], $settings['blocksEverywhere']['settingsTransforms'][0]['template'] );
+		$this->assertFalse( $settings['blocksEverywhere']['settingsTransforms'][0]['templateLock'] );
 		$this->assertSame( [ 'core/paragraph' ], $settings['blocksEverywhere']['blocks']['allowBlocks'] );
 		$this->assertSame( [ 'core/image' ], $settings['blocksEverywhere']['blocks']['disallowBlocks'] );
 		$this->assertTrue( $settings['blocksEverywhere']['features']['portableToolbar'] );

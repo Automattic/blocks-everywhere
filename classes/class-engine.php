@@ -15,6 +15,11 @@
  *         'trigger'               => 'wp',                 // Action hook that triggers editor load
  *         'condition'             => fn() => is_user_logged_in(),
  *         'settings_provider'     => fn($settings, $engine) => $settings,
+ *         'mode'                  => 'compact',              // Generic editor mode or ordered mode list.
+ *         'modes'                 => [                       // Mode names to client-side settings patches.
+ *             'compact' => [ 'chrome' => [ 'mode' => 'compact' ] ],
+ *         ],
+ *         'settings_transforms'   => [ ... ],                 // Ordered static client-side settings patches.
  *         'preload_paths'         => fn($paths, $post, $engine) => $paths,
  *         'block_categories'      => fn($categories, $context, $engine) => $categories,
  *         'server_block_settings' => fn($settings, $context, $engine) => $settings,
@@ -272,6 +277,24 @@ class Engine extends Handler {
 			if ( is_array( $provided ) ) {
 				$settings = $provided;
 			}
+		}
+
+		$mode = $this->resolve_context_value( $config['mode'] ?? null, $settings, $id, $config );
+		if ( is_string( $mode ) || is_array( $mode ) ) {
+			$settings['blocksEverywhere']['mode'] = $mode;
+		}
+
+		$modes = $this->resolve_context_value( $config['modes'] ?? null, $settings, $id, $config );
+		if ( is_array( $modes ) ) {
+			$settings['blocksEverywhere']['modes'] = array_merge( $settings['blocksEverywhere']['modes'] ?? [], $modes );
+		}
+
+		$settings_transforms = $this->resolve_context_value( $config['settings_transforms'] ?? null, $settings, $id, $config );
+		if ( is_array( $settings_transforms ) ) {
+			$settings['blocksEverywhere']['settingsTransforms'] = array_merge(
+				$settings['blocksEverywhere']['settingsTransforms'] ?? [],
+				array_values( $settings_transforms )
+			);
 		}
 
 		$allowed_blocks = $this->resolve_context_value( $config['allowed_blocks'] ?? null, $settings, $id, $config );

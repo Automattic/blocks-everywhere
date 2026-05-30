@@ -127,7 +127,53 @@ Mode selection should drive:
 - Placeholder text and starter content.
 - Autosave and submit behavior.
 
-Use current `blocksEverywhere.toolbar` settings for toolbar primitive opt-outs. Track broader mode-aware settings in [#56](https://github.com/Extra-Chill/blocks-everywhere/issues/56).
+Use `blocksEverywhere.mode`, `blocksEverywhere.modes`, and `blocksEverywhere.settingsTransforms` to keep mode-specific behavior as data instead of branching inside host UI code. Modes are generic names selected by the adapter, and each mode maps to an ordinary settings patch.
+
+```javascript
+window.blocksEverywhere.mountEditor( textarea, {
+	mode: [ 'reply', 'compact' ],
+	settings: {
+		blocksEverywhere: {
+			modes: {
+				reply: {
+					allowedBlocks: [ 'core/paragraph', 'core/list', 'core/image' ],
+					template: [ [ 'core/paragraph', { placeholder: 'Write a reply' } ] ],
+					templateLock: false,
+				},
+				compact: {
+					chrome: { mode: 'compact', documentSidebar: false, footer: false },
+					toolbar: { listView: false },
+					preferenceKey: 'reply-compact',
+				},
+			},
+		},
+	},
+} );
+```
+
+Server-side contexts can provide the same defaults before JavaScript mounts:
+
+```php
+add_filter( 'blocks_everywhere_contexts', function ( $contexts ) {
+	$contexts['frontend-reply'] = [
+		'type'                => 'reply',
+		'textarea'            => '#reply-content',
+		'container'           => '.reply-editor',
+		'mode'                => [ 'reply', 'compact' ],
+		'modes'               => [
+			'reply'   => [ 'allowedBlocks' => [ 'core/paragraph', 'core/list' ] ],
+			'compact' => [ 'chrome' => [ 'mode' => 'compact', 'footer' => false ] ],
+		],
+		'settings_transforms' => [
+			[ 'toolbar' => [ 'listView' => false ] ],
+		],
+	];
+
+	return $contexts;
+} );
+```
+
+The resolver applies transforms in order: server/global `settingsTransforms`, selected named modes, then per-mount `settingsTransforms`. Shorthand keys such as `allowedBlocks`, `disallowedBlocks`, `toolbar`, `chrome`, `sidebar`, `preferenceKey`, `template`, and `templateLock` are normalized into the existing editor settings shape, so the result remains composable with content bridges, chrome slots, server context, and injected services.
 
 ### Slot And Chrome Extension
 

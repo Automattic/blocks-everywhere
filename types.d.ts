@@ -161,6 +161,40 @@ declare interface Chrome {
 	inserterSidebar?: boolean;
 }
 
+declare interface BlocksEverywhereSettingsTransformContext {
+	mode?: string;
+	modes: string[];
+	options: BlocksEverywhereMountOptions;
+	settings: typeof wpBlocksEverywhere;
+	textarea: HTMLTextAreaElement | null;
+}
+
+declare type BlocksEverywhereSettingsTransform =
+	| Record< string, unknown >
+	| ( (
+		settings: typeof wpBlocksEverywhere,
+		context: BlocksEverywhereSettingsTransformContext
+	) => Record< string, unknown > | void );
+
+declare interface BlocksEverywhereModeSettings {
+	allowedBlocks?: string[];
+	disallowedBlocks?: string[];
+	blocks?: Partial< Blocks > & { disallowBlocks?: string[] };
+	chrome?: Chrome;
+	className?: string;
+	defaultPreferences?: Record< string, unknown >;
+	editor?: Record< string, unknown >;
+	features?: Record< string, unknown >;
+	preferenceKey?: string;
+	services?: Record< string, unknown >;
+	settingsTransforms?: BlocksEverywhereSettingsTransform[];
+	sidebar?: Record< string, unknown >;
+	template?: unknown[];
+	templateLock?: false | 'all' | 'insert';
+	toolbar?: Toolbar;
+	blocksEverywhere?: Partial< BlocksEverywhere >;
+}
+
 declare type BlocksEverywhereSlotName =
 	| 'footer'
 	| 'toolbar'
@@ -186,11 +220,18 @@ declare interface BlocksEverywhere {
 	toolbar?: Toolbar;
 	contentBridge?: ContentBridge;
 	chrome?: Chrome;
+	mode?: string | string[];
+	modes?: Record< string, BlocksEverywhereModeSettings | BlocksEverywhereSettingsTransform >;
+	preferenceKey?: string;
+	services?: Record< string, unknown >;
+	settingsTransforms?: BlocksEverywhereSettingsTransform[];
 }
 
 declare interface BlocksEverywhereMountOptions {
 	container?: HTMLElement | string | null;
-	settings?: typeof wpBlocksEverywhere;
+	mode?: string | string[];
+	settings?: Partial< typeof wpBlocksEverywhere >;
+	settingsTransforms?: BlocksEverywhereSettingsTransform[];
 }
 
 declare interface BlocksEverywhereMount {

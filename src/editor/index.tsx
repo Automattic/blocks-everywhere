@@ -65,7 +65,7 @@ export interface EditorMount {
 type EditorServiceContext = {
 	container?: HTMLElement;
 	editorType?: string;
-	mode?: ResolvedChromeConfig[ 'mode' ];
+	mode?: string;
 	settings: EditorMountSettings;
 	textarea?: HTMLTextAreaElement;
 };
@@ -119,7 +119,7 @@ function createServiceContext( settings, textarea?, container? ): EditorServiceC
 	return {
 		container,
 		editorType: settings?.editorType,
-		mode: resolveChromeConfig( settings?.blocksEverywhere?.chrome ).mode,
+		mode: normalizeModeNames( settings?.blocksEverywhere?.mode )[ 0 ],
 		settings,
 		textarea,
 	};
@@ -198,12 +198,12 @@ function resolvePermission(
 
 function resolveEditorServices( settings, mountServices?: EditorServices ): EditorServices {
 	const blocksEverywhere = settings?.blocksEverywhere || {};
-	const mode = resolveChromeConfig( blocksEverywhere.chrome ).mode;
+	const modes = normalizeModeNames( blocksEverywhere.mode );
 	const servicesByMode = blocksEverywhere.servicesByMode || {};
 
 	return {
 		...( blocksEverywhere.services || {} ),
-		...( servicesByMode?.[ mode ] || {} ),
+		...modes.reduce( ( services, mode ) => ( { ...services, ...( servicesByMode?.[ mode ] || {} ) } ), {} ),
 		...( mountServices || {} ),
 	};
 }
@@ -235,8 +235,12 @@ function getEntityBridgeEntity( settings ) {
 	}
 
 	const entity = isPlainObject( bridge.entity ) ? { ...bridge.entity } : {};
-	[ 'id', 'type', 'parentId', 'revision', 'authorId', 'capabilities', 'urls', 'metadata' ].forEach( ( key ) => {
-		if ( Object.prototype.hasOwnProperty.call( bridge, key ) ) {
+	Object.keys( bridge ).forEach( ( key ) => {
+		if ( [ 'entity', 'load', 'getEdits', 'saveEdits', 'reset' ].includes( key ) ) {
+			return;
+		}
+
+		if ( typeof bridge[ key ] !== 'function' ) {
 			entity[ key ] = bridge[ key ];
 		}
 	} );
@@ -577,6 +581,7 @@ const lifecycleCallbackNames = {
 	loaded: 'onLoaded',
 	input: 'onInput',
 	change: 'onChange',
+	'content-change': 'onContentChange',
 	save: 'onSave',
 	submit: 'onSubmit',
 	'focus-requested': 'onFocusRequested',
@@ -587,7 +592,7 @@ const lifecycleCallbackNames = {
 	unmounted: 'onUnmounted',
 };
 
-const hostAdapterContentEvents = new Set( [ 'input', 'change', 'save' ] );
+const hostAdapterContentEvents = new Set( [ 'input', 'change', 'content-change', 'save' ] );
 
 function getHostAdapter( settings ) {
 	const adapter = settings?.blocksEverywhere?.hostAdapter;
@@ -989,9 +994,11 @@ function createEditorContainer( container, textarea, settings ) {
 			runHostAdapterCallback( hostAdapter, callbackName, [ blocks, serialized, context ] );
 		}
 
+		runHostAdapterCallback( hostAdapter, 'onContentChange', [ blocks, serialized, context, { source: name } ] );
+		// Legacy portable adapter alias. Content edits are not persistence saves.
 		runHostAdapterCallback( hostAdapter, 'onSave', [ blocks, serialized, context, { source: name } ] );
 		emitLifecycle( name, { blocks, serialized, instance } );
-		emitLifecycle( 'save', { blocks, serialized, source: name, instance } );
+		emitLifecycle( 'content-change', { blocks, serialized, source: name, instance } );
 	};
 
 	const onFocusIn = () => {

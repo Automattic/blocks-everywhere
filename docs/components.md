@@ -408,7 +408,7 @@ settings.blocksEverywhere.hostAdapter = {
         container.classList.remove( 'is-loading' );
     },
 
-    onSave( blocks, serialized, context, { source } ) {
+    onContentChange( blocks, serialized, context, { source } ) {
         // Forward serialized content to host autosave or dirty-state logic.
     },
 
@@ -441,8 +441,10 @@ Content callbacks use content-first signatures:
 onContent( name, blocks, serialized, context )
 onInput( blocks, serialized, context )
 onChange( blocks, serialized, context )
-onSave( blocks, serialized, context, { source } )
+onContentChange( blocks, serialized, context, { source } )
 ```
+
+`onSave()` is kept only as a legacy portable-adapter alias for content-change forwarding. New adapters should reserve save wording for actual persistence operations.
 
 All host adapter callbacks are optional. Omitting the adapter preserves the
 default textarea-backed behavior.

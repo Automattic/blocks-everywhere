@@ -20,7 +20,7 @@
  *             'compact' => [ 'chrome' => [ 'mode' => 'compact' ] ],
  *         ],
  *         'settings_transforms'   => [ ... ],                 // Ordered static client-side settings patches.
- *         'entity_bridge'         => [ 'type' => 'draft', 'id' => 42 ], // Static host entity facts for the client bridge.
+ *         'entity_bridge'         => [ 'entity' => [ 'type' => 'draft', 'id' => 42 ] ], // Static host entity facts.
  *         'preload_paths'         => fn($paths, $post, $engine) => $paths,
  *         'block_categories'      => fn($categories, $context, $engine) => $categories,
  *         'server_block_settings' => fn($settings, $context, $engine) => $settings,
@@ -323,11 +323,36 @@ class Engine extends Handler {
 		if ( is_array( $entity_bridge ) ) {
 			$settings['blocksEverywhere']['entityBridge'] = array_merge(
 				$settings['blocksEverywhere']['entityBridge'] ?? [],
-				$entity_bridge
+				$this->normalize_entity_bridge( $entity_bridge )
 			);
 		}
 
 		return $settings;
+	}
+
+	/**
+	 * Normalize entity bridge config to the canonical nested entity shape.
+	 *
+	 * @param array $entity_bridge Entity bridge config.
+	 * @return array Normalized entity bridge config.
+	 */
+	private function normalize_entity_bridge( $entity_bridge ) {
+		$entity = isset( $entity_bridge['entity'] ) && is_array( $entity_bridge['entity'] )
+			? $entity_bridge['entity']
+			: [];
+		$reserved_keys = [ 'entity', 'load', 'getEdits', 'saveEdits', 'reset' ];
+
+		foreach ( $entity_bridge as $key => $value ) {
+			if ( in_array( $key, $reserved_keys, true ) ) {
+				continue;
+			}
+
+			$entity[ $key ] = $value;
+		}
+
+		$entity_bridge['entity'] = $entity;
+
+		return $entity_bridge;
 	}
 
 	/**

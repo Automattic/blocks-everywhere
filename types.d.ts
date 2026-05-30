@@ -65,6 +65,7 @@ declare type BlocksEverywhereLifecycleEventName =
 	| 'loaded'
 	| 'input'
 	| 'change'
+	| 'content-change'
 	| 'save'
 	| 'submit'
 	| 'focus-requested'
@@ -110,6 +111,7 @@ declare interface BlocksEverywhereLifecycleCallbacks {
 	onLoaded?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
 	onInput?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
 	onChange?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
+	onContentChange?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
 	onSave?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
 	onSubmit?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
 	onFocusRequested?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
@@ -157,6 +159,13 @@ declare interface BlocksEverywhereHostAdapter {
 	) => void;
 	onInput?: ( blocks: object[], serialized: string, context: BlocksEverywhereHostAdapterContext ) => void;
 	onChange?: ( blocks: object[], serialized: string, context: BlocksEverywhereHostAdapterContext ) => void;
+	onContentChange?: (
+		blocks: object[],
+		serialized: string,
+		context: BlocksEverywhereHostAdapterContext,
+		meta: { source: 'input' | 'change' }
+	) => void;
+	/** Legacy alias for content-change forwarding; persistence saves should use explicit host callbacks. */
 	onSave?: (
 		blocks: object[],
 		serialized: string,
@@ -167,7 +176,7 @@ declare interface BlocksEverywhereHostAdapter {
 
 declare interface Chrome {
 	/** Layout mode class applied to the editor shell. Default: inline. */
-	mode?: 'inline' | 'full-height' | 'modal' | 'compact';
+	mode?: string;
 	/** Host-owned bar above the primary toolbar. Default: false. */
 	topBar?: boolean;
 	/** Primary toolbar row. Default: true. */
@@ -259,8 +268,17 @@ declare interface BlocksEverywhereEntityBridgeEdits {
 	[ key: string ]: unknown;
 }
 
-declare interface BlocksEverywhereEntityBridge extends BlocksEverywhereEntityBridgeEntity {
+declare interface BlocksEverywhereEntityBridge {
 	entity?: BlocksEverywhereEntityBridgeEntity;
+	/** Legacy shorthand fields are copied into entity after entity metadata. */
+	id?: string | number;
+	type?: string;
+	parentId?: string | number;
+	revision?: string | number;
+	authorId?: string | number;
+	capabilities?: Record< string, unknown >;
+	urls?: Record< string, string >;
+	metadata?: Record< string, unknown >;
 	load?: ( context: BlocksEverywhereEntityBridgeContext ) => object[] | string | void;
 	getEdits?: ( context: BlocksEverywhereEntityBridgeContext ) => BlocksEverywhereEntityBridgeEdits | void;
 	saveEdits?: (
@@ -268,6 +286,7 @@ declare interface BlocksEverywhereEntityBridge extends BlocksEverywhereEntityBri
 		context: BlocksEverywhereEntityBridgeContext
 	) => void;
 	reset?: ( context: BlocksEverywhereEntityBridgeContext ) => void;
+	[ key: string ]: unknown;
 }
 
 declare interface BlocksEverywhereSettingsTransformContext {

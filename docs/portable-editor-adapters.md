@@ -254,11 +254,14 @@ window.blocksEverywhere.mountEditor( textarea, {
 		blocksEverywhere: {
 			...wpBlocksEverywhere.blocksEverywhere,
 			entityBridge: {
-				type: 'comment',
-				id: 42,
-				parentId: 7,
-				revision: 'rev-abc123',
-				capabilities: { edit: true, uploadMedia: false },
+				entity: {
+					type: 'comment',
+					id: 42,
+					parentId: 7,
+					revision: 'rev-abc123',
+					capabilities: { edit: true, uploadMedia: false },
+					metadata: { lockedBy: null },
+				},
 				load( context ) {
 					return hostDrafts.getInitialBlocks( context.entity );
 				},
@@ -279,6 +282,8 @@ window.blocksEverywhere.mountEditor( textarea, {
 
 `entityBridge.load()` can return parsed blocks or serialized block markup. If it returns nothing, Blocks Everywhere falls back to the content bridge or textarea content. `saveEdits()` receives `{ blocks, serialized, content, source, entity }` plus any object returned by `getEdits()`. `reset()` is exposed as `mount.resetEntity()` so hosts can clear stale entity state when focus moves between editor instances.
 
+Prefer `entityBridge.entity` for entity identity and metadata. Top-level identity fields such as `type`, `id`, `parentId`, `revision`, `capabilities`, `urls`, `metadata`, and custom non-callback fields are treated as shorthand and copied into the entity object for legacy adapters.
+
 Canonical WordPress post editing still uses `settings.postEntity` and `PostEntityShell`; `entityBridge` is the generic host-record bridge for everything else.
 
 ### Service Injection
@@ -294,7 +299,7 @@ Useful services include:
 -   `notify`: show success, warning, and error notices.
 -   `telemetry`: record editor lifecycle and performance events.
 
-Inject services through `settings.blocksEverywhere.services`, `settings.blocksEverywhere.servicesByMode`, or the second argument to `window.blocksEverywhere.mountEditor()`. Mount-level services win over mode-level services, and mode-level services win over the base service map. Passing `null` for a service disables the corresponding default where the editor owns that behavior.
+Inject services through `settings.blocksEverywhere.services`, `settings.blocksEverywhere.servicesByMode`, or the second argument to `window.blocksEverywhere.mountEditor()`. `servicesByMode` keys match selected semantic editor modes from `blocksEverywhere.mode` or `mountEditor( textarea, { mode } )`; they do not resolve against chrome layout mode. Services merge in order: base services, each selected semantic mode in order, then mount-level services. Passing `null` for a service disables the corresponding default where the editor owns that behavior.
 
 ```javascript
 const mount = window.blocksEverywhere.mountEditor( textarea, {
@@ -323,9 +328,10 @@ window.blocksEverywhere.mountEditor( textarea, {
 		...wpBlocksEverywhere,
 		blocksEverywhere: {
 			...wpBlocksEverywhere.blocksEverywhere,
+			mode: [ 'comment-composer', 'restricted-media' ],
 			chrome: { mode: 'compact' },
 			servicesByMode: {
-				compact: {
+				'restricted-media': {
 					mediaUpload: null,
 					permissions: { canUploadMedia: false },
 				},
@@ -380,9 +386,9 @@ const settings = {
                 const contentApi = getContentApi();
                 // Content API is available after the editor React tree mounts.
             },
-            onSave( blocks, serialized, context, { source } ) {
+            onContentChange( blocks, serialized, context, { source } ) {
                 // Source is "input" or "change". Forward serialized content to
-                // the host persistence layer, autosave scheduler, or dirty state.
+                // the host autosave scheduler, validation layer, or dirty state.
             },
             onUnmounted( { metadata } ) {
                 // Clear host UI associated with this editor instance.
@@ -397,11 +403,13 @@ const mount = window.blocksEverywhere.mountEditor( textarea, { settings } );
 The adapter composes with the other portable APIs:
 
 - Use `setup()` to register slot fills and return their unregister callbacks.
-- Use `onSave()` with the content bridge's serialized block output.
+- Use `onContentChange()` with the content bridge's serialized block output.
 - Use `metadata` or `blocksEverywhere.hostContext` for server-bootstrapped
   entity facts.
 - Use `onLoaded`, `onSubmit`, `onError`, `onBeforeUnmount`, and `onUnmounted`
   for lifecycle coordination without custom polling.
+
+`hostAdapter.onSave()` remains as a legacy alias for `onContentChange()` during the portable adapter migration. Treat save wording as persistence-specific in new adapters.
 
 ### Server-Side Context Bootstrapping
 

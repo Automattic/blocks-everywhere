@@ -2,6 +2,7 @@
  * WordPress dependencies
  */
 import { MediaUpload } from '@wordpress/media-utils';
+import apiFetch from '@wordpress/api-fetch';
 import {
 	BlockEditorProvider,
 	mediaUpload as blockEditorMediaUpload,
@@ -31,6 +32,7 @@ export type EditorMountSettings = typeof wpBlocksEverywhere;
 export interface EditorMountOptions {
 	container?: HTMLElement | string | null;
 	mode?: string | string[];
+	services?: EditorServices;
 	settings?: Partial< EditorMountSettings >;
 	settingsTransforms?: SettingsTransform[];
 }
@@ -54,7 +56,151 @@ export interface EditorMount {
 	unmount: () => void;
 }
 
+type EditorServiceContext = {
+	container?: HTMLElement;
+	editorType?: string;
+	mode?: ResolvedChromeConfig[ 'mode' ];
+	settings: EditorMountSettings;
+	textarea?: HTMLTextAreaElement;
+};
+
+type EditorAutosaveService =
+	| ( ( payload: Record< string, unknown >, context: EditorServiceContext ) => unknown )
+	| {
+			delay?: number;
+			save?: ( payload: Record< string, unknown >, context: EditorServiceContext ) => unknown;
+			cancel?: ( context: EditorServiceContext ) => void;
+	  }
+	| null;
+
+type EditorNoticeService =
+	| ( ( type: string, message: string, context: EditorServiceContext, details?: unknown ) => void )
+	| {
+			error?: ( message: string, context: EditorServiceContext, details?: unknown ) => void;
+			success?: ( message: string, context: EditorServiceContext, details?: unknown ) => void;
+			warning?: ( message: string, context: EditorServiceContext, details?: unknown ) => void;
+			info?: ( message: string, context: EditorServiceContext, details?: unknown ) => void;
+	  }
+	| null;
+
+type EditorPermissionsService = {
+	can?: ( capability: string, context: EditorServiceContext ) => boolean | undefined;
+	canUploadMedia?: boolean | ( ( context: EditorServiceContext ) => boolean | undefined );
+} | null;
+
+export interface EditorServices {
+	apiFetch?: ( options: Record< string, unknown > ) => Promise< unknown >;
+	apiFetchMiddleware?: ( options: Record< string, unknown >, next: Function ) => unknown;
+	apiFetchMiddlewares?: Array< ( options: Record< string, unknown >, next: Function ) => unknown >;
+	autosave?: EditorAutosaveService;
+	fetchLinkSuggestions?: ( search: string, searchOptions?: Record< string, unknown > ) => Promise< unknown >;
+	mediaUpload?: Function | null;
+	notices?: EditorNoticeService;
+	permissions?: EditorPermissionsService;
+}
+
 const mountedEditors = new WeakMap< HTMLTextAreaElement, EditorMount >();
+
+function toArray< T >( value: T | T[] | undefined ): T[] {
+	if ( Array.isArray( value ) ) {
+		return value;
+	}
+
+	return value ? [ value ] : [];
+}
+
+function createServiceContext( settings, textarea?, container? ): EditorServiceContext {
+	return {
+		container,
+		editorType: settings?.editorType,
+		mode: resolveChromeConfig( settings?.blocksEverywhere?.chrome ).mode,
+		settings,
+		textarea,
+	};
+}
+
+function notifyService(
+	services: EditorServices,
+	type: string,
+	message: string,
+	context: EditorServiceContext,
+	details?
+) {
+	const notices = services?.notices;
+
+	try {
+		if ( typeof notices === 'function' ) {
+			notices( type, message, context, details );
+			return;
+		}
+
+		notices?.[ type ]?.( message, context, details );
+	} catch ( error ) {
+		// eslint-disable-next-line no-console
+		console.error( 'Blocks Everywhere: notice service failed', error );
+	}
+}
+
+function createScopedApiFetch( services: EditorServices ) {
+	const baseApiFetch = typeof services?.apiFetch === 'function' ? services.apiFetch : apiFetch;
+	const middlewares = [ ...toArray( services?.apiFetchMiddleware ), ...toArray( services?.apiFetchMiddlewares ) ];
+
+	return middlewares.reduceRight(
+		( next, middleware ) => ( options ) => middleware( options, next ),
+		( options ) => baseApiFetch( options )
+	);
+}
+
+function resolvePermission(
+	services: EditorServices,
+	capability: string,
+	context: EditorServiceContext,
+	fallback: boolean
+) {
+	const permissions = services?.permissions;
+
+	if ( ! permissions ) {
+		return fallback;
+	}
+
+	try {
+		const delegated = permissions.can?.( capability, context );
+		if ( typeof delegated === 'boolean' ) {
+			return delegated;
+		}
+
+		if ( capability === 'uploadMedia' ) {
+			const uploadPermission = permissions.canUploadMedia;
+			if ( typeof uploadPermission === 'function' ) {
+				const value = uploadPermission( context );
+				if ( typeof value === 'boolean' ) {
+					return value;
+				}
+			}
+
+			if ( typeof uploadPermission === 'boolean' ) {
+				return uploadPermission;
+			}
+		}
+	} catch ( error ) {
+		// eslint-disable-next-line no-console
+		console.error( 'Blocks Everywhere: permissions service failed', error );
+	}
+
+	return fallback;
+}
+
+function resolveEditorServices( settings, mountServices?: EditorServices ): EditorServices {
+	const blocksEverywhere = settings?.blocksEverywhere || {};
+	const mode = resolveChromeConfig( blocksEverywhere.chrome ).mode;
+	const servicesByMode = blocksEverywhere.servicesByMode || {};
+
+	return {
+		...( blocksEverywhere.services || {} ),
+		...( servicesByMode?.[ mode ] || {} ),
+		...( mountServices || {} ),
+	};
+}
 
 /**
  * Inline block inserter panel rendered into the detached sidebar portal.
@@ -557,6 +703,9 @@ function createEditorContainer( container, textarea, settings ) {
 	const root = createRoot( container );
 	const cleanupCallbacks = [];
 	const hostAdapter = getHostAdapter( settings );
+	const services: EditorServices = settings?.blocksEverywhere?.services || {};
+	const serviceContext = createServiceContext( settings, textarea, container );
+	const scopedApiFetch = createScopedApiFetch( services );
 
 	const bbpress = settings?.bbpress || {};
 	const bbpressIsTopicEdit = Boolean( bbpress?.isTopicEdit );
@@ -566,8 +715,13 @@ function createEditorContainer( container, textarea, settings ) {
 	const bbpressMediaEndpoint = bbpress?.mediaEndpoint || null;
 	const blocksEverywhereMediaEndpoint = settings?.blocksEverywhere?.mediaUploadEndpoint || null;
 	const configuredMediaUploadEndpoint = bbpressMediaEndpoint || blocksEverywhereMediaEndpoint || null;
-	const hasBbpressMediaUploadSupport =
-		settings?.editor?.hasUploadPermissions === true && Boolean( configuredMediaUploadEndpoint );
+	const hasUploadPermission = resolvePermission(
+		services,
+		'uploadMedia',
+		serviceContext,
+		settings?.editor?.hasUploadPermissions === true
+	);
+	const hasBbpressMediaUploadSupport = hasUploadPermission && Boolean( configuredMediaUploadEndpoint );
 
 	let currentForumId = bbpress?.forumId ? Number( bbpress.forumId ) : 0;
 	let autosaveTimer = null;
@@ -622,6 +776,7 @@ function createEditorContainer( container, textarea, settings ) {
 			emitLifecycle( 'focus-requested', { instance } );
 			focusEditor( container );
 		},
+		services,
 		textarea,
 		unmount: () => unmountEditor( textarea ),
 	};
@@ -668,6 +823,24 @@ function createEditorContainer( container, textarea, settings ) {
 		}
 
 		try {
+			if ( services?.apiFetch || services?.apiFetchMiddleware || services?.apiFetchMiddlewares ) {
+				return scopedApiFetch( {
+					url: url.toString(),
+					method,
+					signal: controller.signal,
+					headers: {
+						...restHeaders,
+						'Content-Type': 'application/json',
+					},
+					body:
+						method === 'DELETE' || method === 'GET'
+							? undefined
+							: payload
+							? JSON.stringify( payload )
+							: undefined,
+				} );
+			}
+
 			const response = await window.fetch( url.toString(), {
 				method,
 				credentials: 'same-origin',
@@ -782,6 +955,27 @@ function createEditorContainer( container, textarea, settings ) {
 
 		return null;
 	};
+	const hasInjectedAutosaveService = Object.prototype.hasOwnProperty.call( services, 'autosave' );
+	const injectedAutosave = services?.autosave;
+	const getAutosaveDelay = () => {
+		if ( injectedAutosave && typeof injectedAutosave === 'object' && typeof injectedAutosave.delay === 'number' ) {
+			return injectedAutosave.delay;
+		}
+
+		return 800;
+	};
+	const saveWithInjectedAutosave = async ( payload ) => {
+		if ( ! injectedAutosave ) {
+			return;
+		}
+
+		if ( typeof injectedAutosave === 'function' ) {
+			await injectedAutosave( payload, serviceContext );
+			return;
+		}
+
+		await injectedAutosave.save?.( payload, serviceContext );
+	};
 
 	const shouldAutorestoreDraft = () => {
 		if ( ! textarea ) {
@@ -863,6 +1057,48 @@ function createEditorContainer( container, textarea, settings ) {
 		}
 
 		lastSerializedContent = typeof content === 'string' ? content : '';
+		if ( hasInjectedAutosaveService ) {
+			if ( injectedAutosave === null ) {
+				return;
+			}
+
+			const draft = buildDraftPayload( lastSerializedContent, forumIdOverride );
+			const payload = draft || {
+				content: lastSerializedContent,
+				editorType: settings?.editorType || '',
+				textareaName: textarea?.name || '',
+			};
+			const payloadString = JSON.stringify( payload );
+
+			if ( payloadString === lastSavedPayload ) {
+				return;
+			}
+
+			if ( autosaveTimer ) {
+				clearTimeout( autosaveTimer );
+			}
+
+			autosaveTimer = setTimeout( async () => {
+				if ( isSubmitting || isContextSwitching ) {
+					return;
+				}
+
+				try {
+					await saveWithInjectedAutosave( payload );
+					lastSavedPayload = payloadString;
+				} catch ( error ) {
+					if ( error?.name === 'AbortError' ) {
+						return;
+					}
+
+					notifyService( services, 'error', 'Autosave failed.', serviceContext, error );
+					// eslint-disable-next-line no-console
+					console.error( 'Blocks Everywhere: injected autosave failed', error );
+				}
+			}, getAutosaveDelay() );
+			return;
+		}
+
 		const draft = buildDraftPayload( lastSerializedContent, forumIdOverride );
 		if ( ! draft ) {
 			return;
@@ -1230,7 +1466,19 @@ function createEditorContainer( container, textarea, settings ) {
 		maybeInstallForumMoveHandler();
 		maybeInstallSubmitHandler();
 		maybeInstallReplyDraftContextHandler();
+	}
 
+	if ( services?.fetchLinkSuggestions !== undefined ) {
+		settings.editor.__experimentalFetchLinkSuggestions = services.fetchLinkSuggestions || undefined;
+	}
+
+	if ( services?.mediaUpload !== undefined ) {
+		settings.editor.mediaUpload = services.mediaUpload || null;
+
+		if ( services.mediaUpload ) {
+			addFilter( 'editor.MediaUpload', 'blocks-everywhere/media-upload', () => MediaUpload );
+		}
+	} else if ( settings?.editorType === 'bbpress' ) {
 		if ( ! hasBbpressMediaUploadSupport ) {
 			settings.editor.mediaUpload = null;
 		} else {
@@ -1258,7 +1506,7 @@ function createEditorContainer( container, textarea, settings ) {
 
 			addFilter( 'editor.MediaUpload', 'blocks-everywhere/media-upload', () => MediaUpload );
 		}
-	} else if ( settings?.editor?.hasUploadPermissions ) {
+	} else if ( hasUploadPermission ) {
 		// Prefer block-editor mediaUpload; fall back to legacy editor if absent.
 		const resolvedMediaUpload = blockEditorMediaUpload || legacyMediaUpload || null;
 		settings.editor.mediaUpload = resolvedMediaUpload;
@@ -1295,6 +1543,10 @@ function createEditorContainer( container, textarea, settings ) {
 
 		if ( autosaveTimer ) {
 			clearTimeout( autosaveTimer );
+		}
+
+		if ( injectedAutosave && typeof injectedAutosave === 'object' ) {
+			injectedAutosave.cancel?.( serviceContext );
 		}
 
 		draftRequestControllers.forEach( ( controller ) => controller.abort() );
@@ -1523,6 +1775,8 @@ function resolveMountSettings(
 	if ( modes.length > 0 ) {
 		resolvedSettings.blocksEverywhere.mode = modes.length === 1 ? modes[ 0 ] : modes;
 	}
+
+	resolvedSettings.blocksEverywhere.services = resolveEditorServices( resolvedSettings, options.services );
 
 	resolveAllowedBlocks( resolvedSettings );
 

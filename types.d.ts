@@ -41,9 +41,18 @@ declare interface ContentBridge {
 	/** Override serialized block markup before any save forwarding runs. */
 	serialize?: ( blocks: object[], context: ContentBridgeContext, helpers: ContentBridgeHelpers ) => string | void;
 	/** Receive parsed blocks and serialized markup whenever editor content changes. */
-	save?: ( blocks: object[], serialized: string, context: ContentBridgeContext, helpers: ContentBridgeHelpers ) => void;
+	save?: (
+		blocks: object[],
+		serialized: string,
+		context: ContentBridgeContext,
+		helpers: ContentBridgeHelpers
+	) => void;
 	/** Transform hot replacement content before it is parsed into the mounted editor. */
-	replaceContent?: ( content: string, context: ContentBridgeContext, helpers: ContentBridgeHelpers ) => object[] | string | void;
+	replaceContent?: (
+		content: string,
+		context: ContentBridgeContext,
+		helpers: ContentBridgeHelpers
+	) => object[] | string | void;
 }
 
 declare type BlocksEverywhereLifecycleEventName =
@@ -65,6 +74,7 @@ declare type BlocksEverywhereLifecycleEventName =
 declare interface BlocksEverywhereEditorInstance {
 	container: HTMLElement;
 	focus: () => void;
+	services?: BlocksEverywhereEditorServices;
 	textarea: HTMLTextAreaElement;
 	unmount: () => void;
 }
@@ -161,6 +171,49 @@ declare interface Chrome {
 	inserterSidebar?: boolean;
 }
 
+declare interface BlocksEverywhereEditorServiceContext {
+	container?: HTMLElement;
+	editorType?: string;
+	mode?: 'inline' | 'full-height' | 'modal' | 'compact';
+	settings: typeof wpBlocksEverywhere;
+	textarea?: HTMLTextAreaElement;
+}
+
+declare interface BlocksEverywherePermissionsService {
+	can?: ( capability: string, context: BlocksEverywhereEditorServiceContext ) => boolean | undefined;
+	canUploadMedia?: boolean | ( ( context: BlocksEverywhereEditorServiceContext ) => boolean | undefined );
+}
+
+declare type BlocksEverywhereAutosaveService =
+	| ( ( payload: Record< string, unknown >, context: BlocksEverywhereEditorServiceContext ) => unknown )
+	| {
+			delay?: number;
+			save?: ( payload: Record< string, unknown >, context: BlocksEverywhereEditorServiceContext ) => unknown;
+			cancel?: ( context: BlocksEverywhereEditorServiceContext ) => void;
+	  }
+	| null;
+
+declare type BlocksEverywhereNoticesService =
+	| ( ( type: string, message: string, context: BlocksEverywhereEditorServiceContext, details?: unknown ) => void )
+	| {
+			error?: ( message: string, context: BlocksEverywhereEditorServiceContext, details?: unknown ) => void;
+			success?: ( message: string, context: BlocksEverywhereEditorServiceContext, details?: unknown ) => void;
+			warning?: ( message: string, context: BlocksEverywhereEditorServiceContext, details?: unknown ) => void;
+			info?: ( message: string, context: BlocksEverywhereEditorServiceContext, details?: unknown ) => void;
+	  }
+	| null;
+
+declare interface BlocksEverywhereEditorServices {
+	apiFetch?: ( options: Record< string, unknown > ) => Promise< unknown >;
+	apiFetchMiddleware?: ( options: Record< string, unknown >, next: Function ) => unknown;
+	apiFetchMiddlewares?: Array< ( options: Record< string, unknown >, next: Function ) => unknown >;
+	autosave?: BlocksEverywhereAutosaveService;
+	fetchLinkSuggestions?: ( search: string, searchOptions?: Record< string, unknown > ) => Promise< unknown >;
+	mediaUpload?: Function | null;
+	notices?: BlocksEverywhereNoticesService;
+	permissions?: BlocksEverywherePermissionsService | null;
+}
+
 declare interface BlocksEverywhereSettingsTransformContext {
 	mode?: string;
 	modes: string[];
@@ -186,7 +239,8 @@ declare interface BlocksEverywhereModeSettings {
 	editor?: Record< string, unknown >;
 	features?: Record< string, unknown >;
 	preferenceKey?: string;
-	services?: Record< string, unknown >;
+	services?: BlocksEverywhereEditorServices;
+	servicesByMode?: Record< string, BlocksEverywhereEditorServices >;
 	settingsTransforms?: BlocksEverywhereSettingsTransform[];
 	sidebar?: Record< string, unknown >;
 	template?: unknown[];
@@ -223,13 +277,15 @@ declare interface BlocksEverywhere {
 	mode?: string | string[];
 	modes?: Record< string, BlocksEverywhereModeSettings | BlocksEverywhereSettingsTransform >;
 	preferenceKey?: string;
-	services?: Record< string, unknown >;
+	services?: BlocksEverywhereEditorServices;
+	servicesByMode?: Record< string, BlocksEverywhereEditorServices >;
 	settingsTransforms?: BlocksEverywhereSettingsTransform[];
 }
 
 declare interface BlocksEverywhereMountOptions {
 	container?: HTMLElement | string | null;
 	mode?: string | string[];
+	services?: BlocksEverywhereEditorServices;
 	settings?: Partial< typeof wpBlocksEverywhere >;
 	settingsTransforms?: BlocksEverywhereSettingsTransform[];
 }
@@ -268,10 +324,19 @@ declare const wpBlocksEverywhere: {
 
 declare const wp: {
 	hooks: {
-		addFilter: ( hookName: string, namespace: string, callback: ( ...args: unknown[] ) => unknown, priority?: number ) => void;
+		addFilter: (
+			hookName: string,
+			namespace: string,
+			callback: ( ...args: unknown[] ) => unknown,
+			priority?: number
+		) => void;
 	};
 	element: {
-		createElement: ( type: string | ( ( props: unknown ) => JSX.Element ), props?: Record< string, unknown > | null, ...children: unknown[] ) => JSX.Element;
+		createElement: (
+			type: string | ( ( props: unknown ) => JSX.Element ),
+			props?: Record< string, unknown > | null,
+			...children: unknown[]
+		) => JSX.Element;
 	};
 	blocks?: {
 		unregisterBlockVariation?: ( blockName: string, variationName: string ) => void;

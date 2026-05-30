@@ -59,18 +59,18 @@ Second-wave work should extend these surfaces instead of introducing another glo
 
 ## Capability Map
 
-| Migration concern | Adapter responsibility | Blocks Everywhere responsibility | Tracking issue |
-|-------------------|------------------------|----------------------------------|----------------|
-| Dynamic mount/unmount | Decide when an editor instance exists and provide a stable container or textarea target. | Provide a public instance API that can mount, unmount, and clean up dynamic editors. | [#50](https://github.com/Extra-Chill/blocks-everywhere/issues/50) |
-| Lifecycle events | React to editor ready, focus, loading, dirty, save, and teardown states. | Emit generic lifecycle events per editor instance. | [#51](https://github.com/Extra-Chill/blocks-everywhere/issues/51), [#58](https://github.com/Extra-Chill/blocks-everywhere/issues/58) |
-| Content bridges | Load initial serialized blocks and save edited serialized blocks through the host persistence layer. | Normalize content read/write beyond textarea mirroring. | [#52](https://github.com/Extra-Chill/blocks-everywhere/issues/52) |
-| Custom stores/context | Register host data needed by blocks or chrome without coupling the editor to host internals. | Accept per-instance data stores and context injection. | [#53](https://github.com/Extra-Chill/blocks-everywhere/issues/53) |
-| Slot/chrome extension | Render host actions, status, and metadata in editor-owned chrome. | Provide stable slot APIs for toolbar, heading, footer, and additional host-owned chrome areas. | [#54](https://github.com/Extra-Chill/blocks-everywhere/issues/54) |
-| Initial transforms/templates | Convert legacy content, empty states, starter blocks, or host templates before the first edit. | Support initial transforms, starter patterns, and template bootstrapping. | [#55](https://github.com/Extra-Chill/blocks-everywhere/issues/55) |
-| Editor modes | Select the mode for a post, comment, reply, draft, compact composer, or read-modify-save flow. | Apply mode-aware settings transforms. | [#56](https://github.com/Extra-Chill/blocks-everywhere/issues/56) |
-| Host entity bridges | Map host entity IDs, revisions, authors, parents, URLs, and capabilities to the editor instance. | Provide a generic host entity bridge beyond canonical WordPress posts. | [#57](https://github.com/Extra-Chill/blocks-everywhere/issues/57) |
-| Service injection | Provide fetch, media, autosave, upload, mention, notification, or telemetry services. | Accept per-instance editor services without global coupling. | [#59](https://github.com/Extra-Chill/blocks-everywhere/issues/59) |
-| Server-side bootstrapping | Emit editor settings, nonce data, allowed blocks, entity context, and initial content on the page. | Make server-side context bootstrapping extensible for frontend applications. | [#60](https://github.com/Extra-Chill/blocks-everywhere/issues/60) |
+| Migration concern            | Adapter responsibility                                                                               | Blocks Everywhere responsibility                                                               | Tracking issue                                                                                                                       |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Dynamic mount/unmount        | Decide when an editor instance exists and provide a stable container or textarea target.             | Provide a public instance API that can mount, unmount, and clean up dynamic editors.           | [#50](https://github.com/Extra-Chill/blocks-everywhere/issues/50)                                                                    |
+| Lifecycle events             | React to editor ready, focus, loading, dirty, save, and teardown states.                             | Emit generic lifecycle events per editor instance.                                             | [#51](https://github.com/Extra-Chill/blocks-everywhere/issues/51), [#58](https://github.com/Extra-Chill/blocks-everywhere/issues/58) |
+| Content bridges              | Load initial serialized blocks and save edited serialized blocks through the host persistence layer. | Normalize content read/write beyond textarea mirroring.                                        | [#52](https://github.com/Extra-Chill/blocks-everywhere/issues/52)                                                                    |
+| Custom stores/context        | Register host data needed by blocks or chrome without coupling the editor to host internals.         | Accept per-instance data stores and context injection.                                         | [#53](https://github.com/Extra-Chill/blocks-everywhere/issues/53)                                                                    |
+| Slot/chrome extension        | Render host actions, status, and metadata in editor-owned chrome.                                    | Provide stable slot APIs for toolbar, heading, footer, and additional host-owned chrome areas. | [#54](https://github.com/Extra-Chill/blocks-everywhere/issues/54)                                                                    |
+| Initial transforms/templates | Convert legacy content, empty states, starter blocks, or host templates before the first edit.       | Support initial transforms, starter patterns, and template bootstrapping.                      | [#55](https://github.com/Extra-Chill/blocks-everywhere/issues/55)                                                                    |
+| Editor modes                 | Select the mode for a post, comment, reply, draft, compact composer, or read-modify-save flow.       | Apply mode-aware settings transforms.                                                          | [#56](https://github.com/Extra-Chill/blocks-everywhere/issues/56)                                                                    |
+| Host entity bridges          | Map host entity IDs, revisions, authors, parents, URLs, and capabilities to the editor instance.     | Provide a generic host entity bridge beyond canonical WordPress posts.                         | [#57](https://github.com/Extra-Chill/blocks-everywhere/issues/57)                                                                    |
+| Service injection            | Provide fetch, media, autosave, upload, mention, notification, or telemetry services.                | Accept per-instance editor services without global coupling.                                   | [#59](https://github.com/Extra-Chill/blocks-everywhere/issues/59)                                                                    |
+| Server-side bootstrapping    | Emit editor settings, nonce data, allowed blocks, entity context, and initial content on the page.   | Make server-side context bootstrapping extensible for frontend applications.                   | [#60](https://github.com/Extra-Chill/blocks-everywhere/issues/60)                                                                    |
 
 ## Adapter Responsibilities
 
@@ -80,10 +80,10 @@ Use a host adapter when the editor is not a static page-load enhancement. Common
 
 The adapter should:
 
-- Create a stable editor target for each instance.
-- Pass an instance key that remains stable for the lifetime of the edit session.
-- Unmount the editor when the host route, modal, drawer, or list item is removed.
-- Release host listeners, pending requests, and slot registrations during teardown.
+-   Create a stable editor target for each instance.
+-   Pass an instance key that remains stable for the lifetime of the edit session.
+-   Unmount the editor when the host route, modal, drawer, or list item is removed.
+-   Release host listeners, pending requests, and slot registrations during teardown.
 
 Use the public mount/unmount API from [#50](https://github.com/Extra-Chill/blocks-everywhere/issues/50) for dynamic editor instances instead of inventing host-specific global mount APIs.
 
@@ -108,10 +108,10 @@ Some embedded editors need host data while editing: current entity, viewer capab
 
 The adapter should:
 
-- Register only the stores the editor instance needs.
-- Scope data to the editor instance instead of relying on ambient globals.
-- Treat host context as read-only unless the bridge explicitly supports writes.
-- Keep sensitive values behind host services rather than serializing them into editor settings.
+-   Register only the stores the editor instance needs.
+-   Scope data to the editor instance instead of relying on ambient globals.
+-   Treat host context as read-only unless the bridge explicitly supports writes.
+-   Keep sensitive values behind host services rather than serializing them into editor settings.
 
 Use [#53](https://github.com/Extra-Chill/blocks-everywhere/issues/53) for gaps where custom data stores or per-instance context cannot yet be injected cleanly.
 
@@ -121,11 +121,11 @@ Different host surfaces usually need different editor modes. A full post editor,
 
 Mode selection should drive:
 
-- Allowed blocks and transforms.
-- Toolbar density and visible panels.
-- Whether media, embeds, link UI, document tools, and block tools are available.
-- Placeholder text and starter content.
-- Autosave and submit behavior.
+-   Allowed blocks and transforms.
+-   Toolbar density and visible panels.
+-   Whether media, embeds, link UI, document tools, and block tools are available.
+-   Placeholder text and starter content.
+-   Autosave and submit behavior.
 
 Use `blocksEverywhere.mode`, `blocksEverywhere.modes`, and `blocksEverywhere.settingsTransforms` to keep mode-specific behavior as data instead of branching inside host UI code. Modes are generic names selected by the adapter, and each mode maps to an ordinary settings patch.
 
@@ -181,27 +181,24 @@ Host UI that belongs with the editor should render through Slots instead of wrap
 
 Good slot fill candidates include:
 
-- Submit, save, cancel, preview, or discard buttons.
-- Status indicators such as saving, saved, failed, offline, pending review, or locked.
-- Entity metadata such as parent title, destination, visibility, or draft label.
-- Compact help text or policy notices that should remain attached to the editor.
+-   Submit, save, cancel, preview, or discard buttons.
+-   Status indicators such as saving, saved, failed, offline, pending review, or locked.
+-   Entity metadata such as parent title, destination, visibility, or draft label.
+-   Compact help text or policy notices that should remain attached to the editor.
 
 Use the existing `window.blocksEverywhere.registerSlotFill( slot, renderFn )` API for `footer`, `toolbar`, `heading`, `topBar`, `actions`, `secondaryToolbar`, `documentSidebar`, `inserterSidebar`, and `windowControls` slots.
 
 ```javascript
-const unregister = window.blocksEverywhere.registerSlotFill(
-	'footer',
-	( textarea ) => {
-		return window.wp.element.createElement(
-			'button',
-			{
-				type: 'button',
-				onClick: () => textarea.form?.requestSubmit(),
-			},
-			'Save draft'
-		);
-	}
-);
+const unregister = window.blocksEverywhere.registerSlotFill( 'footer', ( textarea ) => {
+	return window.wp.element.createElement(
+		'button',
+		{
+			type: 'button',
+			onClick: () => textarea.form?.requestSubmit(),
+		},
+		'Save draft'
+	);
+} );
 
 // Call during host teardown.
 unregister();
@@ -213,11 +210,11 @@ A host entity bridge describes what is being edited without pretending every sur
 
 Bridge data can include:
 
-- Entity type, ID, parent ID, and revision token.
-- Author or viewer capability summary.
-- Canonical URL, edit URL, preview URL, or API route.
-- Save intent such as publish, submit, update, reply, or save draft.
-- Locking, conflict, or freshness metadata.
+-   Entity type, ID, parent ID, and revision token.
+-   Author or viewer capability summary.
+-   Canonical URL, edit URL, preview URL, or API route.
+-   Save intent such as publish, submit, update, reply, or save draft.
+-   Locking, conflict, or freshness metadata.
 
 Keep the editor API generic by passing entity facts instead of host-specific objects. Track missing entity bridge support in [#57](https://github.com/Extra-Chill/blocks-everywhere/issues/57).
 
@@ -227,14 +224,55 @@ Services are functions the editor can call without learning host internals.
 
 Useful services include:
 
-- `apiFetch`: authenticated host requests.
-- `media`: upload, select, or validate media.
-- `autosave`: save draft content without submitting the host form.
-- `mentions`: resolve autocomplete suggestions.
-- `notify`: show success, warning, and error notices.
-- `telemetry`: record editor lifecycle and performance events.
+-   `apiFetch`: authenticated host requests.
+-   `media`: upload, select, or validate media.
+-   `autosave`: save draft content without submitting the host form.
+-   `mentions`: resolve autocomplete suggestions.
+-   `notify`: show success, warning, and error notices.
+-   `telemetry`: record editor lifecycle and performance events.
 
-Inject services per instance where possible. Avoid mutating global WordPress packages or relying on a single global service registry for multiple editors. Track this work in [#59](https://github.com/Extra-Chill/blocks-everywhere/issues/59).
+Inject services through `settings.blocksEverywhere.services`, `settings.blocksEverywhere.servicesByMode`, or the second argument to `window.blocksEverywhere.mountEditor()`. Mount-level services win over mode-level services, and mode-level services win over the base service map. Passing `null` for a service disables the corresponding default where the editor owns that behavior.
+
+```javascript
+const mount = window.blocksEverywhere.mountEditor( textarea, {
+	services: {
+		mediaUpload: ( uploadOptions ) => hostUploadMedia( uploadOptions ),
+		fetchLinkSuggestions: ( search, options ) => hostSuggestLinks( search, options ),
+		autosave: {
+			delay: 1200,
+			save: ( payload, context ) => hostSaveDraft( context.textarea, payload.content ),
+		},
+		notices: {
+			error: ( message ) => hostToast( 'error', message ),
+		},
+		permissions: {
+			can: ( capability ) => capability === 'uploadMedia' && hostCanUpload(),
+		},
+	},
+} );
+```
+
+Use `servicesByMode` when the same page hosts multiple editor modes with different capabilities:
+
+```javascript
+window.blocksEverywhere.mountEditor( textarea, {
+	settings: {
+		...wpBlocksEverywhere,
+		blocksEverywhere: {
+			...wpBlocksEverywhere.blocksEverywhere,
+			chrome: { mode: 'compact' },
+			servicesByMode: {
+				compact: {
+					mediaUpload: null,
+					permissions: { canUploadMedia: false },
+				},
+			},
+		},
+	},
+} );
+```
+
+For BE-owned REST calls, `apiFetchMiddleware` and `apiFetchMiddlewares` compose into a per-instance API client instead of registering global `apiFetch.use()` middleware. WordPress package internals may still use the package-level client, so prefer explicit `mediaUpload`, `fetchLinkSuggestions`, and `autosave` services when a behavior must differ between editor instances.
 
 ### Lifecycle Events
 
@@ -308,13 +346,13 @@ Server-side bootstrapping should produce the initial editor contract for a host 
 
 Bootstrap data usually includes:
 
-- Editor instance key and mode.
-- Initial serialized content or template seed.
-- Allowed blocks, embeds, styles, and toolbar settings.
-- Current entity bridge data.
-- Nonce or request metadata needed by injected services.
-- Viewer capability summary.
-- Feature flags and host URLs.
+-   Editor instance key and mode.
+-   Initial serialized content or template seed.
+-   Allowed blocks, embeds, styles, and toolbar settings.
+-   Current entity bridge data.
+-   Nonce or request metadata needed by injected services.
+-   Viewer capability summary.
+-   Feature flags and host URLs.
 
 Keep bootstrap payloads minimal and auditable. Do not serialize secrets or broad user/session objects into page settings. Use [#60](https://github.com/Extra-Chill/blocks-everywhere/issues/60) for missing extension points in frontend app bootstrapping.
 
@@ -367,10 +405,10 @@ Use this as documentation vocabulary, not a required implementation object until
 
 Use this checklist to decide whether Blocks Everywhere can replace a bespoke embedded editor shell for a host surface.
 
-- The host can represent edited content as serialized block markup at the adapter boundary.
-- The host can identify each editor instance with stable entity and instance keys.
-- Required host UI can be rendered outside the editor or through slots.
-- Required host data can be passed as explicit context, store data, or service calls.
-- The editor mode can be described with settings rather than a forked shell.
-- The host can bootstrap initial settings server-side or through a clear frontend app payload.
-- Open gaps are generic enough to map to issues [#50](https://github.com/Extra-Chill/blocks-everywhere/issues/50)-[#60](https://github.com/Extra-Chill/blocks-everywhere/issues/60).
+-   The host can represent edited content as serialized block markup at the adapter boundary.
+-   The host can identify each editor instance with stable entity and instance keys.
+-   Required host UI can be rendered outside the editor or through slots.
+-   Required host data can be passed as explicit context, store data, or service calls.
+-   The editor mode can be described with settings rather than a forked shell.
+-   The host can bootstrap initial settings server-side or through a clear frontend app payload.
+-   Open gaps are generic enough to map to issues [#50](https://github.com/Extra-Chill/blocks-everywhere/issues/50)-[#60](https://github.com/Extra-Chill/blocks-everywhere/issues/60).

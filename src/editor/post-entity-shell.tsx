@@ -18,19 +18,18 @@
  */
 
 /**
+ * External dependencies
+ */
+import type { ReactElement, ReactNode } from 'react';
+
+/**
  * WordPress dependencies
  */
-import { useEffect, useRef } from '@wordpress/element';
-import { useDispatch, useSelect } from '@wordpress/data';
-import { store as coreStore } from '@wordpress/core-data';
-import {
-	AutosaveMonitor,
-	EditorProvider,
-	LocalAutosaveMonitor,
-	store as editorStore,
-} from '@wordpress/editor';
 import { serialize } from '@wordpress/blocks';
-import type { ReactElement, ReactNode } from 'react';
+import { store as coreStore } from '@wordpress/core-data';
+import { useDispatch, useSelect } from '@wordpress/data';
+import { useEffect, useRef } from '@wordpress/element';
+import { AutosaveMonitor, EditorProvider, LocalAutosaveMonitor, store as editorStore } from '@wordpress/editor';
 
 export interface PostEntityRef {
 	/** Post type slug, e.g. 'post', 'page', or any registered CPT. */
@@ -54,6 +53,9 @@ interface PostEntityShellProps {
  * Skips dispatch when serialized content matches the current edited content
  * to avoid feedback loops with `<EditorProvider>`'s own `useEntityBlockEditor`
  * sync. Cheap stringify; the autosave debounce is the real throttle.
+ *
+ * @param root0        Component props.
+ * @param root0.blocks Current block list from the BlockEditorProvider tree.
  */
 export function EditorEditsBridge( { blocks }: { blocks: object[] } ): null {
 	const { editPost } = useDispatch( editorStore );
@@ -61,8 +63,9 @@ export function EditorEditsBridge( { blocks }: { blocks: object[] } ): null {
 
 	const editedContent = useSelect(
 		( select ) =>
-			( select( editorStore ) as { getEditedPostAttribute?: ( name: string ) => unknown } )
-				.getEditedPostAttribute?.( 'content' ) as string | undefined,
+			(
+				select( editorStore ) as { getEditedPostAttribute?: ( name: string ) => unknown }
+			 ).getEditedPostAttribute?.( 'content' ) as string | undefined,
 		[]
 	);
 
@@ -87,6 +90,11 @@ export function EditorEditsBridge( { blocks }: { blocks: object[] } ): null {
  *
  * Split out so that the entity-fetch hook only runs when we actually have a
  * postEntity to fetch (the parent gates this branch).
+ *
+ * @param root0                Component props.
+ * @param root0.postEntity     Canonical post entity reference.
+ * @param root0.editorSettings Editor settings passed to EditorProvider.
+ * @param root0.children       Children rendered inside the provider tree.
  */
 function EditorShell( {
 	postEntity,
@@ -99,17 +107,11 @@ function EditorShell( {
 } ): ReactElement {
 	const post = useSelect(
 		( select ) =>
-			( select( coreStore ) as {
-				getEntityRecord: (
-					kind: string,
-					name: string,
-					id: number
-				) => unknown;
-			} ).getEntityRecord(
-				'postType',
-				postEntity.type,
-				postEntity.id
-			),
+			(
+				select( coreStore ) as {
+					getEntityRecord: ( kind: string, name: string, id: number ) => unknown;
+				}
+			 ).getEntityRecord( 'postType', postEntity.type, postEntity.id ),
 		[ postEntity.type, postEntity.id ]
 	);
 
@@ -139,10 +141,7 @@ export default function PostEntityShell( {
 	}
 
 	return (
-		<EditorShell
-			postEntity={ postEntity }
-			editorSettings={ editorSettings || {} }
-		>
+		<EditorShell postEntity={ postEntity } editorSettings={ editorSettings || {} }>
 			{ children }
 		</EditorShell>
 	);

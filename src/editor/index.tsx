@@ -22,7 +22,7 @@ import { useDispatch } from '@wordpress/data';
 import BuddyPress from './buddypress';
 import ContentBridge from './content-bridge';
 import DetachedSidebar from './detached-sidebar';
-import EmbeddedEditorShell, { type ResolvedToolbarConfig } from './embedded-editor-shell';
+import EmbeddedEditorShell, { type ResolvedChromeConfig, type ResolvedToolbarConfig } from './embedded-editor-shell';
 import PostEntityShell, { EditorEditsBridge, type PostEntityRef } from './post-entity-shell';
 import { RegisteredSlotFills } from './slot-fills';
 
@@ -282,6 +282,22 @@ function resolveToolbarConfig(
 	return requested;
 }
 
+function resolveChromeConfig( raw: Partial< ResolvedChromeConfig > | undefined ): ResolvedChromeConfig {
+	const mode = [ 'inline', 'full-height', 'modal', 'compact' ].includes( String( raw?.mode ) )
+		? ( raw?.mode as ResolvedChromeConfig[ 'mode' ] )
+		: 'inline';
+
+	return {
+		mode,
+		topBar: raw?.topBar === true,
+		toolbar: raw?.toolbar !== false,
+		secondaryToolbar: raw?.secondaryToolbar === true,
+		footer: raw?.footer !== false,
+		documentSidebar: raw?.documentSidebar === true,
+		inserterSidebar: raw?.inserterSidebar === true,
+	};
+}
+
 function ensureSeededBlocks( blocks ) {
 	if ( Array.isArray( blocks ) && blocks.length > 0 ) {
 		return blocks;
@@ -319,6 +335,7 @@ function EmbeddedBlockEditor( { children, className, onChange, onError, onInput,
 	// inserter suppression). Defaults match the upstream wp-admin post editor:
 	// every primitive on, consumers opt OUT individually.
 	const toolbar = resolveToolbarConfig( settings?.blocksEverywhere?.toolbar, suppressToolbarInserter );
+	const chrome = resolveChromeConfig( settings?.blocksEverywhere?.chrome );
 
 	const updateBlocks = useCallback(
 		( nextBlocks ) => {
@@ -361,6 +378,7 @@ function EmbeddedBlockEditor( { children, className, onChange, onError, onInput,
 				useSubRegistry={ false }
 			>
 				<EmbeddedEditorShell
+					chrome={ chrome }
 					toolbar={ toolbar }
 					styles={ settings.editor?.styles || [] }
 					className={ className }

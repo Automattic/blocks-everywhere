@@ -299,8 +299,8 @@ if ( editorSettings?.bbpress ) {
 
 ### Slot Fill API
 
-Host pages can render React content into IBE's footer / toolbar / heading
-slots via `window.blocksEverywhere.registerSlotFill( slot, renderFn )`.
+Host pages can render React content into BE's editor chrome slots via
+`window.blocksEverywhere.registerSlotFill( slot, renderFn )`.
 
 This is the preferred way to surface action chrome (submit buttons, save
 buttons, status indicators, etc.) inside the editor skeleton — content
@@ -311,7 +311,9 @@ mode, because the slots live inside the IBE skeleton itself.
 
 ```typescript
 window.blocksEverywhere.registerSlotFill(
-    slot: 'footer' | 'toolbar' | 'heading',
+    slot: 'footer' | 'toolbar' | 'heading' | 'actions' | 'topBar' |
+        'windowControls' | 'secondaryToolbar' | 'documentSidebar' |
+        'inserterSidebar',
     renderFn: ( textarea: HTMLTextAreaElement ) => ReactNode
 ): () => void
 ```
@@ -408,11 +410,36 @@ function HostComposer() {
 
 **Slots**:
 
-| Slot | IBE component | Where it renders |
-|------|---------------|------------------|
-| `footer` | `FooterSlot` / `ActionArea` | Bottom of editor skeleton (`.edit-post-layout__footer`) |
-| `toolbar` | `ToolbarSlot` | Editor header toolbar |
-| `heading` | `EditorHeadingSlot` | Above the visual canvas |
+| Slot | Where it renders |
+|------|------------------|
+| `heading` | Start of the primary toolbar row |
+| `toolbar` | End of the primary toolbar row, after built-in toolbar primitives |
+| `actions` | End of the primary toolbar row for publish/save/status controls |
+| `footer` | Bottom of the editor shell |
+| `topBar` | Optional host-owned bar above the primary toolbar |
+| `windowControls` | Optional controls in the top bar, useful for modal/windowed shells |
+| `secondaryToolbar` | Optional host-owned row below the primary toolbar |
+| `documentSidebar` | Optional persistent panel before the editor canvas |
+| `inserterSidebar` | Optional persistent panel after the editor canvas |
+
+Optional regions are enabled through `settings.blocksEverywhere.chrome`:
+
+```php
+add_filter( 'blocks_everywhere_editor_settings', function ( $settings ) {
+    $settings['blocksEverywhere']['chrome'] = array(
+        'mode'             => 'compact',
+        'topBar'           => true,
+        'secondaryToolbar' => true,
+        'documentSidebar'  => true,
+    );
+
+    return $settings;
+} );
+```
+
+The supported `mode` values are `inline`, `full-height`, `modal`, and
+`compact`. The mode adds a layout class to the shell; hosts can use the
+same slot API across inline, full-height, modal, and compact editor layouts.
 
 **Why this pattern matters**: BE mounts IBE inside its own SlotFillProvider,
 so a `<Slot>` rendered outside that provider will not see fills from

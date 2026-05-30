@@ -88,6 +88,44 @@
 	// without locking the iframe to a fixed minimum that would clip oversized
 	// content or burst out of shorter host containers.
 
+	.blocks-everywhere-editor__top-bar,
+	.blocks-everywhere-editor__secondary-toolbar {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-xs, 4px);
+		padding: var(--spacing-xs, 4px) var(--spacing-sm, 8px);
+		background-color: var(--background-color);
+		color: var(--text-color);
+		border-bottom: 1px solid var(--border-color);
+	}
+
+	.blocks-everywhere-editor__top-bar {
+		justify-content: space-between;
+	}
+
+	.blocks-everywhere-editor__body-row {
+		display: flex;
+		flex: 1;
+		min-height: 0;
+	}
+
+	.blocks-everywhere-editor__sidebar {
+		box-sizing: border-box;
+		width: min(280px, 35%);
+		min-width: 220px;
+		overflow: auto;
+		background-color: var(--background-color);
+		color: var(--text-color);
+	}
+
+	.blocks-everywhere-editor__sidebar--document {
+		border-right: 1px solid var(--border-color);
+	}
+
+	.blocks-everywhere-editor__sidebar--inserter {
+		border-left: 1px solid var(--border-color);
+	}
+
 	// Body fills the remaining space below the toolbar. `min-height: 0`
 	// is required so the flex item can shrink below its content's
 	// intrinsic height — without it, an iframe taller than the available
@@ -96,6 +134,23 @@
 	.blocks-everywhere-editor__body {
 		flex: 1;
 		min-height: 0;
+	}
+
+	&.blocks-everywhere-editor--compact {
+		min-height: 0;
+
+		.blocks-everywhere-editor__toolbar {
+			min-height: 40px;
+		}
+
+		iframe[name="editor-canvas"] {
+			min-height: 200px;
+		}
+	}
+
+	&.blocks-everywhere-editor--modal,
+	&.blocks-everywhere-editor--full-height {
+		height: 100%;
 	}
 
 	// Default canvas iframe sizing. Gutenberg's `<BlockCanvas height="100%">`

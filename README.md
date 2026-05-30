@@ -73,6 +73,7 @@ Some settings are available through the settings object, which is filterable wit
 `blocksEverywhere.__experimentalOnInput` - An optional callback that is triggered when text is input.
 `blocksEverywhere.__experimentalOnSelection` - An optional callback when a block is selected.
 `blocksEverywhere.toolbar` - Per-primitive opt-out for the editor toolbar (see below). Default matches the upstream wp-admin post editor.
+`blocksEverywhere.chrome` - Editor shell region configuration (see below). Lets hosts enable extra chrome slots or hide built-in chrome without replacing the editor shell.
 
 #### Toolbar configuration
 
@@ -105,6 +106,41 @@ add_filter( 'blocks_everywhere_editor_settings', function ( $settings ) {
 		'listView' => false,
 		// `inserter` and `blockTools` default to true.
 	);
+	return $settings;
+} );
+```
+
+#### Chrome configuration and slots
+
+`blocksEverywhere.chrome` controls editor shell regions. Existing editor chrome stays unchanged by default: the primary toolbar and footer render, while optional host-owned regions are disabled until enabled.
+
+| Key | Default | Description |
+| --- | ------- | ----------- |
+| `mode` | `inline` | Adds a layout class for `inline`, `full-height`, `modal`, or `compact` editor shells. |
+| `topBar` | `false` | Enables the `topBar` and `windowControls` slots above the primary toolbar. |
+| `toolbar` | `true` | Shows the primary toolbar row. Set `false` when a host fully replaces toolbar chrome. |
+| `secondaryToolbar` | `false` | Enables a host-owned row below the primary toolbar. |
+| `footer` | `true` | Shows the footer slot. |
+| `documentSidebar` | `false` | Enables a persistent host-owned panel before the canvas. |
+| `inserterSidebar` | `false` | Enables a persistent host-owned panel after the canvas. |
+
+Register fills with `window.blocksEverywhere.registerSlotFill( slot, renderFn )`. Supported slots are `heading`, `toolbar`, `actions`, `footer`, `topBar`, `windowControls`, `secondaryToolbar`, `documentSidebar`, and `inserterSidebar`.
+
+```php
+add_filter( 'blocks_everywhere_editor_settings', function ( $settings ) {
+	$settings['blocksEverywhere']['chrome'] = array(
+		'mode'            => 'modal',
+		'topBar'          => true,
+		'secondaryToolbar' => true,
+		'documentSidebar' => true,
+	);
+
+	$settings['blocksEverywhere']['toolbar'] = array(
+		'undo'     => false,
+		'redo'     => false,
+		'listView' => false,
+	);
+
 	return $settings;
 } );
 ```

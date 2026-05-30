@@ -1,8 +1,8 @@
 /**
  * Slot Fill API for Blocks Everywhere.
  *
- * Lets host pages render React content into the editor footer / toolbar / heading
- * slots without being inside BE's React tree. Consumers register render
+ * Lets host pages render React content into editor chrome slots without
+ * being inside BE's React tree. Consumers register render
  * functions before any editor mounts; BE reads the registry while rendering
  * the embedded editor and inserts the resulting React nodes as children.
  *
@@ -12,7 +12,9 @@
  * Public API (also exposed on `window.blocksEverywhere`):
  *
  *   registerSlotFill( slot, renderFn )
- *     - slot: 'footer' | 'toolbar' | 'heading'
+ *     - slot: 'footer' | 'toolbar' | 'heading' | 'topBar' | 'actions' |
+ *       'secondaryToolbar' | 'documentSidebar' | 'inserterSidebar' |
+ *       'windowControls'
  *     - renderFn: ( textarea ) => ReactNode
  *     - Returns an unregister function.
  *
@@ -37,7 +39,16 @@ import { createElement, Fragment, useEffect, useState } from '@wordpress/element
  */
 import type { ReactNode } from 'react';
 
-export type SlotName = 'footer' | 'toolbar' | 'heading';
+export type SlotName =
+	| 'footer'
+	| 'toolbar'
+	| 'heading'
+	| 'topBar'
+	| 'actions'
+	| 'secondaryToolbar'
+	| 'documentSidebar'
+	| 'inserterSidebar'
+	| 'windowControls';
 
 export type SlotFillRenderFn = ( textarea: HTMLTextAreaElement ) => ReactNode;
 
@@ -48,18 +59,34 @@ type RegistryEntry = {
 
 type Registry = Record< SlotName, RegistryEntry[] >;
 
-const SLOT_NAMES: SlotName[] = [ 'footer', 'toolbar', 'heading' ];
+const SLOT_NAMES: SlotName[] = [
+	'footer',
+	'toolbar',
+	'heading',
+	'topBar',
+	'actions',
+	'secondaryToolbar',
+	'documentSidebar',
+	'inserterSidebar',
+	'windowControls',
+];
+
+const slotFillName = ( slot: SlotName ): string => `blocks-everywhere/${ slot }`;
+
+function ChromeSlot( { children, slot }: { children: ReactNode; slot: SlotName } ): JSX.Element {
+	return createElement( Fill, { name: slotFillName( slot ) }, children ) as unknown as JSX.Element;
+}
 
 export function FooterSlot( { children }: { children: ReactNode } ): JSX.Element {
-	return createElement( Fill, { name: 'blocks-everywhere/footer' }, children ) as unknown as JSX.Element;
+	return createElement( ChromeSlot, { slot: 'footer' }, children ) as unknown as JSX.Element;
 }
 
 export function ToolbarSlot( { children }: { children: ReactNode } ): JSX.Element {
-	return createElement( Fill, { name: 'blocks-everywhere/toolbar' }, children ) as unknown as JSX.Element;
+	return createElement( ChromeSlot, { slot: 'toolbar' }, children ) as unknown as JSX.Element;
 }
 
 export function EditorHeadingSlot( { children }: { children: ReactNode } ): JSX.Element {
-	return createElement( Fill, { name: 'blocks-everywhere/heading' }, children ) as unknown as JSX.Element;
+	return createElement( ChromeSlot, { slot: 'heading' }, children ) as unknown as JSX.Element;
 }
 
 /**
@@ -71,6 +98,12 @@ const registry: Registry = {
 	footer: [],
 	toolbar: [],
 	heading: [],
+	topBar: [],
+	actions: [],
+	secondaryToolbar: [],
+	documentSidebar: [],
+	inserterSidebar: [],
+	windowControls: [],
 };
 
 const subscribers = new Set< () => void >();
@@ -97,11 +130,11 @@ const notify = (): void => {
  * Registrations made after mount are picked up via the subscription system —
  * already-mounted editors re-render with the new fill list.
  *
- * @param slot     Which slot to fill: 'footer', 'toolbar', or 'heading'.
- * @param renderFn Callback invoked once per editor mount with that editor's
- *                 textarea. Should return a ReactNode (use
- *                 `wp.element.createElement` from outside React trees).
- * @return         Function that, when called, unregisters this fill.
+ * @param  slot     Which editor chrome slot to fill.
+ * @param  renderFn Callback invoked once per editor mount with that editor's
+ *                  textarea. Should return a ReactNode (use
+ *                  `wp.element.createElement` from outside React trees).
+ * @return {Function} Function that, when called, unregisters this fill.
  */
 export function registerSlotFill( slot: SlotName, renderFn: SlotFillRenderFn ): () => void {
 	if ( ! isValidSlot( slot ) ) {
@@ -132,7 +165,8 @@ export function registerSlotFill( slot: SlotName, renderFn: SlotFillRenderFn ): 
 /**
  * Read the current entries for a slot. Internal — use the React component
  * `<RegisteredSlotFills>` to consume entries reactively.
- * @param slot
+ * @param  slot
+ * @return {RegistryEntry[]} Registered entries for the requested slot.
  */
 export function getSlotEntries( slot: SlotName ): RegistryEntry[] {
 	return registry[ slot ].slice();
@@ -140,7 +174,8 @@ export function getSlotEntries( slot: SlotName ): RegistryEntry[] {
 
 /**
  * Subscribe to registry changes. Returns an unsubscribe function.
- * @param callback
+ * @param  callback
+ * @return {Function} Unsubscribe callback.
  */
 export function subscribe( callback: () => void ): () => void {
 	subscribers.add( callback );
@@ -182,7 +217,7 @@ export function RegisteredSlotFills( { textarea }: RegisteredSlotFillsProps ): J
 	// Force re-read whenever registrations change.
 	useRegistryVersion();
 
-	const renderEntries = ( slot: SlotName, SlotComponent: typeof FooterSlot ) => {
+	const renderEntries = ( slot: SlotName ) => {
 		const entries = getSlotEntries( slot );
 		if ( entries.length === 0 ) {
 			return null;
@@ -201,15 +236,13 @@ export function RegisteredSlotFills( { textarea }: RegisteredSlotFillsProps ): J
 				return null;
 			}
 
-			return createElement( SlotComponent, { key: `${ slot }-${ entry.id }` }, node );
+			return createElement( ChromeSlot, { key: `${ slot }-${ entry.id }`, slot }, node );
 		} );
 	};
 
 	return createElement(
 		Fragment,
 		null,
-		renderEntries( 'footer', FooterSlot ),
-		renderEntries( 'toolbar', ToolbarSlot ),
-		renderEntries( 'heading', EditorHeadingSlot )
+		...SLOT_NAMES.map( ( slot ) => renderEntries( slot ) )
 	) as unknown as JSX.Element;
 }

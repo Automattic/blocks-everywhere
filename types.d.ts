@@ -83,6 +83,34 @@ declare interface BlocksEverywhereLifecycleCallbacks {
 	onEvent?: ( name: BlocksEverywhereLifecycleEventName, detail: BlocksEverywhereLifecycleEventDetail ) => void;
 }
 
+declare interface Chrome {
+	/** Layout mode class applied to the editor shell. Default: inline. */
+	mode?: 'inline' | 'full-height' | 'modal' | 'compact';
+	/** Host-owned bar above the primary toolbar. Default: false. */
+	topBar?: boolean;
+	/** Primary toolbar row. Default: true. */
+	toolbar?: boolean;
+	/** Host-owned row below the primary toolbar. Default: false. */
+	secondaryToolbar?: boolean;
+	/** Footer action area. Default: true. */
+	footer?: boolean;
+	/** Host-owned sidebar before the editor canvas. Default: false. */
+	documentSidebar?: boolean;
+	/** Host-owned sidebar after the editor canvas. Default: false. */
+	inserterSidebar?: boolean;
+}
+
+declare type BlocksEverywhereSlotName =
+	| 'footer'
+	| 'toolbar'
+	| 'heading'
+	| 'topBar'
+	| 'actions'
+	| 'secondaryToolbar'
+	| 'documentSidebar'
+	| 'inserterSidebar'
+	| 'windowControls';
+
 declare interface BlocksEverywhere {
 	allowEmbeds: string[];
 	blocks: Blocks;
@@ -94,6 +122,7 @@ declare interface BlocksEverywhere {
 	className?: string;
 	toolbar?: Toolbar;
 	contentBridge?: ContentBridge;
+	chrome?: Chrome;
 }
 
 declare interface BlocksEverywhereMountOptions {
@@ -160,7 +189,7 @@ declare interface Window {
 		getContentApi: ( textarea: HTMLTextAreaElement ) => BlocksEverywhereContentApi | null;
 		getEditor: ( textarea: HTMLTextAreaElement ) => BlocksEverywhereEditorInstance | null;
 		registerSlotFill: (
-			slot: 'footer' | 'toolbar' | 'heading',
+			slot: BlocksEverywhereSlotName,
 			renderFn: ( textarea: HTMLTextAreaElement ) => unknown
 		) => () => void;
 	};

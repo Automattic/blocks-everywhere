@@ -91,9 +91,21 @@ export interface ResolvedToolbarConfig {
 	blockTools: boolean;
 }
 
+export interface ResolvedChromeConfig {
+	mode: 'inline' | 'full-height' | 'modal' | 'compact';
+	topBar: boolean;
+	toolbar: boolean;
+	secondaryToolbar: boolean;
+	footer: boolean;
+	documentSidebar: boolean;
+	inserterSidebar: boolean;
+}
+
 interface EmbeddedEditorShellProps {
 	/** Resolved toolbar configuration (already merged with persistent-sidebar suppression). */
 	toolbar: ResolvedToolbarConfig;
+	/** Resolved shell chrome configuration. */
+	chrome: ResolvedChromeConfig;
 	/** Editor styles passed through to the iframe canvas. */
 	styles?: unknown[];
 	/** Optional extra className applied to the editor wrapper. */
@@ -150,51 +162,86 @@ function ListViewToggle(): JSX.Element {
  *                        etc. Rendered after the canvas body.
  */
 export default function EmbeddedEditorShell( props: EmbeddedEditorShellProps ): JSX.Element {
-	const { toolbar, styles, className, children } = props;
+	const { chrome, toolbar, styles, className, children } = props;
+	const editorClassName = [
+		'blocks-everywhere-editor',
+		'block-editor',
+		`blocks-everywhere-editor--${ chrome.mode }`,
+		className || '',
+	]
+		.filter( Boolean )
+		.join( ' ' );
+
 	return (
 		<>
-			<div className={ `blocks-everywhere-editor block-editor ${ className || '' }` }>
-				<div className="blocks-everywhere-editor__toolbar">
-					<Slot name="blocks-everywhere/heading" />
-					{ toolbar.inserter && <Inserter rootClientId={ null } /> }
-					{ toolbar.undo && <EditorHistoryUndo /> }
-					{ toolbar.redo && <EditorHistoryRedo /> }
-					{ toolbar.listView && <ListViewToggle /> }
-					{ toolbar.blockTools && <BlockToolbar hideDragHandle /> }
-					<Slot name="blocks-everywhere/toolbar" />
+			<div className={ editorClassName }>
+				{ chrome.topBar && (
+					<div className="blocks-everywhere-editor__top-bar">
+						<Slot name="blocks-everywhere/topBar" />
+						<Slot name="blocks-everywhere/windowControls" />
+					</div>
+				) }
+				{ chrome.toolbar && (
+					<div className="blocks-everywhere-editor__toolbar">
+						<Slot name="blocks-everywhere/heading" />
+						{ toolbar.inserter && <Inserter rootClientId={ null } /> }
+						{ toolbar.undo && <EditorHistoryUndo /> }
+						{ toolbar.redo && <EditorHistoryRedo /> }
+						{ toolbar.listView && <ListViewToggle /> }
+						{ toolbar.blockTools && <BlockToolbar hideDragHandle /> }
+						<Slot name="blocks-everywhere/toolbar" />
+						<Slot name="blocks-everywhere/actions" />
+					</div>
+				) }
+				{ chrome.secondaryToolbar && (
+					<div className="blocks-everywhere-editor__secondary-toolbar">
+						<Slot name="blocks-everywhere/secondaryToolbar" />
+					</div>
+				) }
+				<div className="blocks-everywhere-editor__body-row">
+					{ chrome.documentSidebar && (
+						<aside className="blocks-everywhere-editor__sidebar blocks-everywhere-editor__sidebar--document">
+							<Slot name="blocks-everywhere/documentSidebar" />
+						</aside>
+					) }
+					<div className="blocks-everywhere-editor__body">
+						<BlockEditorKeyboardShortcuts />
+						<BlockEditorKeyboardShortcuts.Register />
+						<BlockTools>
+							<WritingFlow>
+								<ObserveTyping>
+									{ /*
+									 * `<BlockCanvas>` defaults `height` to `'300px'` (see
+									 * `@wordpress/block-editor/src/components/block-canvas/index.js`)
+									 * and sets that as an inline style on its wrapping
+									 * `<BlockTools>` div. The iframe inside
+									 * (`.block-editor-iframe__container` and
+									 * `.block-editor-iframe__scale-container`, both
+									 * `height: 100%`) then resolves to a hard 300px tall
+									 * canvas regardless of how much vertical room the host
+									 * gives BE.
+									 *
+									 * wp-admin's `<VisualEditor>` (and the old IBE
+									 * `visual-editor.js`) both pass `height="100%"` here
+									 * and rely on the editor wrapper being a flex column
+									 * so the canvas fills the remaining space below the
+									 * toolbar. We do the same: `height="100%"` here, paired
+									 * with `display: flex; flex-direction: column` on
+									 * `.blocks-everywhere-editor` and `flex: 1` on
+									 * `.blocks-everywhere-editor__body` (see editor.scss).
+									 */ }
+									<BlockCanvas height="100%" styles={ ( styles as never ) || [] } />
+								</ObserveTyping>
+							</WritingFlow>
+						</BlockTools>
+					</div>
+					{ chrome.inserterSidebar && (
+						<aside className="blocks-everywhere-editor__sidebar blocks-everywhere-editor__sidebar--inserter">
+							<Slot name="blocks-everywhere/inserterSidebar" />
+						</aside>
+					) }
 				</div>
-				<div className="blocks-everywhere-editor__body">
-					<BlockEditorKeyboardShortcuts />
-					<BlockEditorKeyboardShortcuts.Register />
-					<BlockTools>
-						<WritingFlow>
-							<ObserveTyping>
-								{ /*
-								 * `<BlockCanvas>` defaults `height` to `'300px'` (see
-								 * `@wordpress/block-editor/src/components/block-canvas/index.js`)
-								 * and sets that as an inline style on its wrapping
-								 * `<BlockTools>` div. The iframe inside
-								 * (`.block-editor-iframe__container` and
-								 * `.block-editor-iframe__scale-container`, both
-								 * `height: 100%`) then resolves to a hard 300px tall
-								 * canvas regardless of how much vertical room the host
-								 * gives BE.
-								 *
-								 * wp-admin's `<VisualEditor>` (and the old IBE
-								 * `visual-editor.js`) both pass `height="100%"` here
-								 * and rely on the editor wrapper being a flex column
-								 * so the canvas fills the remaining space below the
-								 * toolbar. We do the same: `height="100%"` here, paired
-								 * with `display: flex; flex-direction: column` on
-								 * `.blocks-everywhere-editor` and `flex: 1` on
-								 * `.blocks-everywhere-editor__body` (see editor.scss).
-								 */ }
-								<BlockCanvas height="100%" styles={ ( styles as never ) || [] } />
-							</ObserveTyping>
-						</WritingFlow>
-					</BlockTools>
-				</div>
-				<Slot name="blocks-everywhere/footer" />
+				{ chrome.footer && <Slot name="blocks-everywhere/footer" /> }
 			</div>
 			{ children }
 		</>

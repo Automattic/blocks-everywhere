@@ -35,6 +35,7 @@ export interface EditorMountOptions {
 
 export interface EditorMount {
 	container: HTMLElement;
+	focus: () => void;
 	textarea: HTMLTextAreaElement;
 	unmount: () => void;
 }
@@ -171,12 +172,59 @@ function createContentBridgeController( textarea, settings ) {
 	};
 }
 
+const lifecycleCallbackNames = {
+	'before-load': 'onBeforeLoad',
+	loaded: 'onLoaded',
+	'focus-requested': 'onFocusRequested',
+	focused: 'onFocused',
+	blurred: 'onBlurred',
+	error: 'onError',
+	'before-unmount': 'onBeforeUnmount',
+	unmounted: 'onUnmounted',
+};
+
 function setLoaded( container ) {
 	const closest = container.closest( '.blocks-everywhere-editor__loading' );
 
 	if ( closest ) {
 		closest.classList.remove( 'blocks-everywhere-editor__loading' );
 	}
+}
+
+function dispatchLifecycleEvent( name, { container, detail = {}, settings, textarea } ) {
+	const eventDetail = {
+		container,
+		settings,
+		textarea,
+		...detail,
+	};
+	const lifecycle = settings?.blocksEverywhere?.lifecycle;
+	const event = new CustomEvent( `blocksEverywhere:editor:${ name }`, {
+		bubbles: true,
+		cancelable: false,
+		detail: eventDetail,
+	} );
+
+	container?.dispatchEvent?.( event );
+
+	try {
+		lifecycle?.onEvent?.( name, eventDetail );
+
+		const callbackName = lifecycleCallbackNames[ name ];
+		if ( callbackName ) {
+			lifecycle?.[ callbackName ]?.( eventDetail );
+		}
+	} catch ( error ) {
+		// eslint-disable-next-line no-console
+		console.error( 'Blocks Everywhere: lifecycle callback failed', error );
+	}
+}
+
+function focusEditor( container ) {
+	const target = container?.querySelector?.(
+		'.block-editor-block-list__layout [contenteditable="true"], .block-editor-block-list__layout textarea, .block-editor-block-list__layout input'
+	);
+	target?.focus?.();
 }
 
 function EditorLoaded( { onLoaded } ) {
@@ -429,6 +477,42 @@ function createEditorContainer( container, textarea, settings ) {
 	const editorKey = 0;
 	const draftRequestControllers = new Set< AbortController >();
 	const contentBridge = createContentBridgeController( textarea, settings );
+	let hasEditorFocus = false;
+
+	const emitLifecycle = ( name, detail = {} ) => {
+		dispatchLifecycleEvent( name, { container, detail, settings, textarea } );
+	};
+
+	const onFocusIn = () => {
+		if ( hasEditorFocus ) {
+			return;
+		}
+
+		hasEditorFocus = true;
+		emitLifecycle( 'focused', { instance } );
+	};
+	const onFocusOut = ( event ) => {
+		if ( ! container?.contains?.( event.relatedTarget ) ) {
+			hasEditorFocus = false;
+			emitLifecycle( 'blurred', { instance } );
+		}
+	};
+
+	container?.addEventListener?.( 'focusin', onFocusIn );
+	container?.addEventListener?.( 'focusout', onFocusOut );
+
+	const instance = {
+		container,
+		focus: () => {
+			emitLifecycle( 'focus-requested', { instance } );
+			focusEditor( container );
+		},
+		textarea,
+		unmount: () => unmountEditor( textarea ),
+	};
+
+	textarea.__blocksEverywhereEditor = instance;
+	container.__blocksEverywhereEditor = instance;
 
 	const configuredNonce = settings?.restNonce || window?.wpApiSettings?.nonce || null;
 	const restHeaders = configuredNonce ? { 'X-WP-Nonce': configuredNonce } : {};
@@ -833,6 +917,7 @@ function createEditorContainer( container, textarea, settings ) {
 						container?.classList?.add( 'blocks-everywhere--error' );
 						document?.body?.classList?.add( 'gutenberg-support-loaded' );
 						setLoaded( container );
+						emitLifecycle( 'error', { error, instance } );
 					} }
 					onInput={ ( newBlocks ) => {
 						settings?.blocksEverywhere?.__experimentalOnInput?.( newBlocks );
@@ -851,7 +936,12 @@ function createEditorContainer( container, textarea, settings ) {
 				>
 					{ ( { blocks, replaceBlocks } ) => (
 						<>
-							<EditorLoaded onLoaded={ () => setLoaded( container ) } />
+							<EditorLoaded
+								onLoaded={ () => {
+									setLoaded( container );
+									emitLifecycle( 'loaded', { instance } );
+								} }
+							/>
 							<ThemeSupportsDispatcher themeSupports={ settings?.editor?.themeSupports } />
 							<ContentBridge
 								textarea={ textarea }
@@ -1048,15 +1138,26 @@ function createEditorContainer( container, textarea, settings ) {
 	}
 
 	void ( async () => {
-		await restoreDraftIfNeeded();
-		if ( isUnmounted ) {
-			return;
-		}
+		try {
+			emitLifecycle( 'before-load', { instance } );
+			await restoreDraftIfNeeded();
+			if ( isUnmounted ) {
+				return;
+			}
 
-		renderEditor();
+			renderEditor();
+		} catch ( error ) {
+			// eslint-disable-next-line no-console
+			console.error( 'Blocks Everywhere: editor initialization failed', error );
+			container?.classList?.add( 'blocks-everywhere--error' );
+			document?.body?.classList?.add( 'gutenberg-support-loaded' );
+			setLoaded( container );
+			emitLifecycle( 'error', { error, instance } );
+		}
 	} )();
 
 	return () => {
+		emitLifecycle( 'before-unmount', { instance } );
 		isUnmounted = true;
 
 		if ( autosaveTimer ) {
@@ -1064,9 +1165,14 @@ function createEditorContainer( container, textarea, settings ) {
 		}
 
 		draftRequestControllers.forEach( ( controller ) => controller.abort() );
+		container?.removeEventListener?.( 'focusin', onFocusIn );
+		container?.removeEventListener?.( 'focusout', onFocusOut );
 		cleanupCallbacks.forEach( ( cleanup ) => cleanup() );
 		root.unmount();
 		delete textarea.__blocksEverywhereContentApi;
+		delete textarea.__blocksEverywhereEditor;
+		delete container.__blocksEverywhereEditor;
+		emitLifecycle( 'unmounted', { instance } );
 	};
 }
 
@@ -1134,6 +1240,7 @@ export function mountEditor( node: HTMLTextAreaElement, options: EditorMountOpti
 
 	const mount: EditorMount = {
 		container,
+		focus: () => node.__blocksEverywhereEditor?.focus?.(),
 		textarea: node,
 		unmount: () => {
 			if ( ! mountedEditors.has( node ) ) {

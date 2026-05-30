@@ -50,6 +50,8 @@ const getContentApi = ( textarea: HTMLTextAreaElement ) => {
  *   - unmount( mountOrTextarea ) — unmount a previously-mounted editor.
  *   - getContentApi( textarea ) — read or hot-replace an editor instance's
  *     serialized block content.
+ *   - getEditor( textarea ) — retrieve the mounted editor instance API for
+ *     focus and unmount lifecycle coordination.
  *   - registerSlotFill( slot, renderFn ) — render React content into the editor
  *     footer / toolbar / heading slots from outside BE's React tree.
  *
@@ -59,6 +61,7 @@ const getContentApi = ( textarea: HTMLTextAreaElement ) => {
 	mountEditor,
 	unmount: unmountEditor,
 	getContentApi,
+	getEditor: ( textarea: HTMLTextAreaElement ) => textarea?.__blocksEverywhereEditor ?? null,
 	registerSlotFill,
 };
 

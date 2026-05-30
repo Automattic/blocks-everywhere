@@ -46,9 +46,47 @@ declare interface ContentBridge {
 	replaceContent?: ( content: string, context: ContentBridgeContext, helpers: ContentBridgeHelpers ) => object[] | string | void;
 }
 
+declare type BlocksEverywhereLifecycleEventName =
+	| 'before-load'
+	| 'loaded'
+	| 'focus-requested'
+	| 'focused'
+	| 'blurred'
+	| 'error'
+	| 'before-unmount'
+	| 'unmounted';
+
+declare interface BlocksEverywhereEditorInstance {
+	container: HTMLElement;
+	focus: () => void;
+	textarea: HTMLTextAreaElement;
+	unmount: () => void;
+}
+
+declare interface BlocksEverywhereLifecycleEventDetail {
+	container: HTMLElement;
+	error?: unknown;
+	instance?: BlocksEverywhereEditorInstance;
+	settings: typeof wpBlocksEverywhere;
+	textarea: HTMLTextAreaElement;
+}
+
+declare interface BlocksEverywhereLifecycleCallbacks {
+	onBeforeLoad?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
+	onLoaded?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
+	onFocusRequested?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
+	onFocused?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
+	onBlurred?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
+	onError?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
+	onBeforeUnmount?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
+	onUnmounted?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
+	onEvent?: ( name: BlocksEverywhereLifecycleEventName, detail: BlocksEverywhereLifecycleEventDetail ) => void;
+}
+
 declare interface BlocksEverywhere {
 	allowEmbeds: string[];
 	blocks: Blocks;
+	lifecycle?: BlocksEverywhereLifecycleCallbacks;
 	mediaUploadEndpoint?: string;
 	__experimentalOnInput?: ( block: unknown ) => unknown;
 	__experimentalOnChange?: ( block: unknown ) => unknown;
@@ -65,6 +103,7 @@ declare interface BlocksEverywhereMountOptions {
 
 declare interface BlocksEverywhereMount {
 	container: HTMLElement;
+	focus: () => void;
 	textarea: HTMLTextAreaElement;
 	unmount: () => void;
 }
@@ -119,6 +158,7 @@ declare interface Window {
 		) => BlocksEverywhereMount | null;
 		unmount: ( target: BlocksEverywhereMount | HTMLTextAreaElement ) => boolean;
 		getContentApi: ( textarea: HTMLTextAreaElement ) => BlocksEverywhereContentApi | null;
+		getEditor: ( textarea: HTMLTextAreaElement ) => BlocksEverywhereEditorInstance | null;
 		registerSlotFill: (
 			slot: 'footer' | 'toolbar' | 'heading',
 			renderFn: ( textarea: HTMLTextAreaElement ) => unknown
@@ -133,6 +173,7 @@ declare interface BlocksEverywhereContentApi {
 }
 
 declare interface HTMLElement {
+	__blocksEverywhereEditor?: BlocksEverywhereEditorInstance;
 	__blocksEverywhereDraftMoveInstalled?: boolean;
 	__blocksEverywhereDraftTitleInstalled?: boolean;
 	__blocksEverywhereDraftSubmitInstalled?: boolean;

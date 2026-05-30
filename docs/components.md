@@ -327,6 +327,52 @@ Registrations made before BE mounts are picked up automatically.
 Registrations made after mount are also picked up — already-mounted
 editors re-render to include the new fill.
 
+### Editor Lifecycle API
+
+Each editor instance emits DOM lifecycle events on its container. Events use
+the `blocksEverywhere:editor:<name>` format and include `container`,
+`textarea`, `settings`, and `instance` in `event.detail`.
+
+Supported events:
+
+- `blocksEverywhere:editor:before-load`
+- `blocksEverywhere:editor:loaded`
+- `blocksEverywhere:editor:focus-requested`
+- `blocksEverywhere:editor:focused`
+- `blocksEverywhere:editor:blurred`
+- `blocksEverywhere:editor:error`
+- `blocksEverywhere:editor:before-unmount`
+- `blocksEverywhere:editor:unmounted`
+
+Hosts can also provide callbacks on `settings.blocksEverywhere.lifecycle`:
+
+```typescript
+settings.blocksEverywhere.lifecycle = {
+    onLoaded( { instance, container } ) {
+        container.classList.remove( 'is-loading' );
+        instance.focus();
+    },
+    onError( { error, container } ) {
+        container.classList.add( 'has-editor-error' );
+        console.error( error );
+    },
+};
+```
+
+The editor instance API is available from lifecycle event details, from
+`window.blocksEverywhere.getEditor( textarea )`, and from
+`textarea.__blocksEverywhereEditor` for low-level integrations.
+
+```typescript
+const instance = window.blocksEverywhere.getEditor( textarea );
+
+instance.focus();
+instance.unmount();
+```
+
+`instance.unmount()` emits `before-unmount` and `unmounted`, allowing host
+pages to clean transient notices or UI state without forcing a page reload.
+
 **Example** (vanilla JS, no React tree of your own):
 
 ```javascript

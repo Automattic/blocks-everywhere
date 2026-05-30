@@ -16,6 +16,36 @@ import { registerSlotFill } from './editor/slot-fills';
 import customBlocks from './block-customization';
 import './styles/style.scss';
 
+const getBootstrapSettings = () => ( typeof wpBlocksEverywhere !== 'undefined' ? wpBlocksEverywhere : null );
+
+const bootstrapSettingsRegistry = new Map< string, typeof wpBlocksEverywhere >();
+
+const getBootstrapSettingKeys = ( settings: typeof wpBlocksEverywhere, explicitKey?: string ) => {
+	return [
+		explicitKey,
+		'default',
+		settings?.blocksEverywhere?.contextId,
+		settings?.blocksEverywhere?.context,
+		settings?.saveTextarea,
+	]
+		.map( ( key ) => ( typeof key === 'string' ? key.trim() : '' ) )
+		.filter( ( key, index, keys ) => key && keys.indexOf( key ) === index );
+};
+
+const registerBootstrapSettings = ( key: string, settings: typeof wpBlocksEverywhere ) => {
+	if ( ! settings ) {
+		return null;
+	}
+
+	getBootstrapSettingKeys( settings, key ).forEach( ( settingKey ) => {
+		bootstrapSettingsRegistry.set( settingKey, settings );
+	} );
+
+	return settings;
+};
+
+registerBootstrapSettings( 'default', getBootstrapSettings() );
+
 // Back-compat alias for dynamic editor initialization.
 ( window as any ).blocksEverywhereCreateEditor = mountEditor;
 
@@ -62,6 +92,8 @@ const getContentApi = ( textarea: HTMLTextAreaElement ) => {
 	unmount: unmountEditor,
 	getContentApi,
 	getEditor: ( textarea: HTMLTextAreaElement ) => textarea?.__blocksEverywhereEditor ?? null,
+	getSettings: ( key = 'default' ) => bootstrapSettingsRegistry.get( key ) ?? null,
+	registerSettings: registerBootstrapSettings,
 	registerSlotFill,
 };
 

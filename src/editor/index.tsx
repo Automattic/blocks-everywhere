@@ -594,6 +594,48 @@ const lifecycleCallbackNames = {
 
 const hostAdapterContentEvents = new Set( [ 'input', 'change', 'content-change', 'save' ] );
 
+function createPublicEditorInstance( instance ) {
+	if ( ! instance ) {
+		return null;
+	}
+
+	return {
+		container: instance.container,
+		context: instance.context,
+		entity: instance.entity,
+		focus: instance.focus,
+		getEntityEdits: instance.getEntityEdits,
+		resetEntity: instance.resetEntity,
+		textarea: instance.textarea,
+		unmount: instance.unmount,
+	};
+}
+
+function createPublicLifecycleEventDetail( eventDetail ) {
+	const publicDetail = {
+		blocks: eventDetail.blocks,
+		container: eventDetail.container,
+		context: eventDetail.context,
+		entity: eventDetail.entity,
+		error: eventDetail.error,
+		event: eventDetail.event,
+		getContentApi: eventDetail.getContentApi,
+		instance: createPublicEditorInstance( eventDetail.instance ),
+		metadata: eventDetail.metadata,
+		serialized: eventDetail.serialized,
+		source: eventDetail.source,
+		textarea: eventDetail.textarea,
+	};
+
+	Object.keys( publicDetail ).forEach( ( key ) => {
+		if ( publicDetail[ key ] === undefined || publicDetail[ key ] === null ) {
+			delete publicDetail[ key ];
+		}
+	} );
+
+	return publicDetail;
+}
+
 function getHostAdapter( settings ) {
 	const adapter = settings?.blocksEverywhere?.hostAdapter;
 	return adapter && typeof adapter === 'object' ? adapter : null;
@@ -673,7 +715,7 @@ function dispatchLifecycleEvent( name, { container, detail = {}, settings, texta
 	const event = new CustomEvent( `blocksEverywhere:editor:${ name }`, {
 		bubbles: true,
 		cancelable: false,
-		detail: eventDetail,
+		detail: createPublicLifecycleEventDetail( eventDetail ),
 	} );
 
 	container?.dispatchEvent?.( event );

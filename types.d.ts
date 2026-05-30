@@ -88,6 +88,17 @@ declare interface BlocksEverywhereEditorInstance {
 	unmount: () => void;
 }
 
+declare interface BlocksEverywherePublicEditorInstance {
+	container: HTMLElement;
+	context?: Record< string, unknown >;
+	entity?: BlocksEverywhereEntityBridgeEntity;
+	focus: () => void;
+	getEntityEdits?: () => Record< string, unknown >;
+	resetEntity?: ( reason?: string ) => void;
+	textarea: HTMLTextAreaElement;
+	unmount: () => void;
+}
+
 declare interface BlocksEverywhereLifecycleEventDetail {
 	blocks?: object[];
 	container: HTMLElement;
@@ -96,31 +107,35 @@ declare interface BlocksEverywhereLifecycleEventDetail {
 	error?: unknown;
 	event?: Event;
 	getContentApi: () => BlocksEverywhereContentApi | null;
-	instance?: BlocksEverywhereEditorInstance;
+	instance?: BlocksEverywherePublicEditorInstance;
 	metadata?: Record< string, unknown >;
 	serialized?: string;
-	settings: typeof wpBlocksEverywhere;
 	source?: string;
 	textarea: HTMLTextAreaElement;
 }
 
+declare interface BlocksEverywhereLifecycleCallbackDetail extends BlocksEverywhereLifecycleEventDetail {
+	instance?: BlocksEverywhereEditorInstance;
+	settings: typeof wpBlocksEverywhere;
+}
+
 declare interface BlocksEverywhereLifecycleCallbacks {
-	onBeforeMount?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
-	onMounted?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
-	onBeforeLoad?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
-	onLoaded?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
-	onInput?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
-	onChange?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
-	onContentChange?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
-	onSave?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
-	onSubmit?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
-	onFocusRequested?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
-	onFocused?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
-	onBlurred?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
-	onError?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
-	onBeforeUnmount?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
-	onUnmounted?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
-	onEvent?: ( name: BlocksEverywhereLifecycleEventName, detail: BlocksEverywhereLifecycleEventDetail ) => void;
+	onBeforeMount?: ( detail: BlocksEverywhereLifecycleCallbackDetail ) => void;
+	onMounted?: ( detail: BlocksEverywhereLifecycleCallbackDetail ) => void;
+	onBeforeLoad?: ( detail: BlocksEverywhereLifecycleCallbackDetail ) => void;
+	onLoaded?: ( detail: BlocksEverywhereLifecycleCallbackDetail ) => void;
+	onInput?: ( detail: BlocksEverywhereLifecycleCallbackDetail ) => void;
+	onChange?: ( detail: BlocksEverywhereLifecycleCallbackDetail ) => void;
+	onContentChange?: ( detail: BlocksEverywhereLifecycleCallbackDetail ) => void;
+	onSave?: ( detail: BlocksEverywhereLifecycleCallbackDetail ) => void;
+	onSubmit?: ( detail: BlocksEverywhereLifecycleCallbackDetail ) => void;
+	onFocusRequested?: ( detail: BlocksEverywhereLifecycleCallbackDetail ) => void;
+	onFocused?: ( detail: BlocksEverywhereLifecycleCallbackDetail ) => void;
+	onBlurred?: ( detail: BlocksEverywhereLifecycleCallbackDetail ) => void;
+	onError?: ( detail: BlocksEverywhereLifecycleCallbackDetail ) => void;
+	onBeforeUnmount?: ( detail: BlocksEverywhereLifecycleCallbackDetail ) => void;
+	onUnmounted?: ( detail: BlocksEverywhereLifecycleCallbackDetail ) => void;
+	onEvent?: ( name: BlocksEverywhereLifecycleEventName, detail: BlocksEverywhereLifecycleCallbackDetail ) => void;
 }
 
 declare interface BlocksEverywhereHostAdapterContext {
@@ -139,18 +154,18 @@ declare interface BlocksEverywhereHostAdapter {
 	/** Called once after the editor container and instance API exist. Return cleanup for unmount. */
 	setup?: ( context: BlocksEverywhereHostAdapterContext ) => void | ( () => void );
 	beforeMount?: ( context: BlocksEverywhereHostAdapterContext ) => void;
-	onBeforeMount?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
-	onMounted?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
-	onBeforeLoad?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
-	onLoaded?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
-	onFocusRequested?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
-	onFocused?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
-	onBlurred?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
-	onSubmit?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
-	onError?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
-	onBeforeUnmount?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
-	onUnmounted?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
-	onEvent?: ( name: BlocksEverywhereLifecycleEventName, detail: BlocksEverywhereLifecycleEventDetail ) => void;
+	onBeforeMount?: ( detail: BlocksEverywhereLifecycleCallbackDetail ) => void;
+	onMounted?: ( detail: BlocksEverywhereLifecycleCallbackDetail ) => void;
+	onBeforeLoad?: ( detail: BlocksEverywhereLifecycleCallbackDetail ) => void;
+	onLoaded?: ( detail: BlocksEverywhereLifecycleCallbackDetail ) => void;
+	onFocusRequested?: ( detail: BlocksEverywhereLifecycleCallbackDetail ) => void;
+	onFocused?: ( detail: BlocksEverywhereLifecycleCallbackDetail ) => void;
+	onBlurred?: ( detail: BlocksEverywhereLifecycleCallbackDetail ) => void;
+	onSubmit?: ( detail: BlocksEverywhereLifecycleCallbackDetail ) => void;
+	onError?: ( detail: BlocksEverywhereLifecycleCallbackDetail ) => void;
+	onBeforeUnmount?: ( detail: BlocksEverywhereLifecycleCallbackDetail ) => void;
+	onUnmounted?: ( detail: BlocksEverywhereLifecycleCallbackDetail ) => void;
+	onEvent?: ( name: BlocksEverywhereLifecycleEventName, detail: BlocksEverywhereLifecycleCallbackDetail ) => void;
 	onContent?: (
 		name: 'input' | 'change',
 		blocks: object[],
@@ -339,6 +354,8 @@ declare type BlocksEverywhereSlotName =
 declare interface BlocksEverywhere {
 	allowEmbeds: string[];
 	blocks: Blocks;
+	context?: string;
+	contextId?: string;
 	data?: BlocksEverywhereData;
 	entityBridge?: BlocksEverywhereEntityBridge;
 	lifecycle?: BlocksEverywhereLifecycleCallbacks;
@@ -408,7 +425,7 @@ declare interface BlocksEverywhereMount {
 }
 
 declare const wpBlocksEverywhere: {
-	saveTextarea: HTMLTextAreaElement | null;
+	saveTextarea: string;
 	pluginsUrl: string;
 	allowUrlEmbed: boolean;
 	editorType: string;
@@ -467,6 +484,8 @@ declare interface Window {
 		unmount: ( target: BlocksEverywhereMount | HTMLTextAreaElement ) => boolean;
 		getContentApi: ( textarea: HTMLTextAreaElement ) => BlocksEverywhereContentApi | null;
 		getEditor: ( textarea: HTMLTextAreaElement ) => BlocksEverywhereEditorInstance | null;
+		getSettings: ( key?: string ) => typeof wpBlocksEverywhere | null;
+		registerSettings: ( key: string, settings: typeof wpBlocksEverywhere ) => typeof wpBlocksEverywhere | null;
 		registerSlotFill: (
 			slot: BlocksEverywhereSlotName,
 			renderFn: ( textarea: HTMLTextAreaElement ) => unknown

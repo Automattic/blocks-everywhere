@@ -359,6 +359,14 @@ Remaining adapter-level lifecycle candidates include dirty-state transitions, sa
 
 The baseline lifecycle event work landed in [#58](https://github.com/Extra-Chill/blocks-everywhere/issues/58). Use [#51](https://github.com/Extra-Chill/blocks-everywhere/issues/51) for any remaining adapter-level lifecycle gaps that cannot be represented by the current callback and DOM event surface.
 
+Public DOM lifecycle events are intentionally narrower than direct lifecycle callbacks. Bubbling `blocksEverywhere:editor:*` event details include public instance facts such as `textarea`, `container`, `context`, `entity`, `metadata`, `source`, serialized content for content events, and a limited `instance` API for focus/unmount coordination. They do not include the full settings object, `restNonce`, injected services, the editor registry, or other bootstrap internals.
+
+Use direct callbacks when the adapter intentionally needs the richer contract:
+
+- `settings.blocksEverywhere.lifecycle.onEvent()` and named lifecycle callbacks receive the full callback detail, including `settings`.
+- `settings.blocksEverywhere.hostAdapter` callbacks receive the full callback detail or host adapter context.
+- DOM listeners should treat event details as public telemetry and coordination data, not as a settings transport.
+
 When an integration needs a reusable per-instance boundary, define a host
 adapter on the same settings object used for the mount:
 
@@ -426,6 +434,24 @@ Bootstrap data usually includes:
 -   Feature flags and host URLs.
 
 Keep bootstrap payloads minimal and auditable. Do not serialize secrets or broad user/session objects into page settings. Use [#60](https://github.com/Extra-Chill/blocks-everywhere/issues/60) for missing extension points in frontend app bootstrapping.
+
+`window.wpBlocksEverywhere` remains the legacy default settings object. New adapter code can use the small bootstrap registry on `window.blocksEverywhere` when a page needs stable lookups without inventing another global namespace:
+
+```javascript
+const defaultSettings = window.blocksEverywhere.getSettings();
+
+window.blocksEverywhere.registerSettings( 'reply-composer', {
+	...defaultSettings,
+	blocksEverywhere: {
+		...defaultSettings.blocksEverywhere,
+		contextId: 'reply-composer',
+	},
+} );
+
+const replySettings = window.blocksEverywhere.getSettings( 'reply-composer' );
+```
+
+The registry is a compatibility layer around settings lookup, not a place to store secrets. Keep nonces and privileged operations behind server-rendered WordPress settings or explicit per-instance services.
 
 ## Second-Wave Coordination
 

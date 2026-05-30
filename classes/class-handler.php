@@ -367,7 +367,7 @@ abstract class Handler {
 	 *
 	 * @return array
 	 */
-	private function get_default_settings() {
+	protected function get_default_settings() {
 		$default_settings = [
 			'editor' => [],
 			'blocksEverywhere' => [
@@ -460,17 +460,17 @@ abstract class Handler {
 		// Pre-populate the groups array to ensure scripts stay in the footer.
 		global $wp_scripts;
 		if ( isset( $wp_scripts ) ) {
-				$footer_scripts = [
-					'blocks-everywhere',
-					'wp-block-library',
-					'wp-format-library',
-					'wp-editor',
-					'wp-plugins',
-					'wp-media-utils',
-					'wp-viewport',
-					'wp-admin-ui',
-					'lodash',
-				];
+			$footer_scripts = [
+				'blocks-everywhere',
+				'wp-block-library',
+				'wp-format-library',
+				'wp-editor',
+				'wp-plugins',
+				'wp-media-utils',
+				'wp-viewport',
+				'wp-admin-ui',
+				'lodash',
+			];
 
 			foreach ( $footer_scripts as $handle ) {
 				if ( isset( $wp_scripts->registered[ $handle ] ) ) {

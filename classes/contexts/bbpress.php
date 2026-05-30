@@ -31,24 +31,23 @@ function bbpress_context( Engine $engine ) {
 	// Email block stripping (conditional).
 	$default_email = defined( 'BLOCKS_EVERYWHERE_EMAIL' ) ? BLOCKS_EVERYWHERE_EMAIL : false;
 	if ( apply_filters( 'blocks_everywhere_email', $default_email ) ) {
-		add_filter( 'bbp_subscription_mail_message', function ( $content, $reply_id ) use ( $engine ) {
-			return bbpress_remove_blocks_from_reply( $engine, $content, $reply_id );
-		}, 10, 2 );
-		add_filter( 'bbp_forum_subscription_mail_message', function ( $content, $topic_id ) use ( $engine ) {
-			return bbpress_remove_blocks_from_topic( $engine, $content, $topic_id );
-		}, 10, 2 );
+		add_filter(
+			'bbp_subscription_mail_message',
+			function ( $content, $reply_id ) use ( $engine ) {
+				return bbpress_remove_blocks_from_reply( $engine, $content, $reply_id );
+			},
+			10,
+			2
+		);
+		add_filter(
+			'bbp_forum_subscription_mail_message',
+			function ( $content, $topic_id ) use ( $engine ) {
+				return bbpress_remove_blocks_from_topic( $engine, $content, $topic_id );
+			},
+			10,
+			2
+		);
 	}
-
-	// Metadata injected into editor settings.
-	add_filter( 'blocks_everywhere_editor_settings', function ( $settings ) {
-		$settings['bbpress'] = [
-			'topicId'     => bbpress_get_current_topic_id(),
-			'forumId'     => bbpress_get_current_forum_id(),
-			'isTopicEdit' => function_exists( 'bbp_is_topic_edit' ) ? (bool) bbp_is_topic_edit() : false,
-			'isReplyEdit' => function_exists( 'bbp_is_reply_edit' ) ? (bool) bbp_is_reply_edit() : false,
-		];
-		return $settings;
-	} );
 
 	// Attachment reparenting is opt-in via the callback filters.
 	add_action( 'bbp_new_topic', __NAMESPACE__ . '\\bbpress_reparent_attachments', 10, 4 );
@@ -76,12 +75,18 @@ function bbpress_context( Engine $engine ) {
 			$can_load = apply_filters( 'blocks_everywhere_bbpress_editor', true );
 			return $can_load || bbpress_is_editing_blocks();
 		},
-		'editor_setup'     => function ( Engine $engine ) use ( $save_filters ) {
-			// Body class.
-			add_action( 'bbp_head', function () use ( $engine ) {
-				add_filter( 'body_class', [ $engine, 'body_class' ] );
-			} );
+		'settings_provider' => function ( $settings ) {
+			$settings['bbpress'] = [
+				'topicId'     => bbpress_get_current_topic_id(),
+				'forumId'     => bbpress_get_current_forum_id(),
+				'isTopicEdit' => function_exists( 'bbp_is_topic_edit' ) ? (bool) bbp_is_topic_edit() : false,
+				'isReplyEdit' => function_exists( 'bbp_is_reply_edit' ) ? (bool) bbp_is_reply_edit() : false,
+			];
 
+			return $settings;
+		},
+		'body_classes'     => true,
+		'after_load'       => function ( Engine $engine ) use ( $save_filters ) {
 			// Save filters — empty block check + pasted image cleanup.
 			foreach ( $save_filters as $filter ) {
 				add_filter( $filter, [ $engine, 'no_empty_block_content' ], 12 );
@@ -120,9 +125,12 @@ function bbpress_wire_admin( Engine $engine ) {
 	}
 
 	// Load editor on admin bbPress pages.
-	add_action( 'bbp_ready', function () use ( $engine ) {
-		$engine->load_editor_for_context( 'bbpress' );
-	} );
+	add_action(
+		'bbp_ready',
+		function () use ( $engine ) {
+			$engine->load_editor_for_context( 'bbpress' );
+		}
+	);
 
 	// Gutenberg CPT support.
 	$default_gutenberg_admin = defined( 'BLOCKS_EVERYWHERE_ADMIN' ) ? BLOCKS_EVERYWHERE_ADMIN : false;

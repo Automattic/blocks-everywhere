@@ -172,9 +172,11 @@ class Editor {
 		/**
 		 * @psalm-suppress PossiblyFalseOperand
 		 */
+		$server_block_settings = apply_filters( 'blocks_everywhere_server_block_settings', get_block_editor_server_block_settings(), $block_editor_context );
+
 		wp_add_inline_script(
 			'wp-blocks',
-			'if ( typeof wp.blocks.unstable__bootstrapServerSideBlockDefinitions === "function" ) { wp.blocks.unstable__bootstrapServerSideBlockDefinitions(' . wp_json_encode( get_block_editor_server_block_settings() ) . '); }',
+			'if ( typeof wp.blocks.unstable__bootstrapServerSideBlockDefinitions === "function" ) { wp.blocks.unstable__bootstrapServerSideBlockDefinitions(' . wp_json_encode( $server_block_settings ) . '); }',
 			'after'
 		);
 

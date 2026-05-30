@@ -11,11 +11,18 @@
  *     [
  *         'type'         => 'compose',                     // Editor type identifier
  *         'textarea'     => '#my-textarea',                 // CSS selector for textarea
- *         'container'    => '.blocks-everywhere',           // CSS selector for editor container
- *         'trigger'      => 'wp',                           // Action hook that triggers editor load
- *         'condition'    => fn() => is_user_logged_in(),    // Callable, return true to load
- *         'editor_setup' => fn($engine) => ...,             // Callable, runs after editor loads
- *         'admin_hook'   => 'comment.php',                  // Admin page hook (string) or callable($hook)
+ *         'container'             => '.blocks-everywhere', // CSS selector for editor container
+ *         'trigger'               => 'wp',                 // Action hook that triggers editor load
+ *         'condition'             => fn() => is_user_logged_in(),
+ *         'settings_provider'     => fn($settings, $engine) => $settings,
+ *         'preload_paths'         => fn($paths, $post, $engine) => $paths,
+ *         'block_categories'      => fn($categories, $context, $engine) => $categories,
+ *         'server_block_settings' => fn($settings, $context, $engine) => $settings,
+ *         'body_classes'          => fn($classes, $engine) => $classes,
+ *         'editor_assets'         => fn($engine) => ...,    // Runs before editor loads
+ *         'after_load'            => fn($engine) => ...,    // Runs after editor loads
+ *         'editor_setup'          => fn($engine) => ...,    // Legacy alias for after_load
+ *         'admin_hook'            => 'comment.php',         // Admin page hook or callable($hook)
  *     ]
  *
  * @package Automattic\Blocks_Everywhere
@@ -41,6 +48,13 @@ class Engine extends Handler {
 	 * @var string|null
 	 */
 	private $active_context = null;
+
+	/**
+	 * Contexts whose server bootstrap callbacks have already been wired.
+	 *
+	 * @var array<string, bool>
+	 */
+	private $bootstrapped_contexts = [];
 
 	/**
 	 * Constructor — call parent to register shared assets.
@@ -112,6 +126,7 @@ class Engine extends Handler {
 		}
 
 		$this->active_context = $id;
+		$this->bootstrap_context( $id, $config );
 
 		$textarea  = $config['textarea'] ?? '';
 		$container = $config['container'] ?? '.blocks-everywhere';
@@ -120,13 +135,184 @@ class Engine extends Handler {
 		add_filter( 'the_editor', [ $this, 'the_editor' ] );
 		add_filter( 'wp_editor_settings', [ $this, 'wp_editor_settings' ], 10, 2 );
 
+		$editor_assets = $config['editor_assets'] ?? null;
+		if ( is_callable( $editor_assets ) ) {
+			call_user_func( $editor_assets, $this, $id, $config );
+		}
+
 		$this->load_editor( $textarea, $container );
 
 		// Let the context do its own setup.
+		$after_load = $config['after_load'] ?? null;
+		if ( is_callable( $after_load ) ) {
+			call_user_func( $after_load, $this, $id, $config );
+		}
+
+		// Back-compat for existing context registrations.
 		$editor_setup = $config['editor_setup'] ?? null;
 		if ( is_callable( $editor_setup ) ) {
-			call_user_func( $editor_setup, $this );
+			call_user_func( $editor_setup, $this, $id, $config );
 		}
+	}
+
+	/**
+	 * Wire generic server-side bootstrap callbacks for a context.
+	 *
+	 * @param string $id Context identifier.
+	 * @param array  $config Context configuration.
+	 * @return void
+	 */
+	private function bootstrap_context( string $id, array $config ) {
+		if ( isset( $this->bootstrapped_contexts[ $id ] ) ) {
+			return;
+		}
+
+		$this->bootstrapped_contexts[ $id ] = true;
+
+		add_filter(
+			'blocks_everywhere_editor_settings',
+			function ( $settings ) use ( $id, $config ) {
+				return $this->apply_context_settings( $settings, $id, $config );
+			}
+		);
+
+		add_filter(
+			'block_editor_preload_paths',
+			function ( $paths, $post = null ) use ( $id, $config ) {
+				if ( $this->active_context !== $id ) {
+					return $paths;
+				}
+
+				$preload_paths = $config['preload_paths'] ?? null;
+				if ( is_callable( $preload_paths ) ) {
+					$paths = call_user_func( $preload_paths, $paths, $post, $this, $id, $config );
+				}
+
+				return is_array( $paths ) ? $paths : [];
+			},
+			10,
+			2
+		);
+
+		add_filter(
+			'block_categories_all',
+			function ( $categories, $block_editor_context = null ) use ( $id, $config ) {
+				if ( $this->active_context !== $id ) {
+					return $categories;
+				}
+
+				$block_categories = $config['block_categories'] ?? null;
+				if ( is_callable( $block_categories ) ) {
+					$categories = call_user_func( $block_categories, $categories, $block_editor_context, $this, $id, $config );
+				}
+
+				return is_array( $categories ) ? $categories : [];
+			},
+			10,
+			2
+		);
+
+		add_filter(
+			'blocks_everywhere_server_block_settings',
+			function ( $settings, $block_editor_context = null ) use ( $id, $config ) {
+				if ( $this->active_context !== $id ) {
+					return $settings;
+				}
+
+				$server_block_settings = $config['server_block_settings'] ?? null;
+				if ( is_callable( $server_block_settings ) ) {
+					$settings = call_user_func( $server_block_settings, $settings, $block_editor_context, $this, $id, $config );
+				}
+
+				return is_array( $settings ) ? $settings : [];
+			},
+			10,
+			2
+		);
+
+		if ( array_key_exists( 'body_classes', $config ) ) {
+			add_filter(
+				'body_class',
+				function ( $classes ) use ( $id, $config ) {
+					if ( $this->active_context !== $id ) {
+						return $classes;
+					}
+
+					$classes = $this->body_class( (array) $classes );
+
+					$body_classes = $config['body_classes'];
+					if ( is_callable( $body_classes ) ) {
+						$classes = call_user_func( $body_classes, $classes, $this, $id, $config );
+					} elseif ( is_array( $body_classes ) ) {
+						$classes = array_merge( $classes, $body_classes );
+					}
+
+					return array_values( array_unique( (array) $classes ) );
+				}
+			);
+		}
+	}
+
+	/**
+	 * Apply active context settings providers and convenience config values.
+	 *
+	 * @param array  $settings Editor settings.
+	 * @param string $id Context identifier.
+	 * @param array  $config Context configuration.
+	 * @return array
+	 */
+	private function apply_context_settings( array $settings, string $id, array $config ) {
+		if ( $this->active_context !== $id ) {
+			return $settings;
+		}
+
+		$settings_provider = $config['settings_provider'] ?? null;
+		if ( is_callable( $settings_provider ) ) {
+			$provided = call_user_func( $settings_provider, $settings, $this, $id, $config );
+			if ( is_array( $provided ) ) {
+				$settings = $provided;
+			}
+		}
+
+		$allowed_blocks = $this->resolve_context_value( $config['allowed_blocks'] ?? null, $settings, $id, $config );
+		if ( is_array( $allowed_blocks ) ) {
+			$settings['blocksEverywhere']['blocks']['allowBlocks'] = array_values( array_unique( $allowed_blocks ) );
+		}
+
+		$disallowed_blocks = $this->resolve_context_value( $config['disallowed_blocks'] ?? null, $settings, $id, $config );
+		if ( is_array( $disallowed_blocks ) ) {
+			$settings['blocksEverywhere']['blocks']['disallowBlocks'] = array_values( array_unique( $disallowed_blocks ) );
+
+			if ( isset( $settings['blocksEverywhere']['blocks']['allowBlocks'] ) ) {
+				$settings['blocksEverywhere']['blocks']['allowBlocks'] = array_values(
+					array_diff( $settings['blocksEverywhere']['blocks']['allowBlocks'], $settings['blocksEverywhere']['blocks']['disallowBlocks'] )
+				);
+			}
+		}
+
+		$features = $this->resolve_context_value( $config['features'] ?? null, $settings, $id, $config );
+		if ( is_array( $features ) ) {
+			$settings['blocksEverywhere']['features'] = array_merge( $settings['blocksEverywhere']['features'] ?? [], $features );
+		}
+
+		return $settings;
+	}
+
+	/**
+	 * Resolve a context config value that may be static or callable.
+	 *
+	 * @param mixed  $value Config value.
+	 * @param array  $settings Current settings.
+	 * @param string $id Context identifier.
+	 * @param array  $config Context configuration.
+	 * @return mixed
+	 */
+	private function resolve_context_value( $value, array $settings, string $id, array $config ) {
+		if ( is_callable( $value ) ) {
+			return call_user_func( $value, $settings, $this, $id, $config );
+		}
+
+		return $value;
 	}
 
 	/**
@@ -163,6 +349,7 @@ class Engine extends Handler {
 			}
 
 			$this->active_context = $id;
+			$this->bootstrap_context( $id, $config );
 			$admin_textarea = $config['admin_textarea'] ?? '.wp-editor-area';
 
 			add_action(
@@ -177,8 +364,23 @@ class Engine extends Handler {
 
 			add_action(
 				'in_admin_header',
-				function () use ( $admin_textarea ) {
+				function () use ( $admin_textarea, $id, $config ) {
+					$editor_assets = $config['editor_assets'] ?? null;
+					if ( is_callable( $editor_assets ) ) {
+						call_user_func( $editor_assets, $this, $id, $config );
+					}
+
 					$this->load_editor( $admin_textarea );
+
+					$after_load = $config['after_load'] ?? null;
+					if ( is_callable( $after_load ) ) {
+						call_user_func( $after_load, $this, $id, $config );
+					}
+
+					$editor_setup = $config['editor_setup'] ?? null;
+					if ( is_callable( $editor_setup ) ) {
+						call_user_func( $editor_setup, $this, $id, $config );
+					}
 				}
 			);
 

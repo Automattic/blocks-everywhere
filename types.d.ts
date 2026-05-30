@@ -28,6 +28,17 @@ declare interface BlocksEverywhere {
 	toolbar?: Toolbar;
 }
 
+declare interface BlocksEverywhereMountOptions {
+	container?: HTMLElement | string | null;
+	settings?: typeof wpBlocksEverywhere;
+}
+
+declare interface BlocksEverywhereMount {
+	container: HTMLElement;
+	textarea: HTMLTextAreaElement;
+	unmount: () => void;
+}
+
 declare const wpBlocksEverywhere: {
 	saveTextarea: HTMLTextAreaElement | null;
 	pluginsUrl: string;
@@ -72,6 +83,11 @@ declare interface Window {
 		nonce?: string;
 	};
 	blocksEverywhere?: {
+		mountEditor: (
+			textarea: HTMLTextAreaElement,
+			options?: BlocksEverywhereMountOptions
+		) => BlocksEverywhereMount | null;
+		unmount: ( target: BlocksEverywhereMount | HTMLTextAreaElement ) => boolean;
 		registerSlotFill: (
 			slot: 'footer' | 'toolbar' | 'heading',
 			renderFn: ( textarea: HTMLTextAreaElement ) => unknown

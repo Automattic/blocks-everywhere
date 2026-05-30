@@ -26,6 +26,21 @@ import EmbeddedEditorShell, { type ResolvedToolbarConfig } from './embedded-edit
 import PostEntityShell, { EditorEditsBridge, type PostEntityRef } from './post-entity-shell';
 import { RegisteredSlotFills } from './slot-fills';
 
+export type EditorMountSettings = typeof wpBlocksEverywhere;
+
+export interface EditorMountOptions {
+	container?: HTMLElement | string | null;
+	settings?: EditorMountSettings;
+}
+
+export interface EditorMount {
+	container: HTMLElement;
+	textarea: HTMLTextAreaElement;
+	unmount: () => void;
+}
+
+const mountedEditors = new WeakMap< HTMLTextAreaElement, EditorMount >();
+
 /**
  * Inline block inserter panel rendered into the detached sidebar portal.
  *
@@ -205,10 +220,7 @@ function EmbeddedBlockEditor( { children, className, onChange, onError, onInput,
 					className={ className }
 				/>
 				{ hasDetachedSidebar && (
-					<DetachedSidebar
-						target={ detachedSidebar.target }
-						className={ detachedSidebar.className }
-					>
+					<DetachedSidebar target={ detachedSidebar.target } className={ detachedSidebar.className }>
 						<DetachedInserterPanel />
 					</DetachedSidebar>
 				) }
@@ -220,7 +232,7 @@ function EmbeddedBlockEditor( { children, className, onChange, onError, onInput,
 
 function createContainer( textarea, existingContainer ) {
 	if ( existingContainer && ! existingContainer.contains( textarea ) ) {
-		return existingContainer;
+		return { container: existingContainer, inserted: false };
 	}
 
 	const container = document.createElement( 'div' );
@@ -228,7 +240,7 @@ function createContainer( textarea, existingContainer ) {
 	// Insert the container
 	textarea.parentNode.insertBefore( container, textarea );
 
-	return container;
+	return { container, inserted: true };
 }
 
 function RemoveBlockTypes() {
@@ -241,7 +253,9 @@ function RemoveBlockTypes() {
 			}
 
 			blocks
-				.filter( ( block ) => wpBlocksEverywhere?.blocksEverywhere?.blocks?.allowBlocks?.indexOf( block.name ) === -1 )
+				.filter(
+					( block ) => wpBlocksEverywhere?.blocksEverywhere?.blocks?.allowBlocks?.indexOf( block.name ) === -1
+				)
 				.forEach( ( block ) => unregisterBlockType( block.name ) );
 		} catch ( error ) {
 			// Avoid hard-fail if registry API shape changes.
@@ -294,6 +308,7 @@ function ThemeSupportsDispatcher( { themeSupports } ) {
 
 function createEditorContainer( container, textarea, settings ) {
 	const root = createRoot( container );
+	const cleanupCallbacks = [];
 
 	const bbpress = settings?.bbpress || {};
 	const bbpressIsTopicEdit = Boolean( bbpress?.isTopicEdit );
@@ -312,6 +327,7 @@ function createEditorContainer( container, textarea, settings ) {
 	let lastSerializedContent = '';
 	let isSubmitting = false;
 	let isContextSwitching = false;
+	let isUnmounted = false;
 	const editorKey = 0;
 	const draftRequestControllers = new Set< AbortController >();
 
@@ -593,13 +609,19 @@ function createEditorContainer( container, textarea, settings ) {
 			const titleInput = document.getElementById( 'bbp_topic_title' );
 			if ( titleInput && ! titleInput.__blocksEverywhereDraftTitleInstalled ) {
 				titleInput.__blocksEverywhereDraftTitleInstalled = true;
-				titleInput.addEventListener( 'input', () => {
+				const handler = () => {
 					scheduleAutosaveFromContent( lastSerializedContent || textarea?.value || '' );
+				};
+
+				titleInput.addEventListener( 'input', handler );
+				cleanupCallbacks.push( () => {
+					titleInput.removeEventListener( 'input', handler );
+					delete titleInput.__blocksEverywhereDraftTitleInstalled;
 				} );
 			}
 		}
 
-		forumSelect.addEventListener( 'change', async () => {
+		const handler = async () => {
 			if ( isSubmitting ) {
 				return;
 			}
@@ -634,6 +656,12 @@ function createEditorContainer( container, textarea, settings ) {
 				// eslint-disable-next-line no-console
 				console.error( 'Blocks Everywhere: failed to move forum draft', error );
 			}
+		};
+
+		forumSelect.addEventListener( 'change', handler );
+		cleanupCallbacks.push( () => {
+			forumSelect.removeEventListener( 'change', handler );
+			delete forumSelect.__blocksEverywhereDraftMoveInstalled;
 		} );
 	};
 
@@ -723,7 +751,9 @@ function createEditorContainer( container, textarea, settings ) {
 						saveBlocks( textarea, serialize( newBlocks ) );
 						scheduleAutosave( newBlocks );
 					} }
-					onSelection={ ( selection ) => settings?.blocksEverywhere?.__experimentalOnSelection?.( selection ) }
+					onSelection={ ( selection ) =>
+						settings?.blocksEverywhere?.__experimentalOnSelection?.( selection )
+					}
 					className={ settings?.blocksEverywhere?.className }
 				>
 					{ ( { blocks, replaceBlocks } ) => (
@@ -761,7 +791,7 @@ function createEditorContainer( container, textarea, settings ) {
 		}
 
 		container.__blocksEverywhereDraftSubmitInstalled = true;
-		form.addEventListener( 'submit', ( event ) => {
+		const handler = ( event ) => {
 			if ( event.submitter && event.submitter.closest( '.blocks-everywhere-editor' ) ) {
 				return;
 			}
@@ -772,6 +802,12 @@ function createEditorContainer( container, textarea, settings ) {
 			}
 
 			draftRequestControllers.forEach( ( controller ) => controller.abort() );
+		};
+
+		form.addEventListener( 'submit', handler );
+		cleanupCallbacks.push( () => {
+			form.removeEventListener( 'submit', handler );
+			delete container.__blocksEverywhereDraftSubmitInstalled;
 		} );
 	};
 
@@ -863,6 +899,10 @@ function createEditorContainer( container, textarea, settings ) {
 		};
 
 		document.addEventListener( 'blocksEverywhere:bbpressDraftContextChange', handler );
+		cleanupCallbacks.push( () => {
+			document.removeEventListener( 'blocksEverywhere:bbpressDraftContextChange', handler );
+			delete container.__blocksEverywhereReplyDraftContextInstalled;
+		} );
 	};
 
 	if ( settings?.editorType === 'bbpress' ) {
@@ -911,9 +951,25 @@ function createEditorContainer( container, textarea, settings ) {
 
 	void ( async () => {
 		await restoreDraftIfNeeded();
+		if ( isUnmounted ) {
+			return;
+		}
 
 		renderEditor();
 	} )();
+
+	return () => {
+		isUnmounted = true;
+
+		if ( autosaveTimer ) {
+			clearTimeout( autosaveTimer );
+		}
+
+		draftRequestControllers.forEach( ( controller ) => controller.abort() );
+		cleanupCallbacks.forEach( ( cleanup ) => cleanup() );
+		root.unmount();
+		delete textarea.__blocksEverywhereContentApi;
+	};
 }
 
 // If the container is inside a form then we need insulate button clicks inside the editor from propagating out into the form
@@ -922,33 +978,93 @@ function insulateForm( container ) {
 	const form = container.closest( 'form' );
 
 	if ( form ) {
-		form.addEventListener( 'submit', ( ev ) => {
+		const handler = ( ev ) => {
 			if ( ev.submitter && ev.submitter.closest( '.blocks-everywhere-editor' ) ) {
 				ev.stopPropagation();
 				ev.preventDefault();
 			}
-		} );
+		};
+
+		form.addEventListener( 'submit', handler );
+
+		return () => form.removeEventListener( 'submit', handler );
 	}
+
+	return () => {};
 }
 
-export default function createEditor( node ) {
-	if ( typeof wpBlocksEverywhere === 'undefined' || ! wpBlocksEverywhere?.container ) {
+function resolveContainerOption( container ) {
+	if ( typeof container === 'string' ) {
+		return document.querySelector( container );
+	}
+
+	return container || null;
+}
+
+function resolveMountSettings( settings ) {
+	return {
+		...settings,
+		bbpress: settings?.bbpress ? { ...settings.bbpress } : undefined,
+		blocksEverywhere: settings?.blocksEverywhere ? { ...settings.blocksEverywhere } : undefined,
+		editor: settings?.editor ? { ...settings.editor } : {},
+	};
+}
+
+export function mountEditor( node: HTMLTextAreaElement, options: EditorMountOptions = {} ): EditorMount | null {
+	const baseSettings = options.settings || ( typeof wpBlocksEverywhere !== 'undefined' ? wpBlocksEverywhere : null );
+	if ( ! baseSettings?.container ) {
 		// eslint-disable-next-line no-console
 		console.error( 'Blocks Everywhere: settings object missing; cannot initialize editor.' );
 		setLoaded( node?.parentNode || document.body );
-		return;
+		return null;
 	}
 
-	let container;
+	const existingMount = mountedEditors.get( node );
+	if ( existingMount ) {
+		return existingMount;
+	}
+
+	let containerSource = resolveContainerOption( options.container );
+	const settings = resolveMountSettings( baseSettings );
 
 	// Prefer enclosing containers, so check if one exists outside.
-	const outerContainerNode = node.closest( wpBlocksEverywhere.container );
-	if ( outerContainerNode ) {
-		container = createContainer( node, outerContainerNode );
-	} else {
-		container = createContainer( node, document.querySelector( wpBlocksEverywhere.container ) );
+	const outerContainerNode = node.closest( settings.container );
+	containerSource = containerSource || outerContainerNode || document.querySelector( settings.container );
+	const { container, inserted } = createContainer( node, containerSource );
+	const cleanupInsulatedForm = insulateForm( container );
+	const cleanupEditorContainer = createEditorContainer( container, node, settings );
+
+	const mount: EditorMount = {
+		container,
+		textarea: node,
+		unmount: () => {
+			if ( ! mountedEditors.has( node ) ) {
+				return;
+			}
+
+			cleanupEditorContainer?.();
+			cleanupInsulatedForm?.();
+			mountedEditors.delete( node );
+
+			if ( inserted ) {
+				container.remove();
+			}
+		},
+	};
+
+	mountedEditors.set( node, mount );
+
+	return mount;
+}
+
+export function unmountEditor( target: EditorMount | HTMLTextAreaElement ): boolean {
+	const mount = 'unmount' in target ? target : mountedEditors.get( target );
+	if ( ! mount ) {
+		return false;
 	}
 
-	insulateForm( container );
-	createEditorContainer( container, node, wpBlocksEverywhere );
+	mount.unmount();
+	return true;
 }
+
+export default mountEditor;

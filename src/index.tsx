@@ -11,13 +11,13 @@ import { unregisterFormatType } from '@wordpress/rich-text';
  * Internal dependencies
  */
 
-import createEditor from './editor';
+import mountEditor, { unmountEditor } from './editor';
 import { registerSlotFill } from './editor/slot-fills';
 import customBlocks from './block-customization';
 import './styles/style.scss';
 
-// Expose createEditor globally for dynamic editor initialization (e.g., inline reply forms)
-( window as any ).blocksEverywhereCreateEditor = createEditor;
+// Back-compat alias for dynamic editor initialization.
+( window as any ).blocksEverywhereCreateEditor = mountEditor;
 
 /**
  * Get the content API for an editor instance by its textarea element.
@@ -26,8 +26,8 @@ import './styles/style.scss';
  * a content API object to the textarea. This function provides a clean
  * lookup without consumers needing to know the internal property name.
  *
- * @param textarea - The textarea element the editor was created from.
- * @return The content API, or null if the editor isn't ready yet.
+ * @param {HTMLTextAreaElement} textarea The textarea element the editor was created from.
+ * @return {Object|null} The content API, or null if the editor isn't ready yet.
  *
  * @example
  *   const api = window.blocksEverywhereGetContentApi( myTextarea );
@@ -44,12 +44,16 @@ import './styles/style.scss';
  * Public namespace for Blocks Everywhere host-page integration APIs.
  *
  * Currently exposes:
+ *   - mountEditor( textarea, options? ) — mount a dynamic editor instance.
+ *   - unmount( mountOrTextarea ) — unmount a previously-mounted editor.
  *   - registerSlotFill( slot, renderFn ) — render React content into the editor
  *     footer / toolbar / heading slots from outside BE's React tree.
  *
  * See src/editor/slot-fills.tsx for the full API contract.
  */
 ( window as any ).blocksEverywhere = {
+	mountEditor,
+	unmount: unmountEditor,
 	registerSlotFill,
 };
 
@@ -106,9 +110,13 @@ domReady( () => {
 	// completers (e.g. @mentions of forum users) via the standard
 	// `editor.Autocomplete.completers` filter.
 	if ( wpBlocksEverywhere.editorType === 'bbpress' && wpBlocksEverywhere.autocompleter ) {
-		addFilter( 'editor.Autocomplete.completers', 'blocks-everywhere/strip-default-users-completer', ( completers = [] ) => {
-			return completers.filter( ( completer ) => completer.name !== 'users' );
-		} );
+		addFilter(
+			'editor.Autocomplete.completers',
+			'blocks-everywhere/strip-default-users-completer',
+			( completers = [] ) => {
+				return completers.filter( ( completer ) => completer.name !== 'users' );
+			}
+		);
 	}
 
 	if ( wpBlocksEverywhere?.patchEmoji && window?.twemoji?.parse ) {
@@ -124,7 +132,9 @@ domReady( () => {
 	}
 
 	// Add the editor
-	document.querySelectorAll( wpBlocksEverywhere.saveTextarea ).forEach( createEditor );
+	document.querySelectorAll( wpBlocksEverywhere.saveTextarea ).forEach( ( node ) => {
+		mountEditor( node as HTMLTextAreaElement );
+	} );
 
 	// Set the loaded flag
 	setTimeout( () => document.body.classList.add( 'gutenberg-support-loaded' ), 250 );

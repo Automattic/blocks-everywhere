@@ -48,6 +48,14 @@
 		"@automattic/typography": "^1.0.0",
 		"use-debounce": "^10.0.0"
 	},
+	"resolutions": {
+		"@babel/traverse": "^7.23.2",
+		"basic-ftp": "^5.0.5",
+		"form-data": "^4.0.4",
+		"loader-utils": "^2.0.4",
+		"minimist": "^1.2.8",
+		"webpack": "^5.94.0"
+	},
 	"release-it": {
 		"github": {
 			"release": true,

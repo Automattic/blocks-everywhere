@@ -333,12 +333,19 @@ editors re-render to include the new fill.
 
 Each editor instance emits DOM lifecycle events on its container. Events use
 the `blocksEverywhere:editor:<name>` format and include `container`,
-`textarea`, `settings`, and `instance` in `event.detail`.
+`textarea`, `settings`, `instance`, `metadata`, and `getContentApi()` in
+`event.detail`.
 
 Supported events:
 
+- `blocksEverywhere:editor:before-mount`
+- `blocksEverywhere:editor:mounted`
 - `blocksEverywhere:editor:before-load`
 - `blocksEverywhere:editor:loaded`
+- `blocksEverywhere:editor:input`
+- `blocksEverywhere:editor:change`
+- `blocksEverywhere:editor:save`
+- `blocksEverywhere:editor:submit`
 - `blocksEverywhere:editor:focus-requested`
 - `blocksEverywhere:editor:focused`
 - `blocksEverywhere:editor:blurred`
@@ -360,6 +367,85 @@ settings.blocksEverywhere.lifecycle = {
     },
 };
 ```
+
+### Host Adapter API
+
+Host adapters bundle per-instance integration behavior into one generic
+contract. Use this when the host needs to install listeners, connect external
+UI, forward analytics, or clean up host-owned resources alongside a mounted
+editor.
+
+```typescript
+settings.blocksEverywhere.hostAdapter = {
+    metadata: {
+        entityType: 'comment',
+        entityId: 123,
+    },
+
+    setup( context ) {
+        const unregister = window.blocksEverywhere.registerSlotFill(
+            'footer',
+            ( textarea ) => {
+                if ( textarea !== context.textarea ) {
+                    return null;
+                }
+
+                return window.wp.element.createElement(
+                    'button',
+                    {
+                        type: 'button',
+                        onClick: () => context.textarea.form?.requestSubmit(),
+                    },
+                    'Submit'
+                );
+            }
+        );
+
+        return unregister;
+    },
+
+    onLoaded( { container } ) {
+        container.classList.remove( 'is-loading' );
+    },
+
+    onSave( blocks, serialized, context, { source } ) {
+        // Forward serialized content to host autosave or dirty-state logic.
+    },
+
+    onError( { error } ) {
+        console.error( error );
+    },
+};
+```
+
+`setup( context )` runs once after the editor instance API exists and may return
+a cleanup function. Blocks Everywhere runs that cleanup during unmount before
+the editor root is removed.
+
+The adapter context includes:
+
+- `container`: editor container element.
+- `textarea`: source textarea for the mount.
+- `settings`: resolved editor settings for this instance.
+- `instance`: mounted editor instance API.
+- `metadata`: optional generic host metadata from `hostAdapter.metadata` or
+  `blocksEverywhere.hostContext`.
+- `getContentApi()`: lazy lookup for the content bridge API once the editor
+  React tree has mounted.
+
+Lifecycle-style adapter callbacks such as `onLoaded`, `onFocused`, `onSubmit`,
+`onError`, and `onUnmounted` receive the same detail object as lifecycle events.
+Content callbacks use content-first signatures:
+
+```typescript
+onContent( name, blocks, serialized, context )
+onInput( blocks, serialized, context )
+onChange( blocks, serialized, context )
+onSave( blocks, serialized, context, { source } )
+```
+
+All host adapter callbacks are optional. Omitting the adapter preserves the
+default textarea-backed behavior.
 
 The editor instance API is available from lifecycle event details, from
 `window.blocksEverywhere.getEditor( textarea )`, and from

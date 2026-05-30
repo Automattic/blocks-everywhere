@@ -206,6 +206,56 @@ Remaining adapter-level lifecycle candidates include dirty-state transitions, sa
 
 The baseline lifecycle event work landed in [#58](https://github.com/Extra-Chill/blocks-everywhere/issues/58). Use [#51](https://github.com/Extra-Chill/blocks-everywhere/issues/51) for any remaining adapter-level lifecycle gaps that cannot be represented by the current callback and DOM event surface.
 
+When an integration needs a reusable per-instance boundary, define a host
+adapter on the same settings object used for the mount:
+
+```javascript
+const settings = {
+    ...wpBlocksEverywhere,
+    blocksEverywhere: {
+        ...wpBlocksEverywhere.blocksEverywhere,
+        hostAdapter: {
+            metadata: {
+                entityType: 'draft',
+                entityId: 'abc123',
+            },
+            setup( context ) {
+                const abortController = new AbortController();
+
+                context.container.classList.add( 'has-host-adapter' );
+
+                return () => {
+                    abortController.abort();
+                    context.container.classList.remove( 'has-host-adapter' );
+                };
+            },
+            onLoaded( { getContentApi } ) {
+                const contentApi = getContentApi();
+                // Content API is available after the editor React tree mounts.
+            },
+            onSave( blocks, serialized, context, { source } ) {
+                // Source is "input" or "change". Forward serialized content to
+                // the host persistence layer, autosave scheduler, or dirty state.
+            },
+            onUnmounted( { metadata } ) {
+                // Clear host UI associated with this editor instance.
+            },
+        },
+    },
+};
+
+const mount = window.blocksEverywhere.mountEditor( textarea, { settings } );
+```
+
+The adapter composes with the other portable APIs:
+
+- Use `setup()` to register slot fills and return their unregister callbacks.
+- Use `onSave()` with the content bridge's serialized block output.
+- Use `metadata` or `blocksEverywhere.hostContext` for server-bootstrapped
+  entity facts.
+- Use `onLoaded`, `onSubmit`, `onError`, `onBeforeUnmount`, and `onUnmounted`
+  for lifecycle coordination without custom polling.
+
 ### Server-Side Context Bootstrapping
 
 Server-side bootstrapping should produce the initial editor contract for a host surface before JavaScript mounts.

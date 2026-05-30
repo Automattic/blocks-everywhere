@@ -47,8 +47,14 @@ declare interface ContentBridge {
 }
 
 declare type BlocksEverywhereLifecycleEventName =
+	| 'before-mount'
+	| 'mounted'
 	| 'before-load'
 	| 'loaded'
+	| 'input'
+	| 'change'
+	| 'save'
+	| 'submit'
 	| 'focus-requested'
 	| 'focused'
 	| 'blurred'
@@ -64,16 +70,28 @@ declare interface BlocksEverywhereEditorInstance {
 }
 
 declare interface BlocksEverywhereLifecycleEventDetail {
+	blocks?: object[];
 	container: HTMLElement;
 	error?: unknown;
+	event?: Event;
+	getContentApi: () => BlocksEverywhereContentApi | null;
 	instance?: BlocksEverywhereEditorInstance;
+	metadata?: Record< string, unknown >;
+	serialized?: string;
 	settings: typeof wpBlocksEverywhere;
+	source?: string;
 	textarea: HTMLTextAreaElement;
 }
 
 declare interface BlocksEverywhereLifecycleCallbacks {
+	onBeforeMount?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
+	onMounted?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
 	onBeforeLoad?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
 	onLoaded?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
+	onInput?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
+	onChange?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
+	onSave?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
+	onSubmit?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
 	onFocusRequested?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
 	onFocused?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
 	onBlurred?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
@@ -81,6 +99,49 @@ declare interface BlocksEverywhereLifecycleCallbacks {
 	onBeforeUnmount?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
 	onUnmounted?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
 	onEvent?: ( name: BlocksEverywhereLifecycleEventName, detail: BlocksEverywhereLifecycleEventDetail ) => void;
+}
+
+declare interface BlocksEverywhereHostAdapterContext {
+	container: HTMLElement;
+	getContentApi: () => BlocksEverywhereContentApi | null;
+	instance: BlocksEverywhereEditorInstance;
+	metadata?: Record< string, unknown >;
+	settings: typeof wpBlocksEverywhere;
+	textarea: HTMLTextAreaElement;
+}
+
+declare interface BlocksEverywhereHostAdapter {
+	/** Optional host metadata copied into lifecycle event details and adapter context. */
+	metadata?: Record< string, unknown >;
+	/** Called once after the editor container and instance API exist. Return cleanup for unmount. */
+	setup?: ( context: BlocksEverywhereHostAdapterContext ) => void | ( () => void );
+	beforeMount?: ( context: BlocksEverywhereHostAdapterContext ) => void;
+	onBeforeMount?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
+	onMounted?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
+	onBeforeLoad?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
+	onLoaded?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
+	onFocusRequested?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
+	onFocused?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
+	onBlurred?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
+	onSubmit?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
+	onError?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
+	onBeforeUnmount?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
+	onUnmounted?: ( detail: BlocksEverywhereLifecycleEventDetail ) => void;
+	onEvent?: ( name: BlocksEverywhereLifecycleEventName, detail: BlocksEverywhereLifecycleEventDetail ) => void;
+	onContent?: (
+		name: 'input' | 'change',
+		blocks: object[],
+		serialized: string,
+		context: BlocksEverywhereHostAdapterContext
+	) => void;
+	onInput?: ( blocks: object[], serialized: string, context: BlocksEverywhereHostAdapterContext ) => void;
+	onChange?: ( blocks: object[], serialized: string, context: BlocksEverywhereHostAdapterContext ) => void;
+	onSave?: (
+		blocks: object[],
+		serialized: string,
+		context: BlocksEverywhereHostAdapterContext,
+		meta: { source: 'input' | 'change' }
+	) => void;
 }
 
 declare interface Chrome {
@@ -115,6 +176,8 @@ declare interface BlocksEverywhere {
 	allowEmbeds: string[];
 	blocks: Blocks;
 	lifecycle?: BlocksEverywhereLifecycleCallbacks;
+	hostAdapter?: BlocksEverywhereHostAdapter;
+	hostContext?: Record< string, unknown >;
 	mediaUploadEndpoint?: string;
 	__experimentalOnInput?: ( block: unknown ) => unknown;
 	__experimentalOnChange?: ( block: unknown ) => unknown;

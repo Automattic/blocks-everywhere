@@ -173,8 +173,14 @@ function createContentBridgeController( textarea, settings ) {
 }
 
 const lifecycleCallbackNames = {
+	'before-mount': 'onBeforeMount',
+	mounted: 'onMounted',
 	'before-load': 'onBeforeLoad',
 	loaded: 'onLoaded',
+	input: 'onInput',
+	change: 'onChange',
+	save: 'onSave',
+	submit: 'onSubmit',
 	'focus-requested': 'onFocusRequested',
 	focused: 'onFocused',
 	blurred: 'onBlurred',
@@ -182,6 +188,59 @@ const lifecycleCallbackNames = {
 	'before-unmount': 'onBeforeUnmount',
 	unmounted: 'onUnmounted',
 };
+
+const hostAdapterContentEvents = new Set( [ 'input', 'change', 'save' ] );
+
+function getHostAdapter( settings ) {
+	const adapter = settings?.blocksEverywhere?.hostAdapter;
+	return adapter && typeof adapter === 'object' ? adapter : null;
+}
+
+function getHostAdapterMetadata( settings ) {
+	return getHostAdapter( settings )?.metadata ?? settings?.blocksEverywhere?.hostContext ?? undefined;
+}
+
+function createHostAdapterContext( { container, instance, settings, textarea } ) {
+	return {
+		container,
+		getContentApi: () => textarea?.__blocksEverywhereContentApi ?? null,
+		instance,
+		metadata: getHostAdapterMetadata( settings ),
+		settings,
+		textarea,
+	};
+}
+
+function invokeHostAdapterCallback( adapter, callbackName, args ) {
+	if ( ! adapter || typeof adapter?.[ callbackName ] !== 'function' ) {
+		return undefined;
+	}
+
+	return adapter[ callbackName ]( ...args );
+}
+
+function runHostAdapterCallback( adapter, callbackName, args ) {
+	try {
+		return invokeHostAdapterCallback( adapter, callbackName, args );
+	} catch ( error ) {
+		// eslint-disable-next-line no-console
+		console.error( 'Blocks Everywhere: host adapter callback failed', error );
+		return undefined;
+	}
+}
+
+function runHostAdapterCleanup( cleanup ) {
+	if ( typeof cleanup !== 'function' ) {
+		return;
+	}
+
+	try {
+		cleanup();
+	} catch ( error ) {
+		// eslint-disable-next-line no-console
+		console.error( 'Blocks Everywhere: host adapter cleanup failed', error );
+	}
+}
 
 function setLoaded( container ) {
 	const closest = container.closest( '.blocks-everywhere-editor__loading' );
@@ -192,13 +251,19 @@ function setLoaded( container ) {
 }
 
 function dispatchLifecycleEvent( name, { container, detail = {}, settings, textarea } ) {
+	const instance =
+		detail?.instance || textarea?.__blocksEverywhereEditor || container?.__blocksEverywhereEditor || null;
 	const eventDetail = {
 		container,
+		getContentApi: () => textarea?.__blocksEverywhereContentApi ?? null,
+		instance,
+		metadata: getHostAdapterMetadata( settings ),
 		settings,
 		textarea,
 		...detail,
 	};
 	const lifecycle = settings?.blocksEverywhere?.lifecycle;
+	const hostAdapter = getHostAdapter( settings );
 	const event = new CustomEvent( `blocksEverywhere:editor:${ name }`, {
 		bubbles: true,
 		cancelable: false,
@@ -213,6 +278,12 @@ function dispatchLifecycleEvent( name, { container, detail = {}, settings, texta
 		const callbackName = lifecycleCallbackNames[ name ];
 		if ( callbackName ) {
 			lifecycle?.[ callbackName ]?.( eventDetail );
+		}
+
+		hostAdapter?.onEvent?.( name, eventDetail );
+
+		if ( callbackName && ! hostAdapterContentEvents.has( name ) ) {
+			hostAdapter?.[ callbackName ]?.( eventDetail );
 		}
 	} catch ( error ) {
 		// eslint-disable-next-line no-console
@@ -473,6 +544,7 @@ function ThemeSupportsDispatcher( { themeSupports } ) {
 function createEditorContainer( container, textarea, settings ) {
 	const root = createRoot( container );
 	const cleanupCallbacks = [];
+	const hostAdapter = getHostAdapter( settings );
 
 	const bbpress = settings?.bbpress || {};
 	const bbpressIsTopicEdit = Boolean( bbpress?.isTopicEdit );
@@ -499,6 +571,19 @@ function createEditorContainer( container, textarea, settings ) {
 
 	const emitLifecycle = ( name, detail = {} ) => {
 		dispatchLifecycleEvent( name, { container, detail, settings, textarea } );
+	};
+	const emitContentHook = ( name, blocks, serialized ) => {
+		const context = createHostAdapterContext( { container, instance, settings, textarea } );
+		const callbackName = lifecycleCallbackNames[ name ];
+
+		runHostAdapterCallback( hostAdapter, 'onContent', [ name, blocks, serialized, context ] );
+		if ( callbackName ) {
+			runHostAdapterCallback( hostAdapter, callbackName, [ blocks, serialized, context ] );
+		}
+
+		runHostAdapterCallback( hostAdapter, 'onSave', [ blocks, serialized, context, { source: name } ] );
+		emitLifecycle( name, { blocks, serialized, instance } );
+		emitLifecycle( 'save', { blocks, serialized, source: name, instance } );
 	};
 
 	const onFocusIn = () => {
@@ -531,6 +616,22 @@ function createEditorContainer( container, textarea, settings ) {
 
 	textarea.__blocksEverywhereEditor = instance;
 	container.__blocksEverywhereEditor = instance;
+
+	emitLifecycle( 'before-mount', { instance } );
+	const hostAdapterContext = createHostAdapterContext( { container, instance, settings, textarea } );
+	runHostAdapterCallback( hostAdapter, 'beforeMount', [ hostAdapterContext ] );
+	const cleanupHostAdapter = runHostAdapterCallback( hostAdapter, 'setup', [ hostAdapterContext ] );
+	if ( typeof cleanupHostAdapter === 'function' ) {
+		cleanupCallbacks.push( () => runHostAdapterCleanup( cleanupHostAdapter ) );
+	}
+	emitLifecycle( 'mounted', { instance } );
+
+	const form = container.closest( 'form' );
+	if ( form ) {
+		const onSubmit = ( event ) => emitLifecycle( 'submit', { event, instance } );
+		form.addEventListener( 'submit', onSubmit );
+		cleanupCallbacks.push( () => form.removeEventListener( 'submit', onSubmit ) );
+	}
 
 	const configuredNonce = settings?.restNonce || window?.wpApiSettings?.nonce || null;
 	const restHeaders = configuredNonce ? { 'X-WP-Nonce': configuredNonce } : {};
@@ -940,11 +1041,13 @@ function createEditorContainer( container, textarea, settings ) {
 					onInput={ ( newBlocks ) => {
 						settings?.blocksEverywhere?.__experimentalOnInput?.( newBlocks );
 						const serialized = contentBridge.save( newBlocks );
+						emitContentHook( 'input', newBlocks, serialized );
 						scheduleAutosave( serialized );
 					} }
 					onChange={ ( newBlocks ) => {
 						settings?.blocksEverywhere?.__experimentalOnChange?.( newBlocks );
 						const serialized = contentBridge.save( newBlocks );
+						emitContentHook( 'change', newBlocks, serialized );
 						scheduleAutosave( serialized );
 					} }
 					onSelection={ ( selection ) =>

@@ -113,7 +113,33 @@ The adapter should:
 -   Treat host context as read-only unless the bridge explicitly supports writes.
 -   Keep sensitive values behind host services rather than serializing them into editor settings.
 
-Use [#53](https://github.com/Extra-Chill/blocks-everywhere/issues/53) for gaps where custom data stores or per-instance context cannot yet be injected cleanly.
+Use `settings.blocksEverywhere.data` to keep host data scoped to the mounted editor instance:
+
+```javascript
+const mount = window.blocksEverywhere.mountEditor( textarea, {
+	settings: {
+		...window.wpBlocksEverywhere,
+		blocksEverywhere: {
+			...window.wpBlocksEverywhere.blocksEverywhere,
+			data: {
+				context: {
+					entityType: 'comment',
+					entityId: 42,
+					canUpload: true,
+				},
+				blockContext: {
+					'example/entityType': 'comment',
+				},
+				stores: [ editorSessionStore ],
+			},
+		},
+	},
+} );
+```
+
+`data.context` is read-only adapter context. Blocks Everywhere forwards it to lifecycle callbacks, content bridge callbacks, and the mounted editor instance. `data.blockContext` is the explicit subset exposed to blocks through Gutenberg's `BlockContextProvider`; keep this small and avoid putting secrets or broad session objects in it.
+
+`data.stores` accepts store descriptors created with `wp.data.createReduxStore`, `{ descriptor }` wrappers, `{ name, config }` legacy store configs, or registration callbacks. Stores are registered against the editor instance registry, so multiple editor mounts can carry different host data without competing through ambient globals.
 
 ### Editor Modes
 

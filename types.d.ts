@@ -28,6 +28,8 @@ declare interface ContentBridgeHelpers {
 }
 
 declare interface ContentBridgeContext {
+	blockContext?: Record< string, unknown >;
+	context?: Record< string, unknown >;
 	textarea: HTMLTextAreaElement | null;
 	settings: typeof wpBlocksEverywhere;
 	editorType?: string;
@@ -73,8 +75,10 @@ declare type BlocksEverywhereLifecycleEventName =
 
 declare interface BlocksEverywhereEditorInstance {
 	container: HTMLElement;
+	context?: Record< string, unknown >;
 	focus: () => void;
 	services?: BlocksEverywhereEditorServices;
+	registry?: unknown;
 	textarea: HTMLTextAreaElement;
 	unmount: () => void;
 }
@@ -82,6 +86,7 @@ declare interface BlocksEverywhereEditorInstance {
 declare interface BlocksEverywhereLifecycleEventDetail {
 	blocks?: object[];
 	container: HTMLElement;
+	context?: Record< string, unknown >;
 	error?: unknown;
 	event?: Event;
 	getContentApi: () => BlocksEverywhereContentApi | null;
@@ -263,6 +268,7 @@ declare type BlocksEverywhereSlotName =
 declare interface BlocksEverywhere {
 	allowEmbeds: string[];
 	blocks: Blocks;
+	data?: BlocksEverywhereData;
 	lifecycle?: BlocksEverywhereLifecycleCallbacks;
 	hostAdapter?: BlocksEverywhereHostAdapter;
 	hostContext?: Record< string, unknown >;
@@ -282,6 +288,33 @@ declare interface BlocksEverywhere {
 	settingsTransforms?: BlocksEverywhereSettingsTransform[];
 }
 
+declare interface BlocksEverywhereDataRegistrationHelpers {
+	blockContext: Record< string, unknown >;
+	context: Record< string, unknown >;
+	instance: BlocksEverywhereEditorInstance;
+	registry: unknown;
+	settings: typeof wpBlocksEverywhere;
+	textarea: HTMLTextAreaElement;
+}
+
+declare type BlocksEverywhereDataStoreRegistration =
+	| unknown
+	| ( ( helpers: BlocksEverywhereDataRegistrationHelpers ) => void | ( () => void ) )
+	| { descriptor: unknown }
+	| { name: string; config: unknown }
+	| { register: ( helpers: BlocksEverywhereDataRegistrationHelpers ) => void | ( () => void ) };
+
+declare interface BlocksEverywhereData {
+	/** Read-only per-instance context for lifecycle callbacks, content bridges, slot fills, and host adapters. */
+	context?: Record< string, unknown >;
+	/** Explicit block context values exposed through Gutenberg's BlockContextProvider. */
+	blockContext?: Record< string, unknown >;
+	/** Per-instance store descriptors or registration callbacks. */
+	stores?: BlocksEverywhereDataStoreRegistration[];
+	/** Low-level registration escape hatch for custom registry setup. */
+	register?: ( helpers: BlocksEverywhereDataRegistrationHelpers ) => void | ( () => void );
+}
+
 declare interface BlocksEverywhereMountOptions {
 	container?: HTMLElement | string | null;
 	mode?: string | string[];
@@ -292,7 +325,9 @@ declare interface BlocksEverywhereMountOptions {
 
 declare interface BlocksEverywhereMount {
 	container: HTMLElement;
+	context?: Record< string, unknown >;
 	focus: () => void;
+	registry?: unknown;
 	textarea: HTMLTextAreaElement;
 	unmount: () => void;
 }

@@ -458,6 +458,46 @@ instance.focus();
 instance.unmount();
 ```
 
+### Per-Instance Data API
+
+Dynamic mounts can scope host data to one editor instance with
+`settings.blocksEverywhere.data`.
+
+```typescript
+const mount = window.blocksEverywhere.mountEditor( textarea, {
+    settings: {
+        ...window.wpBlocksEverywhere,
+        blocksEverywhere: {
+            ...window.wpBlocksEverywhere.blocksEverywhere,
+            data: {
+                context: {
+                    entityType: 'comment',
+                    entityId: 42,
+                },
+                blockContext: {
+                    'example/entityType': 'comment',
+                },
+                stores: [ editorSessionStore ],
+            },
+        },
+    },
+} );
+```
+
+- `context` is read-only adapter context. It is available as
+  `instance.context`, lifecycle `detail.context`, and content bridge
+  `context.context`.
+- `blockContext` is passed to Gutenberg's `BlockContextProvider` for blocks
+  that declare matching context usage.
+- `stores` registers custom data stores against the mounted editor registry.
+  Prefer `wp.data.createReduxStore` descriptors. For low-level integrations,
+  pass a registration callback that receives `{ registry, context,
+  blockContext, settings, textarea, instance }` and may return a cleanup
+  function.
+
+Keep sensitive data behind injected services instead of serializing it into
+`context` or `blockContext`.
+
 `instance.unmount()` emits `before-unmount` and `unmounted`, allowing host
 pages to clean transient notices or UI state without forcing a page reload.
 

@@ -4,6 +4,7 @@
 import { MediaUpload } from '@wordpress/media-utils';
 import apiFetch from '@wordpress/api-fetch';
 import {
+	BlockContextProvider,
 	BlockEditorProvider,
 	mediaUpload as blockEditorMediaUpload,
 	// @ts-ignore __experimentalLibrary is an unstable API but is the only
@@ -15,7 +16,7 @@ import { SlotFillProvider } from '@wordpress/components';
 import { createRoot, useCallback, useEffect, useState } from '@wordpress/element';
 import { addFilter } from '@wordpress/hooks';
 import { createBlock, getBlockTypes, parse, rawHandler, serialize, unregisterBlockType } from '@wordpress/blocks';
-import { useDispatch } from '@wordpress/data';
+import { createRegistry, RegistryProvider, useDispatch, useRegistry } from '@wordpress/data';
 
 /**
  * Internal dependencies
@@ -51,7 +52,9 @@ type SettingsTransform =
 
 export interface EditorMount {
 	container: HTMLElement;
+	context?: Record< string, unknown >;
 	focus: () => void;
+	registry?: unknown;
 	textarea: HTMLTextAreaElement;
 	unmount: () => void;
 }
@@ -202,6 +205,118 @@ function resolveEditorServices( settings, mountServices?: EditorServices ): Edit
 	};
 }
 
+function getEditorDataSettings( settings ) {
+	const data = settings?.blocksEverywhere?.data;
+	return isPlainObject( data ) ? data : {};
+}
+
+function getEditorContext( settings ) {
+	const context = getEditorDataSettings( settings )?.context;
+	return isPlainObject( context ) ? context : {};
+}
+
+function getBlockContext( settings ) {
+	const context = getEditorDataSettings( settings )?.blockContext;
+	return isPlainObject( context ) ? context : {};
+}
+
+function hasEditorDataBoundary( settings ) {
+	const data = getEditorDataSettings( settings );
+	return Boolean(
+		data.register ||
+			( Array.isArray( data.stores ) && data.stores.length > 0 ) ||
+			Object.keys( getBlockContext( settings ) ).length > 0
+	);
+}
+
+function registerEditorStore( registry, store, helpers ) {
+	if ( typeof store === 'function' ) {
+		return store( helpers );
+	}
+
+	if ( typeof store?.register === 'function' ) {
+		return store.register( helpers );
+	}
+
+	if ( store?.descriptor ) {
+		registry.register( store.descriptor );
+		return undefined;
+	}
+
+	if ( store?.name && store?.config ) {
+		registry.registerStore( store.name, store.config );
+		return undefined;
+	}
+
+	if ( store?.name && typeof store?.instantiate === 'function' ) {
+		registry.register( store );
+	}
+
+	return undefined;
+}
+
+function EditorDataBoundary( { children, instance, settings, textarea } ) {
+	const parentRegistry = useRegistry();
+	const [ controller ] = useState( () => {
+		const data = getEditorDataSettings( settings );
+		const context = getEditorContext( settings );
+		const blockContext = getBlockContext( settings );
+		const registry = createRegistry( {}, parentRegistry );
+		const helpers = {
+			blockContext,
+			context,
+			instance,
+			registry,
+			settings,
+			textarea,
+		};
+		const cleanupCallbacks = [];
+
+		( Array.isArray( data.stores ) ? data.stores : [] ).forEach( ( store ) => {
+			const cleanup = registerEditorStore( registry, store, helpers );
+			if ( typeof cleanup === 'function' ) {
+				cleanupCallbacks.push( cleanup );
+			}
+		} );
+
+		if ( typeof data.register === 'function' ) {
+			const cleanup = data.register( helpers );
+			if ( typeof cleanup === 'function' ) {
+				cleanupCallbacks.push( cleanup );
+			}
+		}
+
+		instance.context = context;
+		instance.registry = registry;
+
+		return {
+			blockContext,
+			cleanup: () => cleanupCallbacks.forEach( ( cleanup ) => cleanup() ),
+			registry,
+		};
+	} );
+
+	useEffect( () => () => controller.cleanup(), [ controller ] );
+
+	return (
+		<RegistryProvider value={ controller.registry }>
+			<BlockContextProvider value={ controller.blockContext }>{ children }</BlockContextProvider>
+		</RegistryProvider>
+	);
+}
+
+function MaybeEditorDataBoundary( { children, instance, settings, textarea } ) {
+	if ( ! hasEditorDataBoundary( settings ) ) {
+		return <>{ children }</>;
+	}
+
+	return (
+		<EditorDataBoundary instance={ instance } settings={ settings } textarea={ textarea }>
+			{ children }
+		</EditorDataBoundary>
+	);
+}
+
 /**
  * Inline block inserter panel rendered into the detached sidebar portal.
  *
@@ -254,6 +369,8 @@ function createContentBridgeHelpers( textarea, settings ) {
 
 function createContentBridgeContext( textarea, settings ) {
 	return {
+		blockContext: getBlockContext( settings ),
+		context: getEditorContext( settings ),
 		textarea,
 		settings,
 		editorType: settings?.editorType,
@@ -414,6 +531,7 @@ function dispatchLifecycleEvent( name, { container, detail = {}, settings, texta
 	const instance =
 		detail?.instance || textarea?.__blocksEverywhereEditor || container?.__blocksEverywhereEditor || null;
 	const eventDetail = {
+		context: getEditorContext( settings ),
 		container,
 		getContentApi: () => textarea?.__blocksEverywhereContentApi ?? null,
 		instance,
@@ -772,11 +890,13 @@ function createEditorContainer( container, textarea, settings ) {
 
 	const instance = {
 		container,
+		context: getEditorContext( settings ),
 		focus: () => {
 			emitLifecycle( 'focus-requested', { instance } );
 			focusEditor( container );
 		},
 		services,
+		registry: undefined,
 		textarea,
 		unmount: () => unmountEditor( textarea ),
 	};
@@ -1273,63 +1393,65 @@ function createEditorContainer( container, textarea, settings ) {
 				: null;
 
 		root.render(
-			<PostEntityShell postEntity={ postEntity } editorSettings={ settings?.editor }>
-				<EmbeddedBlockEditor
-					key={ editorKey }
-					settings={ settings }
-					onLoad={ () => contentBridge.load() }
-					onError={ ( error ) => {
-						// eslint-disable-next-line no-console
-						console.error( 'Blocks Everywhere: editor initialization failed', error );
-						container?.classList?.add( 'blocks-everywhere--error' );
-						document?.body?.classList?.add( 'gutenberg-support-loaded' );
-						setLoaded( container );
-						emitLifecycle( 'error', { error, instance } );
-					} }
-					onInput={ ( newBlocks ) => {
-						settings?.blocksEverywhere?.__experimentalOnInput?.( newBlocks );
-						const serialized = contentBridge.save( newBlocks );
-						emitContentHook( 'input', newBlocks, serialized );
-						scheduleAutosave( serialized );
-					} }
-					onChange={ ( newBlocks ) => {
-						settings?.blocksEverywhere?.__experimentalOnChange?.( newBlocks );
-						const serialized = contentBridge.save( newBlocks );
-						emitContentHook( 'change', newBlocks, serialized );
-						scheduleAutosave( serialized );
-					} }
-					onSelection={ ( selection ) =>
-						settings?.blocksEverywhere?.__experimentalOnSelection?.( selection )
-					}
-					className={ settings?.blocksEverywhere?.className }
-				>
-					{ ( { blocks, replaceBlocks } ) => (
-						<>
-							<EditorLoaded
-								onLoaded={ () => {
-									setLoaded( container );
-									emitLifecycle( 'loaded', { instance } );
-								} }
-							/>
-							<ThemeSupportsDispatcher themeSupports={ settings?.editor?.themeSupports } />
-							<ContentBridge
-								textarea={ textarea }
-								blocks={ blocks }
-								replaceBlocks={ replaceBlocks }
-								contentBridge={ contentBridge }
-							/>
-							<RegisteredSlotFills textarea={ textarea } />
+			<MaybeEditorDataBoundary instance={ instance } settings={ settings } textarea={ textarea }>
+				<PostEntityShell postEntity={ postEntity } editorSettings={ settings?.editor }>
+					<EmbeddedBlockEditor
+						key={ editorKey }
+						settings={ settings }
+						onLoad={ () => contentBridge.load() }
+						onError={ ( error ) => {
+							// eslint-disable-next-line no-console
+							console.error( 'Blocks Everywhere: editor initialization failed', error );
+							container?.classList?.add( 'blocks-everywhere--error' );
+							document?.body?.classList?.add( 'gutenberg-support-loaded' );
+							setLoaded( container );
+							emitLifecycle( 'error', { error, instance } );
+						} }
+						onInput={ ( newBlocks ) => {
+							settings?.blocksEverywhere?.__experimentalOnInput?.( newBlocks );
+							const serialized = contentBridge.save( newBlocks );
+							emitContentHook( 'input', newBlocks, serialized );
+							scheduleAutosave( serialized );
+						} }
+						onChange={ ( newBlocks ) => {
+							settings?.blocksEverywhere?.__experimentalOnChange?.( newBlocks );
+							const serialized = contentBridge.save( newBlocks );
+							emitContentHook( 'change', newBlocks, serialized );
+							scheduleAutosave( serialized );
+						} }
+						onSelection={ ( selection ) =>
+							settings?.blocksEverywhere?.__experimentalOnSelection?.( selection )
+						}
+						className={ settings?.blocksEverywhere?.className }
+					>
+						{ ( { blocks, replaceBlocks } ) => (
+							<>
+								<EditorLoaded
+									onLoaded={ () => {
+										setLoaded( container );
+										emitLifecycle( 'loaded', { instance } );
+									} }
+								/>
+								<ThemeSupportsDispatcher themeSupports={ settings?.editor?.themeSupports } />
+								<ContentBridge
+									textarea={ textarea }
+									blocks={ blocks }
+									replaceBlocks={ replaceBlocks }
+									contentBridge={ contentBridge }
+								/>
+								<RegisteredSlotFills textarea={ textarea } />
 
-							{ /* Forward block changes to core/editor edits so <AutosaveMonitor> sees dirty state. */ }
-							{ postEntity?.id > 0 && <EditorEditsBridge blocks={ blocks } /> }
+								{ /* Forward block changes to core/editor edits so <AutosaveMonitor> sees dirty state. */ }
+								{ postEntity?.id > 0 && <EditorEditsBridge blocks={ blocks } /> }
 
-							{ settings.editorType === 'buddypress' && <BuddyPress textarea={ textarea } /> }
-							<RemoveBlockVariations />
-							<RemoveBlockTypes settings={ settings } />
-						</>
-					) }
-				</EmbeddedBlockEditor>
-			</PostEntityShell>
+								{ settings.editorType === 'buddypress' && <BuddyPress textarea={ textarea } /> }
+								<RemoveBlockVariations />
+								<RemoveBlockTypes settings={ settings } />
+							</>
+						) }
+					</EmbeddedBlockEditor>
+				</PostEntityShell>
+			</MaybeEditorDataBoundary>
 		);
 	};
 
@@ -1558,6 +1680,7 @@ function createEditorContainer( container, textarea, settings ) {
 		delete textarea.__blocksEverywhereEditor;
 		delete container.__blocksEverywhereEditor;
 		emitLifecycle( 'unmounted', { instance } );
+		delete instance.registry;
 	};
 }
 
@@ -1813,7 +1936,13 @@ export function mountEditor( node: HTMLTextAreaElement, options: EditorMountOpti
 
 	const mount: EditorMount = {
 		container,
+		get context() {
+			return node.__blocksEverywhereEditor?.context;
+		},
 		focus: () => node.__blocksEverywhereEditor?.focus?.(),
+		get registry() {
+			return node.__blocksEverywhereEditor?.registry;
+		},
 		textarea: node,
 		unmount: () => {
 			if ( ! mountedEditors.has( node ) ) {

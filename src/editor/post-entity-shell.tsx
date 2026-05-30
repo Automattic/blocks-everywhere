@@ -18,11 +18,6 @@
  */
 
 /**
- * External dependencies
- */
-import type { ReactElement, ReactNode } from 'react';
-
-/**
  * WordPress dependencies
  */
 import { serialize } from '@wordpress/blocks';
@@ -30,6 +25,11 @@ import { store as coreStore } from '@wordpress/core-data';
 import { useDispatch, useSelect } from '@wordpress/data';
 import { useEffect, useRef } from '@wordpress/element';
 import { AutosaveMonitor, EditorProvider, LocalAutosaveMonitor, store as editorStore } from '@wordpress/editor';
+
+/**
+ * External dependencies
+ */
+import type { ReactElement, ReactNode } from 'react';
 
 export interface PostEntityRef {
 	/** Post type slug, e.g. 'post', 'page', or any registered CPT. */

@@ -53,8 +53,11 @@ type SettingsTransform =
 export interface EditorMount {
 	container: HTMLElement;
 	context?: Record< string, unknown >;
+	entity?: Record< string, unknown >;
 	focus: () => void;
+	getEntityEdits?: () => Record< string, unknown >;
 	registry?: unknown;
+	resetEntity?: ( reason?: string ) => void;
 	textarea: HTMLTextAreaElement;
 	unmount: () => void;
 }
@@ -220,6 +223,27 @@ function getBlockContext( settings ) {
 	return isPlainObject( context ) ? context : {};
 }
 
+function getEntityBridge( settings ) {
+	const bridge = settings?.blocksEverywhere?.entityBridge;
+	return isPlainObject( bridge ) ? bridge : null;
+}
+
+function getEntityBridgeEntity( settings ) {
+	const bridge = getEntityBridge( settings );
+	if ( ! bridge ) {
+		return {};
+	}
+
+	const entity = isPlainObject( bridge.entity ) ? { ...bridge.entity } : {};
+	[ 'id', 'type', 'parentId', 'revision', 'authorId', 'capabilities', 'urls', 'metadata' ].forEach( ( key ) => {
+		if ( Object.prototype.hasOwnProperty.call( bridge, key ) ) {
+			entity[ key ] = bridge[ key ];
+		}
+	} );
+
+	return entity;
+}
+
 function hasEditorDataBoundary( settings ) {
 	const data = getEditorDataSettings( settings );
 	return Boolean(
@@ -371,6 +395,7 @@ function createContentBridgeContext( textarea, settings ) {
 	return {
 		blockContext: getBlockContext( settings ),
 		context: getEditorContext( settings ),
+		entity: getEntityBridgeEntity( settings ),
 		textarea,
 		settings,
 		editorType: settings?.editorType,
@@ -449,6 +474,102 @@ function createContentBridgeController( textarea, settings ) {
 	};
 }
 
+function createEntityBridgeContext( { container, instance, settings, source, textarea } ) {
+	return {
+		blockContext: getBlockContext( settings ),
+		container,
+		context: getEditorContext( settings ),
+		editorType: settings?.editorType,
+		entity: getEntityBridgeEntity( settings ),
+		getContentApi: () => textarea?.__blocksEverywhereContentApi ?? null,
+		instance,
+		settings,
+		source,
+		textarea,
+	};
+}
+
+function createEntityBridgeController( { container, contentBridge, instance, settings, textarea } ) {
+	const bridge = getEntityBridge( settings );
+	const getContext = ( source? ) =>
+		createEntityBridgeContext( {
+			container,
+			instance,
+			settings,
+			source,
+			textarea,
+		} );
+
+	return {
+		bridge,
+		entity: getEntityBridgeEntity( settings ),
+		getEdits() {
+			if ( typeof bridge?.getEdits !== 'function' ) {
+				return {};
+			}
+
+			try {
+				const edits = bridge.getEdits( getContext() );
+				return isPlainObject( edits ) ? edits : {};
+			} catch ( error ) {
+				// eslint-disable-next-line no-console
+				console.error( 'Blocks Everywhere: entity bridge getEdits failed', error );
+				return {};
+			}
+		},
+		load() {
+			if ( typeof bridge?.load === 'function' ) {
+				try {
+					const loaded = normalizeLoadedBlocks( bridge.load( getContext( 'load' ) ), contentBridge.helpers );
+					if ( loaded ) {
+						return loaded;
+					}
+				} catch ( error ) {
+					// eslint-disable-next-line no-console
+					console.error( 'Blocks Everywhere: entity bridge load failed', error );
+				}
+			}
+
+			return contentBridge.load();
+		},
+		reset( reason = 'reset' ) {
+			if ( typeof bridge?.reset !== 'function' ) {
+				return;
+			}
+
+			try {
+				bridge.reset( getContext( reason ) );
+			} catch ( error ) {
+				// eslint-disable-next-line no-console
+				console.error( 'Blocks Everywhere: entity bridge reset failed', error );
+			}
+		},
+		saveEdits( blocks, serialized, source ) {
+			if ( typeof bridge?.saveEdits !== 'function' ) {
+				return;
+			}
+
+			const bridgeEdits = this.getEdits();
+			try {
+				bridge.saveEdits(
+					{
+						...bridgeEdits,
+						blocks,
+						content: serialized,
+						entity: this.entity,
+						serialized,
+						source,
+					},
+					getContext( source )
+				);
+			} catch ( error ) {
+				// eslint-disable-next-line no-console
+				console.error( 'Blocks Everywhere: entity bridge saveEdits failed', error );
+			}
+		},
+	};
+}
+
 const lifecycleCallbackNames = {
 	'before-mount': 'onBeforeMount',
 	mounted: 'onMounted',
@@ -480,6 +601,7 @@ function getHostAdapterMetadata( settings ) {
 function createHostAdapterContext( { container, instance, settings, textarea } ) {
 	return {
 		container,
+		entity: getEntityBridgeEntity( settings ),
 		getContentApi: () => textarea?.__blocksEverywhereContentApi ?? null,
 		instance,
 		metadata: getHostAdapterMetadata( settings ),
@@ -533,6 +655,7 @@ function dispatchLifecycleEvent( name, { container, detail = {}, settings, texta
 	const eventDetail = {
 		context: getEditorContext( settings ),
 		container,
+		entity: getEntityBridgeEntity( settings ),
 		getContentApi: () => textarea?.__blocksEverywhereContentApi ?? null,
 		instance,
 		metadata: getHostAdapterMetadata( settings ),
@@ -851,6 +974,7 @@ function createEditorContainer( container, textarea, settings ) {
 	const editorKey = 0;
 	const draftRequestControllers = new Set< AbortController >();
 	const contentBridge = createContentBridgeController( textarea, settings );
+	let entityBridge = null;
 	let hasEditorFocus = false;
 
 	const emitLifecycle = ( name, detail = {} ) => {
@@ -891,15 +1015,19 @@ function createEditorContainer( container, textarea, settings ) {
 	const instance = {
 		container,
 		context: getEditorContext( settings ),
+		entity: getEntityBridgeEntity( settings ),
 		focus: () => {
 			emitLifecycle( 'focus-requested', { instance } );
 			focusEditor( container );
 		},
+		getEntityEdits: () => entityBridge?.getEdits?.() || {},
 		services,
 		registry: undefined,
+		resetEntity: ( reason?: string ) => entityBridge?.reset?.( reason ),
 		textarea,
 		unmount: () => unmountEditor( textarea ),
 	};
+	entityBridge = createEntityBridgeController( { container, contentBridge, instance, settings, textarea } );
 
 	textarea.__blocksEverywhereEditor = instance;
 	container.__blocksEverywhereEditor = instance;
@@ -1398,7 +1526,7 @@ function createEditorContainer( container, textarea, settings ) {
 					<EmbeddedBlockEditor
 						key={ editorKey }
 						settings={ settings }
-						onLoad={ () => contentBridge.load() }
+						onLoad={ () => entityBridge.load() }
 						onError={ ( error ) => {
 							// eslint-disable-next-line no-console
 							console.error( 'Blocks Everywhere: editor initialization failed', error );
@@ -1410,12 +1538,14 @@ function createEditorContainer( container, textarea, settings ) {
 						onInput={ ( newBlocks ) => {
 							settings?.blocksEverywhere?.__experimentalOnInput?.( newBlocks );
 							const serialized = contentBridge.save( newBlocks );
+							entityBridge.saveEdits( newBlocks, serialized, 'input' );
 							emitContentHook( 'input', newBlocks, serialized );
 							scheduleAutosave( serialized );
 						} }
 						onChange={ ( newBlocks ) => {
 							settings?.blocksEverywhere?.__experimentalOnChange?.( newBlocks );
 							const serialized = contentBridge.save( newBlocks );
+							entityBridge.saveEdits( newBlocks, serialized, 'change' );
 							emitContentHook( 'change', newBlocks, serialized );
 							scheduleAutosave( serialized );
 						} }
@@ -1779,6 +1909,7 @@ function normalizeTransformPatch( patch ) {
 		'contentBridge',
 		'defaultPreferences',
 		'features',
+		'entityBridge',
 		'lifecycle',
 		'mode',
 		'modes',

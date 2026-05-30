@@ -52,6 +52,13 @@ class Context_Bootstrap_Test extends TestCase {
 					'allowed_blocks'        => [ 'core/paragraph', 'core/image' ],
 					'disallowed_blocks'     => [ 'core/image' ],
 					'features'              => [ 'portableToolbar' => true ],
+					'entity_bridge'         => [
+						'type'         => 'comment',
+						'id'           => 42,
+						'parentId'     => 7,
+						'revision'     => 'abc123',
+						'capabilities' => [ 'edit' => true ],
+					],
 					'preload_paths'         => function ( $paths ) {
 						$paths[] = '/portable/v1/context';
 
@@ -108,6 +115,11 @@ class Context_Bootstrap_Test extends TestCase {
 		$this->assertSame( [ 'core/paragraph' ], $settings['blocksEverywhere']['blocks']['allowBlocks'] );
 		$this->assertSame( [ 'core/image' ], $settings['blocksEverywhere']['blocks']['disallowBlocks'] );
 		$this->assertTrue( $settings['blocksEverywhere']['features']['portableToolbar'] );
+		$this->assertSame( 'comment', $settings['blocksEverywhere']['entityBridge']['type'] );
+		$this->assertSame( 42, $settings['blocksEverywhere']['entityBridge']['id'] );
+		$this->assertSame( 7, $settings['blocksEverywhere']['entityBridge']['parentId'] );
+		$this->assertSame( 'abc123', $settings['blocksEverywhere']['entityBridge']['revision'] );
+		$this->assertTrue( $settings['blocksEverywhere']['entityBridge']['capabilities']['edit'] );
 		$this->assertSame( [ '/', '/portable/v1/context' ], apply_filters( 'block_editor_preload_paths', [ '/' ], null ) );
 		$this->assertSame( [ [ 'slug' => 'portable', 'title' => 'Portable' ] ], apply_filters( 'block_categories_all', [], null ) );
 		$this->assertSame( [ 'core/paragraph' => [ 'name' => 'core/paragraph' ] ], apply_filters( 'blocks_everywhere_server_block_settings', [], null ) );

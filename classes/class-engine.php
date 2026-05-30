@@ -20,6 +20,7 @@
  *             'compact' => [ 'chrome' => [ 'mode' => 'compact' ] ],
  *         ],
  *         'settings_transforms'   => [ ... ],                 // Ordered static client-side settings patches.
+ *         'entity_bridge'         => [ 'type' => 'draft', 'id' => 42 ], // Static host entity facts for the client bridge.
  *         'preload_paths'         => fn($paths, $post, $engine) => $paths,
  *         'block_categories'      => fn($categories, $context, $engine) => $categories,
  *         'server_block_settings' => fn($settings, $context, $engine) => $settings,
@@ -316,6 +317,14 @@ class Engine extends Handler {
 		$features = $this->resolve_context_value( $config['features'] ?? null, $settings, $id, $config );
 		if ( is_array( $features ) ) {
 			$settings['blocksEverywhere']['features'] = array_merge( $settings['blocksEverywhere']['features'] ?? [], $features );
+		}
+
+		$entity_bridge = $this->resolve_context_value( $config['entity_bridge'] ?? null, $settings, $id, $config );
+		if ( is_array( $entity_bridge ) ) {
+			$settings['blocksEverywhere']['entityBridge'] = array_merge(
+				$settings['blocksEverywhere']['entityBridge'] ?? [],
+				$entity_bridge
+			);
 		}
 
 		return $settings;

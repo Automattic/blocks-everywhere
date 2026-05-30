@@ -49,6 +49,7 @@ The first-wave APIs establish the shared surface that second-wave adapter work s
 | Instance lookup | `window.blocksEverywhere.getEditor( textarea )` | Focus and instance-level coordination from host UI. |
 | Content API | `window.blocksEverywhere.getContentApi( textarea )` | Reading serialized block markup or replacing mounted editor content. |
 | Content bridge | `settings.blocksEverywhere.contentBridge` | Loading, serializing, saving, and hot-replacing content through host persistence. |
+| Entity bridge | `settings.blocksEverywhere.entityBridge` | Passing host entity identity, metadata, and edit/reset hooks into an editor instance. |
 | Lifecycle callbacks | `settings.blocksEverywhere.lifecycle` | Instance-scoped callbacks for load, focus, error, and teardown. |
 | Lifecycle DOM events | `blocksEverywhere:editor:{event}` | Host listeners that should not be coupled to the settings object. |
 | Slot fills | `window.blocksEverywhere.registerSlotFill( slot, renderFn )` | Host-owned controls and status rendered inside editor chrome. |
@@ -243,6 +244,42 @@ Bridge data can include:
 -   Locking, conflict, or freshness metadata.
 
 Keep the editor API generic by passing entity facts instead of host-specific objects. Track missing entity bridge support in [#57](https://github.com/Extra-Chill/blocks-everywhere/issues/57).
+
+Use `settings.blocksEverywhere.entityBridge` when a mounted editor edits a host record that is not a canonical WordPress post entity, or when the host needs to attach revision, parent, capability, URL, or lock metadata to content edits:
+
+```javascript
+window.blocksEverywhere.mountEditor( textarea, {
+	settings: {
+		...wpBlocksEverywhere,
+		blocksEverywhere: {
+			...wpBlocksEverywhere.blocksEverywhere,
+			entityBridge: {
+				type: 'comment',
+				id: 42,
+				parentId: 7,
+				revision: 'rev-abc123',
+				capabilities: { edit: true, uploadMedia: false },
+				load( context ) {
+					return hostDrafts.getInitialBlocks( context.entity );
+				},
+				getEdits( context ) {
+					return { title: hostDrafts.getTitle( context.entity.id ) };
+				},
+				saveEdits( edits, context ) {
+					hostDrafts.save( context.entity.id, edits );
+				},
+				reset( context ) {
+					hostDrafts.resetSession( context.entity.id );
+				},
+			},
+		},
+	},
+} );
+```
+
+`entityBridge.load()` can return parsed blocks or serialized block markup. If it returns nothing, Blocks Everywhere falls back to the content bridge or textarea content. `saveEdits()` receives `{ blocks, serialized, content, source, entity }` plus any object returned by `getEdits()`. `reset()` is exposed as `mount.resetEntity()` so hosts can clear stale entity state when focus moves between editor instances.
+
+Canonical WordPress post editing still uses `settings.postEntity` and `PostEntityShell`; `entityBridge` is the generic host-record bridge for everything else.
 
 ### Service Injection
 

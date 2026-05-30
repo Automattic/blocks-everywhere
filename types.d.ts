@@ -30,6 +30,7 @@ declare interface ContentBridgeHelpers {
 declare interface ContentBridgeContext {
 	blockContext?: Record< string, unknown >;
 	context?: Record< string, unknown >;
+	entity?: BlocksEverywhereEntityBridgeEntity;
 	textarea: HTMLTextAreaElement | null;
 	settings: typeof wpBlocksEverywhere;
 	editorType?: string;
@@ -76,9 +77,12 @@ declare type BlocksEverywhereLifecycleEventName =
 declare interface BlocksEverywhereEditorInstance {
 	container: HTMLElement;
 	context?: Record< string, unknown >;
+	entity?: BlocksEverywhereEntityBridgeEntity;
 	focus: () => void;
+	getEntityEdits?: () => Record< string, unknown >;
 	services?: BlocksEverywhereEditorServices;
 	registry?: unknown;
+	resetEntity?: ( reason?: string ) => void;
 	textarea: HTMLTextAreaElement;
 	unmount: () => void;
 }
@@ -87,6 +91,7 @@ declare interface BlocksEverywhereLifecycleEventDetail {
 	blocks?: object[];
 	container: HTMLElement;
 	context?: Record< string, unknown >;
+	entity?: BlocksEverywhereEntityBridgeEntity;
 	error?: unknown;
 	event?: Event;
 	getContentApi: () => BlocksEverywhereContentApi | null;
@@ -120,6 +125,7 @@ declare interface BlocksEverywhereHostAdapterContext {
 	container: HTMLElement;
 	getContentApi: () => BlocksEverywhereContentApi | null;
 	instance: BlocksEverywhereEditorInstance;
+	entity?: BlocksEverywhereEntityBridgeEntity;
 	metadata?: Record< string, unknown >;
 	settings: typeof wpBlocksEverywhere;
 	textarea: HTMLTextAreaElement;
@@ -219,6 +225,51 @@ declare interface BlocksEverywhereEditorServices {
 	permissions?: BlocksEverywherePermissionsService | null;
 }
 
+declare interface BlocksEverywhereEntityBridgeEntity {
+	id?: string | number;
+	type?: string;
+	parentId?: string | number;
+	revision?: string | number;
+	authorId?: string | number;
+	capabilities?: Record< string, unknown >;
+	urls?: Record< string, string >;
+	metadata?: Record< string, unknown >;
+	[ key: string ]: unknown;
+}
+
+declare interface BlocksEverywhereEntityBridgeContext {
+	blockContext: Record< string, unknown >;
+	container: HTMLElement;
+	context: Record< string, unknown >;
+	editorType?: string;
+	entity: BlocksEverywhereEntityBridgeEntity;
+	getContentApi: () => BlocksEverywhereContentApi | null;
+	instance: BlocksEverywhereEditorInstance;
+	settings: typeof wpBlocksEverywhere;
+	source?: string;
+	textarea: HTMLTextAreaElement;
+}
+
+declare interface BlocksEverywhereEntityBridgeEdits {
+	blocks?: object[];
+	content?: string;
+	entity?: BlocksEverywhereEntityBridgeEntity;
+	serialized?: string;
+	source?: 'input' | 'change' | string;
+	[ key: string ]: unknown;
+}
+
+declare interface BlocksEverywhereEntityBridge extends BlocksEverywhereEntityBridgeEntity {
+	entity?: BlocksEverywhereEntityBridgeEntity;
+	load?: ( context: BlocksEverywhereEntityBridgeContext ) => object[] | string | void;
+	getEdits?: ( context: BlocksEverywhereEntityBridgeContext ) => BlocksEverywhereEntityBridgeEdits | void;
+	saveEdits?: (
+		edits: BlocksEverywhereEntityBridgeEdits,
+		context: BlocksEverywhereEntityBridgeContext
+	) => void;
+	reset?: ( context: BlocksEverywhereEntityBridgeContext ) => void;
+}
+
 declare interface BlocksEverywhereSettingsTransformContext {
 	mode?: string;
 	modes: string[];
@@ -242,6 +293,7 @@ declare interface BlocksEverywhereModeSettings {
 	className?: string;
 	defaultPreferences?: Record< string, unknown >;
 	editor?: Record< string, unknown >;
+	entityBridge?: BlocksEverywhereEntityBridge;
 	features?: Record< string, unknown >;
 	preferenceKey?: string;
 	services?: BlocksEverywhereEditorServices;
@@ -269,6 +321,7 @@ declare interface BlocksEverywhere {
 	allowEmbeds: string[];
 	blocks: Blocks;
 	data?: BlocksEverywhereData;
+	entityBridge?: BlocksEverywhereEntityBridge;
 	lifecycle?: BlocksEverywhereLifecycleCallbacks;
 	hostAdapter?: BlocksEverywhereHostAdapter;
 	hostContext?: Record< string, unknown >;
@@ -326,8 +379,11 @@ declare interface BlocksEverywhereMountOptions {
 declare interface BlocksEverywhereMount {
 	container: HTMLElement;
 	context?: Record< string, unknown >;
+	entity?: BlocksEverywhereEntityBridgeEntity;
 	focus: () => void;
+	getEntityEdits?: () => Record< string, unknown >;
 	registry?: unknown;
+	resetEntity?: ( reason?: string ) => void;
 	textarea: HTMLTextAreaElement;
 	unmount: () => void;
 }

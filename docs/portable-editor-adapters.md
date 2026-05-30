@@ -4,24 +4,58 @@ This guide is for teams migrating a bespoke embedded editor shell to Blocks Ever
 
 Blocks Everywhere should own the Gutenberg editor runtime, block settings, editor chrome, and block serialization. The host adapter should own host routing, permissions, persistence, entity identity, and product-specific UI outside the editor.
 
-## Migration Model
+## Adapter Contract
 
-Think of a migration as three boundaries:
+Think of the integration as four generic boundaries:
 
 ```
-Host application
-    owns route, entity, permissions, services, persistence
+Host app
+    owns routes, host state, permissions, persistence, and product UI
         |
         v
-Host adapter
-    maps host concepts to Blocks Everywhere configuration and events
+Adapter
+    maps host concepts to editor settings, lifecycle callbacks, and services
+        |
+        +--> Entity bridge
+        |       describes the edited record and coordinates edits
+        |
+        +--> Service adapters
+        |       provide fetch, media, notices, autosave, and telemetry
         |
         v
-Blocks Everywhere editor instance
-    owns Gutenberg packages, block canvas, slots, settings, serialization
+Embedded editor
+    owns Gutenberg packages, block canvas, chrome, slots, and serialization
 ```
 
 Keep the adapter thin. If a behavior can be described as editor configuration, block availability, a slot fill, a content bridge, or a lifecycle callback, put it behind the Blocks Everywhere integration boundary instead of keeping a second editor shell.
+
+The adapter contract is intentionally generic:
+
+- **Host app** decides when an editor exists and which entity is being edited.
+- **Frontend app** code mounts or unmounts editor instances when routes, drawers, modals, or list items change.
+- **Embedded editor** receives settings and emits lifecycle, content, focus, and teardown signals.
+- **Adapter** converts host state into Blocks Everywhere settings and responds to editor events.
+- **Entity bridge** tracks identity, capabilities, revision state, and edit persistence for the current host record.
+- **Service adapter** supplies editor-callable functions without exposing host internals to editor components.
+
+## Current Public Surfaces
+
+The first-wave APIs establish the shared surface that second-wave adapter work should build on:
+
+| Surface | Current entry point | Use for |
+|---------|---------------------|---------|
+| Mounting | `window.blocksEverywhere.mountEditor( textarea, options )` | Dynamic editor creation for frontend app routes, modals, drawers, and inline composers. |
+| Unmounting | `window.blocksEverywhere.unmount( mountOrTextarea )` or `mount.unmount()` | Cleanup when the host app removes the editor surface. |
+| Instance lookup | `window.blocksEverywhere.getEditor( textarea )` | Focus and instance-level coordination from host UI. |
+| Content API | `window.blocksEverywhere.getContentApi( textarea )` | Reading serialized block markup or replacing mounted editor content. |
+| Content bridge | `settings.blocksEverywhere.contentBridge` | Loading, serializing, saving, and hot-replacing content through host persistence. |
+| Lifecycle callbacks | `settings.blocksEverywhere.lifecycle` | Instance-scoped callbacks for load, focus, error, and teardown. |
+| Lifecycle DOM events | `blocksEverywhere:editor:{event}` | Host listeners that should not be coupled to the settings object. |
+| Slot fills | `window.blocksEverywhere.registerSlotFill( slot, renderFn )` | Host-owned controls and status rendered inside editor chrome. |
+| Chrome settings | `settings.blocksEverywhere.chrome` and `settings.blocksEverywhere.toolbar` | Mode-like layout and toolbar choices already supported by the embedded editor. |
+| Server bootstrap | context settings/preload/body-class/asset hooks | Preparing initial editor settings and frontend app payloads before mount. |
+
+Second-wave work should extend these surfaces instead of introducing another global namespace or host-specific registry.
 
 ## Capability Map
 
@@ -51,7 +85,7 @@ The adapter should:
 - Unmount the editor when the host route, modal, drawer, or list item is removed.
 - Release host listeners, pending requests, and slot registrations during teardown.
 
-Until the public mount/unmount API in [#50](https://github.com/Extra-Chill/blocks-everywhere/issues/50) lands, existing integrations should keep using the current textarea-driven enhancement path and avoid inventing host-specific global mount APIs.
+Use the public mount/unmount API from [#50](https://github.com/Extra-Chill/blocks-everywhere/issues/50) for dynamic editor instances instead of inventing host-specific global mount APIs.
 
 ### Content Bridges
 
@@ -59,8 +93,10 @@ The content bridge is the boundary between host persistence and Gutenberg serial
 
 The adapter should provide:
 
-- `loadContent`: returns serialized block markup or a legacy value that can be transformed before editing.
-- `saveContent`: receives serialized block markup and host metadata such as entity ID, parent ID, draft ID, or revision token.
+- `load`: returns serialized block markup or parsed blocks before editing.
+- `serialize`: optionally transforms parsed blocks into serialized block markup.
+- `save`: receives parsed blocks, serialized block markup, and host metadata such as entity ID, parent ID, draft ID, or revision token.
+- `replaceContent`: optionally transforms hot-replacement content before it enters the mounted editor.
 - `onInput` or `onChange`: updates host dirty state, autosave state, or optimistic UI.
 - `onError`: maps editor or persistence failures to host notifications.
 
@@ -104,7 +140,7 @@ Good slot fill candidates include:
 - Entity metadata such as parent title, destination, visibility, or draft label.
 - Compact help text or policy notices that should remain attached to the editor.
 
-Use the existing `window.blocksEverywhere.registerSlotFill( slot, renderFn )` API for `footer`, `toolbar`, and `heading` slots. Broader host-owned chrome areas are tracked in [#54](https://github.com/Extra-Chill/blocks-everywhere/issues/54).
+Use the existing `window.blocksEverywhere.registerSlotFill( slot, renderFn )` API for `footer`, `toolbar`, `heading`, `topBar`, `actions`, `secondaryToolbar`, `documentSidebar`, `inserterSidebar`, and `windowControls` slots.
 
 ```javascript
 const unregister = window.blocksEverywhere.registerSlotFill(
@@ -158,17 +194,17 @@ Inject services per instance where possible. Avoid mutating global WordPress pac
 
 Lifecycle events let the host coordinate UI without polling editor state.
 
-Useful events include:
+Currently emitted lifecycle events include:
 
-- `beforeMount`: host target and boot settings are available.
-- `ready`: editor packages, blocks, and initial content are loaded.
-- `focus` and `blur`: host can update active composer state.
-- `input` and `change`: host can mark the entity dirty or schedule autosave.
-- `loading` and `loaded`: host can show skeletons or disable actions.
-- `saveStart`, `saveSuccess`, and `saveError`: host can update submit UI.
-- `beforeUnmount` and `unmounted`: host can release listeners and services.
+- `before-load`: host target and boot settings are available.
+- `loaded`: editor packages, blocks, and initial content are loaded.
+- `focus-requested`, `focused`, and `blurred`: host can update active composer state.
+- `error`: host can map editor failures to notices or telemetry.
+- `before-unmount` and `unmounted`: host can release listeners and services.
 
-The generic lifecycle hook and UI-state event work is tracked in [#51](https://github.com/Extra-Chill/blocks-everywhere/issues/51) and [#58](https://github.com/Extra-Chill/blocks-everywhere/issues/58).
+Remaining adapter-level lifecycle candidates include dirty-state transitions, save start/success/error, submit intent, and autosave state. Add them through [#51](https://github.com/Extra-Chill/blocks-everywhere/issues/51) only when they need shared editor semantics rather than host-local callbacks.
+
+The baseline lifecycle event work landed in [#58](https://github.com/Extra-Chill/blocks-everywhere/issues/58). Use [#51](https://github.com/Extra-Chill/blocks-everywhere/issues/51) for any remaining adapter-level lifecycle gaps that cannot be represented by the current callback and DOM event surface.
 
 ### Server-Side Context Bootstrapping
 
@@ -186,13 +222,48 @@ Bootstrap data usually includes:
 
 Keep bootstrap payloads minimal and auditable. Do not serialize secrets or broad user/session objects into page settings. Use [#60](https://github.com/Extra-Chill/blocks-everywhere/issues/60) for missing extension points in frontend app bootstrapping.
 
+## Second-Wave Coordination
+
+The remaining parallel issues should compose into one adapter contract rather than landing as unrelated option bags.
+
+| Issue | Fits in the contract as | Coordination note |
+|-------|--------------------------|-------------------|
+| [#51](https://github.com/Extra-Chill/blocks-everywhere/issues/51) | Adapter lifecycle layer above the first-wave lifecycle events. | Start from the merged `settings.blocksEverywhere.lifecycle` callbacks and `blocksEverywhere:editor:*` DOM events. Add only missing adapter coordination points, such as save/submit semantics, dirty-state transitions, or standardized teardown cleanup. |
+| [#53](https://github.com/Extra-Chill/blocks-everywhere/issues/53) | Adapter-provided editor context and optional stores. | Treat context as instance-scoped data that entity bridges, mode transforms, service adapters, blocks, and slot fills can read. Avoid ambient globals so multiple editors can use different context on one page. |
+| [#56](https://github.com/Extra-Chill/blocks-everywhere/issues/56) | Mode transform pipeline for settings. | Mode transforms should run before mount and produce normal `settings.blocksEverywhere` values: allowed blocks, toolbar/chrome, templates, preference keys, lifecycle defaults, service choices, and context defaults. |
+| [#57](https://github.com/Extra-Chill/blocks-everywhere/issues/57) | Entity bridge. | Define entity identity and edit semantics before services need to save, autosave, reset, or resolve capabilities. Keep canonical WordPress post behavior as one bridge implementation, not the only contract. |
+| [#59](https://github.com/Extra-Chill/blocks-everywhere/issues/59) | Service adapter registry. | Services should receive the same instance context and entity bridge facts that lifecycle callbacks receive. Media, fetch, notices, autosave, suggestions, permissions, and telemetry should be replaceable per instance. |
+
+Recommended sequencing:
+
+1. Land the entity bridge shape from [#57](https://github.com/Extra-Chill/blocks-everywhere/issues/57) first, because context, services, lifecycle, and modes all need a shared way to identify the edited record.
+2. Land context/store injection from [#53](https://github.com/Extra-Chill/blocks-everywhere/issues/53) next, using the entity bridge facts as the first context consumer.
+3. Land mode transforms from [#56](https://github.com/Extra-Chill/blocks-everywhere/issues/56) once there is a stable context object to transform from and into.
+4. Land service adapters from [#59](https://github.com/Extra-Chill/blocks-everywhere/issues/59) after entity and context are stable enough for services to receive consistent arguments.
+5. Finish [#51](https://github.com/Extra-Chill/blocks-everywhere/issues/51) last or in parallel as a thin coordination pass, limited to lifecycle gaps not already covered by [#58](https://github.com/Extra-Chill/blocks-everywhere/issues/58).
+
+The common argument shape should stay consistent across these issues:
+
+```javascript
+const adapterContext = {
+	textarea,
+	container,
+	settings,
+	mode,
+	entity,
+	services,
+};
+```
+
+Use this as documentation vocabulary, not a required implementation object until the related issues land. The important constraint is that each callback or service receives the same editor instance facts instead of inventing per-feature parameter lists.
+
 ## Suggested Migration Steps
 
 1. Inventory the current editor shell and mark each behavior as editor runtime, content bridge, host entity bridge, slot/chrome, service, lifecycle, or server bootstrap.
 2. Replace host-owned block editing primitives with Blocks Everywhere settings and serialized block content.
 3. Move submit buttons, save status, metadata badges, and compact controls into slot fills.
 4. Move persistence to a content bridge that receives serialized blocks and host entity metadata.
-5. Move host APIs behind injected services instead of importing host modules inside editor components.
+5. Move host APIs behind service adapters instead of importing host modules inside editor components.
 6. Add lifecycle event handling for ready, focus, dirty, save, error, and teardown states.
 7. Keep any remaining host-specific code in the adapter and link each missing generic capability to the relevant tracking issue above.
 

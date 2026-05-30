@@ -244,6 +244,7 @@ The plugin includes:
 - [Architecture Details](architecture.md) - Class hierarchy and design patterns
 - [Handler System](handlers/) - Platform-specific implementation guides
 - [Components Guide](components.md) - React/TypeScript component organization
+- [Portable Editor Adapter Guide](portable-editor-adapters.md) - Generic host adapter migration guide for embedded editor shells
 - [Build & Development](build-and-development.md) - Development workflow
 - [Theme Compatibility](theme-compatibility.md) - Integration with themes
 

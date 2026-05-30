@@ -58,6 +58,18 @@ The first-wave APIs establish the shared surface that second-wave adapter work s
 
 Second-wave work should extend these surfaces instead of introducing another global namespace or host-specific registry.
 
+### Gutenberg Experimental Chrome
+
+Blocks Everywhere composes the editor shell from the best available public Gutenberg primitives. A few visible chrome surfaces still depend on Gutenberg APIs that are exported with experimental or unstable names because no stable public equivalent exists yet:
+
+| Surface | Internal Gutenberg dependency | Stability note |
+|---------|-------------------------------|----------------|
+| Inline inserter library | `@wordpress/block-editor` `__experimentalLibrary` | Used only for the detached inserter panel. Treat the detached inserter as opt-in adapter chrome, not a stable BE guarantee that Gutenberg's library markup or props will stay fixed. |
+| Toolbar list view | `@wordpress/block-editor` `__experimentalListView` | Used only behind `toolbar.listView`. The BE contract is the boolean toolbar option, not the underlying list-view component shape. |
+| Detached popover slot | `Popover.__unstableSlotNameProvider` | Used to keep popovers anchored inside a detached sidebar stacking context. Host apps should avoid depending on this provider directly. |
+
+Do not switch these surfaces to Gutenberg private APIs or fake a post entity to reach upstream editor chrome. If a host needs stable list-view or detached inserter guarantees beyond the current options, track the missing public primitive upstream in Gutenberg and keep the host-specific behavior in the adapter until Gutenberg exposes a stable surface.
+
 ## Capability Map
 
 | Migration concern            | Adapter responsibility                                                                               | Blocks Everywhere responsibility                                                               | Tracking issue                                                                                                                       |

@@ -11,7 +11,7 @@ declare interface Toolbar {
 	undo?: boolean;
 	/** Redo button (delegates to core editor history). Default: true. */
 	redo?: boolean;
-	/** List view toggle + dropdown panel. Default: true. */
+	/** List view toggle + dropdown panel. Default: true. Uses Gutenberg's experimental list-view surface internally. */
 	listView?: boolean;
 	/** Selected-block format toolbar (contextual paragraph/bold/link buttons). Default: true. */
 	blockTools?: boolean;
@@ -200,9 +200,9 @@ declare interface Chrome {
 	secondaryToolbar?: boolean;
 	/** Footer action area. Default: true. */
 	footer?: boolean;
-	/** Host-owned sidebar before the editor canvas. Default: false. */
+	/** Host-owned sidebar before the editor canvas. Default: false. BE provides the slot only; host content remains adapter-owned. */
 	documentSidebar?: boolean;
-	/** Host-owned sidebar after the editor canvas. Default: false. */
+	/** Host-owned sidebar after the editor canvas. Default: false. BE provides the slot only; host content remains adapter-owned. */
 	inserterSidebar?: boolean;
 }
 
@@ -375,6 +375,16 @@ declare interface BlocksEverywhere {
 	services?: BlocksEverywhereEditorServices;
 	servicesByMode?: Record< string, BlocksEverywhereEditorServices >;
 	settingsTransforms?: BlocksEverywhereSettingsTransform[];
+	/** Detached chrome uses unstable Gutenberg inserter/popover internals and should be treated as opt-in adapter chrome. */
+	sidebar?: {
+		detached?: {
+			target?: string | Element | null;
+			className?: string;
+			persistent?: boolean;
+			/** Reserved for future stable list-view support; current detached chrome renders the inserter panel. */
+			defaultView?: 'inserter' | 'list-view';
+		};
+	};
 }
 
 declare interface BlocksEverywhereDataRegistrationHelpers {

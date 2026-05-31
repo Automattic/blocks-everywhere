@@ -65,6 +65,18 @@ export interface EditorMount {
 }
 
 const mountedEditors = new WeakMap< HTMLTextAreaElement, EditorMount >();
+let isMediaUploadFilterInstalled = false;
+
+function ensureMediaUploadFilterInstalled() {
+	if ( isMediaUploadFilterInstalled ) {
+		return;
+	}
+
+	// Gutenberg exposes editor.MediaUpload as a global hook, so install it once
+	// and leave it in place to avoid cross-editor unmount races.
+	addFilter( 'editor.MediaUpload', 'blocks-everywhere/media-upload', () => MediaUpload );
+	isMediaUploadFilterInstalled = true;
+}
 
 const removeNullPostFromFileUploadMiddleware = ( options, next ) => {
 	if ( options.method === 'POST' && options.path === '/wp/v2/media' ) {
@@ -1173,7 +1185,7 @@ function createEditorContainer( container, textarea, settings ) {
 		settings.editor.mediaUpload = services.mediaUpload || null;
 
 		if ( services.mediaUpload ) {
-			addFilter( 'editor.MediaUpload', 'blocks-everywhere/media-upload', () => MediaUpload );
+			ensureMediaUploadFilterInstalled();
 		}
 	} else if ( settings?.editorType === 'bbpress' ) {
 		if ( ! hasUploadPermission || ! bbpressAdapter?.mediaEndpoint ) {
@@ -1200,7 +1212,7 @@ function createEditorContainer( container, textarea, settings ) {
 					.catch( ( error ) => onError( error ) );
 			};
 
-			addFilter( 'editor.MediaUpload', 'blocks-everywhere/media-upload', () => MediaUpload );
+			ensureMediaUploadFilterInstalled();
 		}
 	} else if ( hasUploadPermission ) {
 		// Prefer block-editor mediaUpload; fall back to legacy editor if absent.
@@ -1208,7 +1220,7 @@ function createEditorContainer( container, textarea, settings ) {
 		settings.editor.mediaUpload = resolvedMediaUpload;
 
 		if ( resolvedMediaUpload ) {
-			addFilter( 'editor.MediaUpload', 'blocks-everywhere/media-upload', () => MediaUpload );
+			ensureMediaUploadFilterInstalled();
 		}
 	} else {
 		settings.editor.mediaUpload = null;

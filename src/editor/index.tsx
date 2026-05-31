@@ -15,7 +15,7 @@ import { mediaUpload as legacyMediaUpload } from '@wordpress/editor';
 import { SlotFillProvider } from '@wordpress/components';
 import { createRoot, useCallback, useEffect, useState } from '@wordpress/element';
 import { addFilter } from '@wordpress/hooks';
-import { createBlock, getBlockTypes, parse, rawHandler, serialize, unregisterBlockType } from '@wordpress/blocks';
+import { createBlock, parse, rawHandler, serialize } from '@wordpress/blocks';
 import { createRegistry, RegistryProvider, useDispatch, useRegistry } from '@wordpress/data';
 
 /**
@@ -927,28 +927,6 @@ function createContainer( textarea, existingContainer ) {
 	return { container, inserted: true };
 }
 
-function RemoveBlockTypes( { settings } ) {
-	useEffect( () => {
-		try {
-			const blocks = getBlockTypes();
-
-			if ( ! Array.isArray( blocks ) ) {
-				return;
-			}
-
-			blocks
-				.filter( ( block ) => settings?.blocksEverywhere?.blocks?.allowBlocks?.indexOf( block.name ) === -1 )
-				.forEach( ( block ) => unregisterBlockType( block.name ) );
-		} catch ( error ) {
-			// Avoid hard-fail if registry API shape changes.
-			// eslint-disable-next-line no-console
-			console.error( 'Blocks Everywhere: failed to prune blocks', error );
-		}
-	}, [ settings ] );
-
-	return null;
-}
-
 function RemoveBlockVariations() {
 	useEffect( () => {
 		if ( wpBlocksEverywhere?.editorType !== 'bbpress' ) {
@@ -1166,7 +1144,6 @@ function createEditorContainer( container, textarea, settings ) {
 
 								{ settings.editorType === 'buddypress' && <BuddyPress textarea={ textarea } /> }
 								<RemoveBlockVariations />
-								<RemoveBlockTypes settings={ settings } />
 							</>
 						) }
 					</EmbeddedBlockEditor>

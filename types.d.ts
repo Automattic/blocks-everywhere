@@ -4,6 +4,31 @@ declare interface Blocks {
 	allowBlocks: string[];
 }
 
+declare interface BlocksEverywherePatternCategory {
+	name: string;
+	label: string;
+}
+
+declare interface BlocksEverywherePattern {
+	name: string;
+	title: string;
+	categories?: string[];
+	content: string;
+	blockTypes?: string[];
+	postTypes?: string[];
+}
+
+declare interface BlocksEverywherePatterns {
+	/** Additional native Gutenberg block patterns exposed to this editor instance. */
+	items?: BlocksEverywherePattern[];
+	/** Additional native Gutenberg pattern categories exposed to this editor instance. */
+	categories?: BlocksEverywherePatternCategory[];
+	/** Optional allow-list of pattern names/slugs/titles for this editor instance. */
+	allowPatterns?: string[];
+	/** Optional deny-list of pattern names/slugs/titles for this editor instance. */
+	disallowPatterns?: string[];
+}
+
 declare interface Toolbar {
 	/** Document-level block inserter button. Default: true. */
 	inserter?: boolean;
@@ -330,6 +355,11 @@ declare interface BlocksEverywhereModeSettings {
 	entityBridge?: BlocksEverywhereEntityBridge;
 	features?: Record< string, unknown >;
 	initialContent?: BlocksEverywhereInitialContent;
+	patterns?: BlocksEverywherePatterns;
+	blockPatterns?: BlocksEverywherePattern[];
+	patternCategories?: BlocksEverywherePatternCategory[];
+	allowedPatterns?: string[];
+	disallowedPatterns?: string[];
 	preferenceKey?: string;
 	services?: BlocksEverywhereEditorServices;
 	servicesByMode?: Record< string, BlocksEverywhereEditorServices >;
@@ -364,6 +394,7 @@ declare interface BlocksEverywhere {
 	hostAdapter?: BlocksEverywhereHostAdapter;
 	hostContext?: Record< string, unknown >;
 	initialContent?: BlocksEverywhereInitialContent;
+	patterns?: BlocksEverywherePatterns;
 	mediaUploadEndpoint?: string;
 	__experimentalOnInput?: ( block: unknown ) => unknown;
 	__experimentalOnChange?: ( block: unknown ) => unknown;

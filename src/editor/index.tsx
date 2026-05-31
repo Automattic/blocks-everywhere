@@ -1438,6 +1438,7 @@ function normalizeTransformPatch( patch ) {
 		'lifecycle',
 		'mode',
 		'modes',
+		'patterns',
 		'preferenceKey',
 		'services',
 		'settingsTransforms',
@@ -1464,6 +1465,38 @@ function normalizeTransformPatch( patch ) {
 			disallowBlocks: rootPatch.disallowedBlocks,
 		};
 		delete rootPatch.disallowedBlocks;
+	}
+
+	if ( Object.prototype.hasOwnProperty.call( rootPatch, 'blockPatterns' ) ) {
+		blocksEverywherePatch.patterns = {
+			...( blocksEverywherePatch.patterns || {} ),
+			items: rootPatch.blockPatterns,
+		};
+		delete rootPatch.blockPatterns;
+	}
+
+	if ( Object.prototype.hasOwnProperty.call( rootPatch, 'patternCategories' ) ) {
+		blocksEverywherePatch.patterns = {
+			...( blocksEverywherePatch.patterns || {} ),
+			categories: rootPatch.patternCategories,
+		};
+		delete rootPatch.patternCategories;
+	}
+
+	if ( Object.prototype.hasOwnProperty.call( rootPatch, 'allowedPatterns' ) ) {
+		blocksEverywherePatch.patterns = {
+			...( blocksEverywherePatch.patterns || {} ),
+			allowPatterns: rootPatch.allowedPatterns,
+		};
+		delete rootPatch.allowedPatterns;
+	}
+
+	if ( Object.prototype.hasOwnProperty.call( rootPatch, 'disallowedPatterns' ) ) {
+		blocksEverywherePatch.patterns = {
+			...( blocksEverywherePatch.patterns || {} ),
+			disallowPatterns: rootPatch.disallowedPatterns,
+		};
+		delete rootPatch.disallowedPatterns;
 	}
 
 	[ 'template', 'templateLock' ].forEach( ( key ) => {
@@ -1517,6 +1550,111 @@ function resolveAllowedBlocks( settings ) {
 	settings.editor.allowedBlockTypes = nextAllowedBlocks;
 }
 
+function getPatternIdentifier( pattern ) {
+	return String( pattern?.name || pattern?.slug || pattern?.title || '' );
+}
+
+function filterPatternsBySettings( patterns, allowPatterns, disallowPatterns ) {
+	if ( ! Array.isArray( patterns ) ) {
+		return patterns;
+	}
+
+	const allowed = Array.isArray( allowPatterns ) ? allowPatterns.map( String ) : [];
+	const disallowed = Array.isArray( disallowPatterns ) ? disallowPatterns.map( String ) : [];
+
+	if ( allowed.length === 0 && disallowed.length === 0 ) {
+		return patterns;
+	}
+
+	return patterns.filter( ( pattern ) => {
+		const identifier = getPatternIdentifier( pattern );
+		if ( disallowed.includes( identifier ) ) {
+			return false;
+		}
+
+		return allowed.length === 0 || allowed.includes( identifier );
+	} );
+}
+
+function appendUniquePatterns( basePatterns, additionalPatterns ) {
+	const patterns = [ ...( Array.isArray( basePatterns ) ? basePatterns : [] ) ];
+	const seen = new Set( patterns.map( getPatternIdentifier ).filter( Boolean ) );
+
+	( Array.isArray( additionalPatterns ) ? additionalPatterns : [] ).forEach( ( pattern ) => {
+		const identifier = getPatternIdentifier( pattern );
+		if ( identifier && seen.has( identifier ) ) {
+			return;
+		}
+
+		if ( identifier ) {
+			seen.add( identifier );
+		}
+		patterns.push( pattern );
+	} );
+
+	return patterns;
+}
+
+function appendUniquePatternCategories( baseCategories, additionalCategories ) {
+	const categories = [ ...( Array.isArray( baseCategories ) ? baseCategories : [] ) ];
+	const seen = new Set( categories.map( ( category ) => String( category?.name || '' ) ).filter( Boolean ) );
+
+	( Array.isArray( additionalCategories ) ? additionalCategories : [] ).forEach( ( category ) => {
+		const name = String( category?.name || '' );
+		if ( name && seen.has( name ) ) {
+			return;
+		}
+
+		if ( name ) {
+			seen.add( name );
+		}
+		categories.push( category );
+	} );
+
+	return categories;
+}
+
+function resolvePatternSettings( settings ) {
+	const patternSettings = settings?.blocksEverywhere?.patterns || {};
+	const additionalPatterns = patternSettings.items;
+	const additionalCategories = patternSettings.categories;
+	const allowPatterns = patternSettings.allowPatterns;
+	const disallowPatterns = patternSettings.disallowPatterns;
+	const hasPatternFilter =
+		( Array.isArray( allowPatterns ) && allowPatterns.length > 0 ) ||
+		( Array.isArray( disallowPatterns ) && disallowPatterns.length > 0 );
+	const hasAdditionalPatterns =
+		Array.isArray( settings.editor.__experimentalAdditionalBlockPatterns ) || Array.isArray( additionalPatterns );
+	const hasBlockPatterns =
+		Array.isArray( settings.editor.__experimentalBlockPatterns ) || Array.isArray( additionalPatterns );
+	const hasAdditionalCategories =
+		Array.isArray( settings.editor.__experimentalAdditionalBlockPatternCategories ) ||
+		Array.isArray( additionalCategories );
+
+	if ( hasAdditionalPatterns ) {
+		settings.editor.__experimentalAdditionalBlockPatterns = filterPatternsBySettings(
+			appendUniquePatterns( settings.editor.__experimentalAdditionalBlockPatterns, additionalPatterns ),
+			allowPatterns,
+			disallowPatterns
+		);
+	}
+
+	if ( hasBlockPatterns || hasPatternFilter ) {
+		settings.editor.__experimentalBlockPatterns = filterPatternsBySettings(
+			appendUniquePatterns( settings.editor.__experimentalBlockPatterns, additionalPatterns ),
+			allowPatterns,
+			disallowPatterns
+		);
+	}
+
+	if ( hasAdditionalCategories ) {
+		settings.editor.__experimentalAdditionalBlockPatternCategories = appendUniquePatternCategories(
+			settings.editor.__experimentalAdditionalBlockPatternCategories,
+			additionalCategories
+		);
+	}
+}
+
 function resolveMountSettings(
 	settings,
 	options: EditorMountOptions = {},
@@ -1557,6 +1695,7 @@ function resolveMountSettings(
 
 	resolvedSettings.blocksEverywhere.services = resolveEditorServices( resolvedSettings, options.services );
 
+	resolvePatternSettings( resolvedSettings );
 	resolveAllowedBlocks( resolvedSettings );
 
 	return resolvedSettings;

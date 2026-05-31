@@ -374,6 +374,12 @@ abstract class Handler {
 				'blocks' => [
 					'allowBlocks' => $this->get_allowed_blocks(),
 				],
+				'patterns' => [
+					'items'            => [],
+					'categories'       => [],
+					'allowPatterns'    => [],
+					'disallowPatterns' => [],
+				],
 				'moreMenu' => false,
 				'sidebar' => [
 					'inserter' => false,

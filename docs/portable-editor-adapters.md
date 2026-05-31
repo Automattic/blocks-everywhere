@@ -144,6 +144,70 @@ const mount = window.blocksEverywhere.mountEditor( textarea, {
 
 The pipeline accepts serialized block markup or parsed block arrays. Starter values such as `pattern`, `template`, and `starter` are used only when the loaded/transformed content is empty, so existing documents do not receive template pollution. Because this happens during initial mount, replacing content through the pipeline does not represent a user edit or add an undo step.
 
+### Block Patterns And Synced Patterns
+
+Blocks Everywhere uses native Gutenberg block pattern settings. Adapter-provided patterns are passed into the `BlockEditorProvider` settings as additional block patterns, so the normal Gutenberg inserter, allowed-block filtering, and serialization behavior still apply.
+
+Use `blocksEverywhere.patterns` for instance-scoped pattern availability:
+
+```javascript
+window.blocksEverywhere.mountEditor( textarea, {
+	settings: {
+		...window.wpBlocksEverywhere,
+		blocksEverywhere: {
+			...window.wpBlocksEverywhere.blocksEverywhere,
+			patterns: {
+				categories: [
+					{ name: 'reply-starters', label: 'Reply starters' },
+				],
+				items: [
+					{
+						name: 'host/reply-template',
+						title: 'Reply template',
+						categories: [ 'reply-starters' ],
+						content: '<!-- wp:paragraph --><p>Thanks for the report...</p><!-- /wp:paragraph -->',
+					},
+				],
+				allowPatterns: [ 'host/reply-template' ],
+				disallowPatterns: [],
+			},
+		},
+	},
+} );
+```
+
+Server contexts can provide the same configuration:
+
+```php
+add_filter( 'blocks_everywhere_contexts', function ( $contexts ) {
+	$contexts['frontend-reply'] = [
+		'type'               => 'reply',
+		'textarea'           => '#reply-content',
+		'container'          => '.reply-editor',
+		'patterns'           => [
+			[
+				'name'       => 'host/reply-template',
+				'title'      => 'Reply template',
+				'categories' => [ 'reply-starters' ],
+				'content'    => '<!-- wp:paragraph --><p>Thanks for the report...</p><!-- /wp:paragraph -->',
+			],
+		],
+		'pattern_categories' => [
+			[ 'name' => 'reply-starters', 'label' => 'Reply starters' ],
+		],
+		'allowed_patterns'   => [ 'host/reply-template' ],
+	];
+
+	return $contexts;
+} );
+```
+
+Use `initialContent.pattern` when a starter pattern should seed an empty editor automatically. Use `blocksEverywhere.patterns.items` when the same pattern should be selectable from the inserter. These are complementary: seeding controls the first document state, while pattern settings control inserter availability.
+
+Synced patterns remain native Gutenberg content. A synced pattern inserted into a Blocks Everywhere editor serializes as a normal `core/block` reference, and frontend output is rendered by WordPress block rendering like any other serialized block content.
+
+Pattern override editing has a narrower boundary. Gutenberg's override controls depend on canonical pattern/post editor state from `@wordpress/editor`, including the current post type, edited post attributes, and registered block binding sources. For override authoring or custom-block override support, mount Blocks Everywhere with a real `postEntity` for the pattern/post being edited so `PostEntityShell` can provide the upstream `EditorProvider` context. Textarea-only mounts can insert and render synced pattern references, but they should not pretend to be pattern-authoring screens.
+
 ### Custom Stores And Context
 
 Some embedded editors need host data while editing: current entity, viewer capabilities, related records, selected parent, mention suggestions, upload limits, or feature flags. Keep that data explicit.

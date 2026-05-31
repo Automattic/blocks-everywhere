@@ -20,6 +20,10 @@
  *             'compact' => [ 'chrome' => [ 'mode' => 'compact' ] ],
  *         ],
  *         'settings_transforms'   => [ ... ],                 // Ordered static client-side settings patches.
+ *         'patterns'              => [ ... ],                 // Optional additional block patterns.
+ *         'pattern_categories'    => [ ... ],                 // Optional additional pattern categories.
+ *         'allowed_patterns'      => [ ... ],                 // Optional allowed pattern names/slugs.
+ *         'disallowed_patterns'   => [ ... ],                 // Optional disallowed pattern names/slugs.
  *         'entity_bridge'         => [ 'entity' => [ 'type' => 'draft', 'id' => 42 ] ], // Static host entity facts.
  *         'preload_paths'         => fn($paths, $post, $engine) => $paths,
  *         'block_categories'      => fn($categories, $context, $engine) => $categories,
@@ -317,6 +321,26 @@ class Engine extends Handler {
 		$features = $this->resolve_context_value( $config['features'] ?? null, $settings, $id, $config );
 		if ( is_array( $features ) ) {
 			$settings['blocksEverywhere']['features'] = array_merge( $settings['blocksEverywhere']['features'] ?? [], $features );
+		}
+
+		$patterns = $this->resolve_context_value( $config['patterns'] ?? null, $settings, $id, $config );
+		if ( is_array( $patterns ) ) {
+			$settings['blocksEverywhere']['patterns']['items'] = array_values( $patterns );
+		}
+
+		$pattern_categories = $this->resolve_context_value( $config['pattern_categories'] ?? null, $settings, $id, $config );
+		if ( is_array( $pattern_categories ) ) {
+			$settings['blocksEverywhere']['patterns']['categories'] = array_values( $pattern_categories );
+		}
+
+		$allowed_patterns = $this->resolve_context_value( $config['allowed_patterns'] ?? null, $settings, $id, $config );
+		if ( is_array( $allowed_patterns ) ) {
+			$settings['blocksEverywhere']['patterns']['allowPatterns'] = array_values( array_unique( $allowed_patterns ) );
+		}
+
+		$disallowed_patterns = $this->resolve_context_value( $config['disallowed_patterns'] ?? null, $settings, $id, $config );
+		if ( is_array( $disallowed_patterns ) ) {
+			$settings['blocksEverywhere']['patterns']['disallowPatterns'] = array_values( array_unique( $disallowed_patterns ) );
 		}
 
 		$entity_bridge = $this->resolve_context_value( $config['entity_bridge'] ?? null, $settings, $id, $config );

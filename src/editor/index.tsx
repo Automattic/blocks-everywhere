@@ -108,6 +108,18 @@ export interface EditorServices {
 
 const mountedEditors = new WeakMap< HTMLTextAreaElement, EditorMount >();
 
+const removeNullPostFromFileUploadMiddleware = ( options, next ) => {
+	if ( options.method === 'POST' && options.path === '/wp/v2/media' ) {
+		const formData = options.body;
+
+		if ( formData instanceof FormData && formData.has( 'post' ) && formData.get( 'post' ) === 'null' ) {
+			formData.delete( 'post' );
+		}
+	}
+
+	return next( options );
+};
+
 function toArray< T >( value: T | T[] | undefined ): T[] {
 	if ( Array.isArray( value ) ) {
 		return value;
@@ -158,6 +170,16 @@ function createScopedApiFetch( services: EditorServices ) {
 	);
 }
 
+function getDefaultApiFetchMiddlewares( settings ) {
+	const middlewares = [ removeNullPostFromFileUploadMiddleware ];
+
+	if ( settings?.restNonce ) {
+		middlewares.push( apiFetch.createNonceMiddleware( settings.restNonce ) );
+	}
+
+	return middlewares;
+}
+
 function resolvePermission(
 	services: EditorServices,
 	capability: string,
@@ -201,11 +223,19 @@ function resolveEditorServices( settings, mountServices?: EditorServices ): Edit
 	const blocksEverywhere = settings?.blocksEverywhere || {};
 	const modes = normalizeModeNames( blocksEverywhere.mode );
 	const servicesByMode = blocksEverywhere.servicesByMode || {};
-
-	return {
+	const resolvedServices = {
 		...( blocksEverywhere.services || {} ),
 		...modes.reduce( ( services, mode ) => ( { ...services, ...( servicesByMode?.[ mode ] || {} ) } ), {} ),
 		...( mountServices || {} ),
+	};
+	const apiFetchMiddlewares = [
+		...getDefaultApiFetchMiddlewares( settings ),
+		...toArray( resolvedServices.apiFetchMiddlewares ),
+	];
+
+	return {
+		...resolvedServices,
+		apiFetchMiddlewares,
 	};
 }
 

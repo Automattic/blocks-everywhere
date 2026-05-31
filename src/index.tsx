@@ -4,7 +4,6 @@
 
 import domReady from '@wordpress/dom-ready';
 import { addFilter } from '@wordpress/hooks';
-import apiFetch from '@wordpress/api-fetch';
 import { unregisterFormatType } from '@wordpress/rich-text';
 
 /**
@@ -97,26 +96,10 @@ const getContentApi = ( textarea: HTMLTextAreaElement ) => {
 	registerSlotFill,
 };
 
-const removeNullPostFromFileUploadMiddleware = ( options, next ) => {
-	if ( options.method === 'POST' && options.path === '/wp/v2/media' ) {
-		const formData = options.body;
-
-		if ( formData instanceof FormData && formData.has( 'post' ) && formData.get( 'post' ) === 'null' ) {
-			formData.delete( 'post' );
-		}
-	}
-
-	return next( options );
-};
-
 domReady( () => {
-	// Stops an error when Gutenberg tries to save a post with a file upload and we dont have a post ID
-	apiFetch.use( removeNullPostFromFileUploadMiddleware );
-
-	if ( wpBlocksEverywhere?.restNonce ) {
-		apiFetch.use( apiFetch.createNonceMiddleware( wpBlocksEverywhere.restNonce ) );
-	}
-
+	// Gutenberg package bootstrap below is intentionally global: these APIs
+	// register filters, blocks, rich-text formats, and host-page DOM behavior.
+	// Editor REST behavior is scoped through per-instance services in src/editor.
 	// Modify any blocks we need to
 	addFilter( 'blocks.registerBlockType', 'blocks-everywhere/modify-blocks', customBlocks );
 
@@ -143,21 +126,6 @@ domReady( () => {
 	unregisterFormatType( 'core/keyboard' );
 	unregisterFormatType( 'core/language' );
 	unregisterFormatType( 'core/math' );
-
-	// Strip Gutenberg's default `users` completer in bbPress contexts. The
-	// default completer queries /wp/v2/users and lists post authors, which is
-	// not meaningful for forum topics/replies. Consumers register their own
-	// completers (e.g. @mentions of forum users) via the standard
-	// `editor.Autocomplete.completers` filter.
-	if ( wpBlocksEverywhere.editorType === 'bbpress' && wpBlocksEverywhere.autocompleter ) {
-		addFilter(
-			'editor.Autocomplete.completers',
-			'blocks-everywhere/strip-default-users-completer',
-			( completers = [] ) => {
-				return completers.filter( ( completer ) => completer.name !== 'users' );
-			}
-		);
-	}
 
 	if ( wpBlocksEverywhere?.patchEmoji && window?.twemoji?.parse ) {
 		const original = window.twemoji.parse;

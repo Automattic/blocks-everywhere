@@ -2,8 +2,11 @@
  * WordPress dependencies
  */
 
-import customizeEmbed from "./embed";
-import customizeParagraph from "./paragraph";
+/**
+ * Internal dependencies
+ */
+import customizeEmbed from './embed';
+import customizeParagraph from './paragraph';
 
 function disableSupports( settings ) {
 	return {
@@ -16,8 +19,8 @@ function disableSupports( settings ) {
 			color: false,
 			typography: false,
 			renaming: false,
-		}
-	}
+		},
+	};
 }
 
 export default function modifyBlocks( settings, name ) {

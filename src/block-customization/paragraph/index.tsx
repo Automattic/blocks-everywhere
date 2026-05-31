@@ -9,10 +9,14 @@ import { createBlock } from '@wordpress/blocks';
  */
 
 import edit from './edit';
+import { getBootstrapSettingsSummary } from '../../bootstrap-settings';
 
 export default function customizeParagraph( settings ) {
-	const hasHeading = wpBlocksEverywhere.iso.blocks.allowBlocks.indexOf( 'core/heading' ) !== -1;
-	const replaceParagraph = wpBlocksEverywhere?.replaceParagraphCode ?? false;
+	// Paragraph block registration is page-global, so heading/replacement checks
+	// use aggregate bootstrap settings rather than one editor instance.
+	const bootstrapSettings = getBootstrapSettingsSummary();
+	const hasHeading = bootstrapSettings.allowHeading;
+	const replaceParagraph = bootstrapSettings.replaceParagraphCode;
 	const boldNodes = [ 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7' ];
 	const plainNodes = [ 'table' ];
 

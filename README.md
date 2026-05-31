@@ -2,9 +2,7 @@
 
 <img width="1280" alt="110600033-c625d880-8183-11eb-9609-70ab7390c0d9" src="/resources/banner-1544x500.png">
 
-Switches the default WordPress editor for comments, bbPress, and BuddyPress to use Gutenberg. These can now use a richer set of editing tools, as well as having access to the full power of Gutenberg blocks.
-
-Admin moderation is also upgraded to use Gutenberg, and blocks are processed on the front end.
+Switches the default WordPress editor for comments, bbPress, and BuddyPress to use Gutenberg. Admin moderation is also upgraded to use Gutenberg, and blocks are processed on the front end.
 
 For extra security the list of available blocks is determined by the allowed tags from WordPress.
 
@@ -16,12 +14,7 @@ The condition of the Gutenberg replacements are:
 -   comments - alright
 -   BuddyPress - needs a lot of work
 
-The plugin uses the [Isolated Block Editor](https://github.com/Automattic/isolated-block-editor/). This can also be found in:
-
--   [Plain Text Editor](https://github.com/Automattic/isolated-block-editor/blob/trunk/src/browser/README.md) - standalone JS file that can replace any `textarea` on any page with a full Gutenberg editor
--   [Gutenberg Chrome Extension](https://github.com/Automattic/gutenberg-everywhere-chrome/) - a Chrome extension that allows Gutenberg to be used on any page
--   [Gutenberg Desktop](https://github.com/Automattic/gutenberg-desktop/) - a desktop editor that supports the loading and saving of HTML and Markdown files
--   [P2](https://wordpress.com/p2/) - WordPress as a collaborative workspace (coming soon for self-hosted)
+The plugin mounts Gutenberg directly against the `@wordpress/block-editor` primitives shipped with WordPress core (no wrapping editor framework). Earlier releases used [Isolated Block Editor](https://github.com/Automattic/isolated-block-editor/); that dependency was removed in v2.2.0 and the embedded shell now renders directly against current Gutenberg.
 
 Blocks Everywhere can be downloaded from WordPress.org:
 
@@ -73,12 +66,84 @@ Some settings are available through the settings object, which is filterable wit
 `replaceParagraphCode` - Enable the custom paragraph that converts HTML and PHP code into a code block
 `pastePlainText` - Convert all pasted content to plain text
 `patchEmoji` - set to `true` to stop twemoji from affecting the editor
-`iso.allowEmbeds` - List of enabled embeds
-`iso.blocks.allowBlocks` - List of enabled blocks
-`iso.className` - String of classes to be assigned to the editor.
-`iso.__experimentalOnChange` - An optional callback that is triggered when the blocks are changed.
-`iso.__experimentalOnInput` - An optional callback that is triggered when text is input.
-`iso.__experimentalOnSelection` - An optional callback when a block is selected.
+`blocksEverywhere.allowEmbeds` - List of enabled embeds
+`blocksEverywhere.blocks.allowBlocks` - List of enabled blocks
+`blocksEverywhere.className` - String of classes to be assigned to the editor.
+`blocksEverywhere.__experimentalOnChange` - An optional callback that is triggered when the blocks are changed.
+`blocksEverywhere.__experimentalOnInput` - An optional callback that is triggered when text is input.
+`blocksEverywhere.__experimentalOnSelection` - An optional callback when a block is selected.
+`blocksEverywhere.toolbar` - Per-primitive opt-out for the editor toolbar (see below). Default matches the upstream wp-admin post editor.
+`blocksEverywhere.chrome` - Editor shell region configuration (see below). Lets hosts enable extra chrome slots or hide built-in chrome without replacing the editor shell.
+
+#### Toolbar configuration
+
+`blocksEverywhere.toolbar` accepts a map of per-primitive booleans. Defaults match the upstream wp-admin post editor — every primitive is enabled. Consumers opt OUT of individual primitives; they never need to opt IN. Any key left `unset` is treated as `true`.
+
+| Key          | Default | Description                                                                                  |
+| ------------ | ------- | -------------------------------------------------------------------------------------------- |
+| `inserter`   | `true`  | Document-level `+` block inserter button. Effectively suppressed when a persistent detached sidebar is mounted (the sidebar already exposes the inserter). |
+| `undo`       | `true`  | Undo button. Delegates to the core editor history; no-op when no entity is being edited.     |
+| `redo`       | `true`  | Redo button. Delegates to the core editor history; no-op when no entity is being edited.    |
+| `listView`   | `true`  | List view toggle + dropdown panel of the editor's blocks.                                    |
+| `blockTools` | `true`  | Selected-block format toolbar (the contextual `¶ B I link` row shown when a block is selected). |
+
+Default (matches wp-admin):
+
+```php
+add_filter( 'blocks_everywhere_editor_settings', function ( $settings ) {
+	// No toolbar config needed — defaults to the full upstream toolbar shape.
+	return $settings;
+} );
+```
+
+Opt out of specific primitives:
+
+```php
+add_filter( 'blocks_everywhere_editor_settings', function ( $settings ) {
+	$settings['blocksEverywhere']['toolbar'] = array(
+		'undo'     => false,
+		'redo'     => false,
+		'listView' => false,
+		// `inserter` and `blockTools` default to true.
+	);
+	return $settings;
+} );
+```
+
+#### Chrome configuration and slots
+
+`blocksEverywhere.chrome` controls editor shell regions. Existing editor chrome stays unchanged by default: the primary toolbar and footer render, while optional host-owned regions are disabled until enabled.
+
+| Key | Default | Description |
+| --- | ------- | ----------- |
+| `mode` | `inline` | Adds a layout class for `inline`, `full-height`, `modal`, or `compact` editor shells. |
+| `topBar` | `false` | Enables the `topBar` and `windowControls` slots above the primary toolbar. |
+| `toolbar` | `true` | Shows the primary toolbar row. Set `false` when a host fully replaces toolbar chrome. |
+| `secondaryToolbar` | `false` | Enables a host-owned row below the primary toolbar. |
+| `footer` | `true` | Shows the footer slot. |
+| `documentSidebar` | `false` | Enables a persistent host-owned panel before the canvas. |
+| `inserterSidebar` | `false` | Enables a persistent host-owned panel after the canvas. |
+
+Register fills with `window.blocksEverywhere.registerSlotFill( slot, renderFn )`. Supported slots are `heading`, `toolbar`, `actions`, `footer`, `topBar`, `windowControls`, `secondaryToolbar`, `documentSidebar`, and `inserterSidebar`.
+
+```php
+add_filter( 'blocks_everywhere_editor_settings', function ( $settings ) {
+	$settings['blocksEverywhere']['chrome'] = array(
+		'mode'            => 'modal',
+		'topBar'          => true,
+		'secondaryToolbar' => true,
+		'documentSidebar' => true,
+	);
+
+	$settings['blocksEverywhere']['toolbar'] = array(
+		'undo'     => false,
+		'redo'     => false,
+		'listView' => false,
+	);
+
+	return $settings;
+} );
+```
 
 ### Theme compatibility
 
@@ -106,7 +171,7 @@ To enable Content Embed block in the editor, pass these settings to `blocks_ever
 
 ```
 add_filter( 'blocks_everywhere_editor_settings', function( $settings ) {
-	$settings['iso']['blocks']['allowBlocks'][] = 'blocks-everywhere/support-content';
+	$settings['blocksEverywhere']['blocks']['allowBlocks'][] = 'blocks-everywhere/support-content';
 	return $settings;
 } );
 ```
@@ -183,3 +248,19 @@ You can sync this to the WordPress.org SVN repo with:
 `yarn dist:svn`
 
 You will need appropriate permissions.
+
+## Documentation
+
+For detailed technical documentation, see the `/docs/` directory:
+
+- **[overview.md](docs/overview.md)** - Plugin purpose, architecture overview, and feature matrix
+- **[architecture.md](docs/architecture.md)** - Complete class hierarchy, design patterns, and extensibility
+- **[components.md](docs/components.md)** - React/TypeScript component organization and patterns
+- **[portable-editor-adapters.md](docs/portable-editor-adapters.md)** - Generic host adapter migration guide for embedded editor shells
+- **[build-and-development.md](docs/build-and-development.md)** - Development workflow and build process
+- **[handlers/](docs/handlers/)** - Platform-specific integration guides
+  - [bbpress-handler.md](docs/handlers/bbpress-handler.md) - BBPress forum integration
+  - [comments-handler.md](docs/handlers/comments-handler.md) - WordPress comments integration
+  - [buddypress-handler.md](docs/handlers/buddypress-handler.md) - BuddyPress activity integration
+
+For developers working on this plugin, see **[CLAUDE.md](CLAUDE.md)** for architectural guidance, coding standards, and development patterns.

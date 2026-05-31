@@ -1,11 +1,20 @@
+/**
+ * Internal dependencies
+ */
 import './edit.scss';
+/**
+ * WordPress dependencies
+ */
 import { BlockControls, useBlockProps } from '@wordpress/block-editor';
 import { BlockEditProps, createBlock } from '@wordpress/blocks';
 import { ToolbarButton, ToolbarGroup, withNotices } from '@wordpress/components';
 import { compose } from '@wordpress/compose';
 import { renderToString, useState, useEffect } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
-import { edit } from '@wordpress/icons';
+import { pencil } from '@wordpress/icons';
+/**
+ * External dependencies
+ */
 import React from 'react';
 import { fetchAttributes, getContentTypeFromUrl, SupportContentBlockAttributes } from './block';
 import { EmbedPlaceHolder } from './embed-placeholder';
@@ -98,7 +107,7 @@ export const Edit = compose( withNotices )( ( props: EditProps ) => {
 				<ToolbarGroup>
 					{ ! isEditing && (
 						<ToolbarButton
-							icon={ edit }
+							icon={ pencil }
 							label={ __( 'Edit URL', 'blocks-everywhere' ) }
 							isActive={ isEditing }
 							onClick={ onEditModeToggle }

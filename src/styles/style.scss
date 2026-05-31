@@ -1,3 +1,5 @@
+@use 'sass:meta';
+
 // General CSS
 .blocks-everywhere {
 	margin-bottom: 30px;
@@ -6,6 +8,12 @@
 	> textarea {
 		display: none;
 	}
+
+	&.blocks-everywhere--error {
+		> textarea {
+			display: block;
+		}
+	}
 }
 
 .gutenberg-comments #comment {
@@ -13,11 +21,11 @@
 }
 
 // wp-admin has a darker border
-.wp-admin .iso-editor {
-	border-color: #ccd0d4;
+.wp-admin .blocks-everywhere-editor {
+	border-color: var(--wp-components-color-gray-300);
 }
 
-@import "./buddypress.scss";
-@import "./comments.scss";
-@import "./bbpress.scss";
-@import "./editor.scss";
+@include meta.load-css( './buddypress.scss' );
+@include meta.load-css( './comments.scss' );
+@include meta.load-css( './bbpress.scss' );
+@include meta.load-css( './editor.scss' );

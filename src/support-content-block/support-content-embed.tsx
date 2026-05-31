@@ -1,6 +1,15 @@
+/**
+ * External dependencies
+ */
 import React from 'react';
+/**
+ * WordPress dependencies
+ */
 import { createInterpolateElement } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
+/**
+ * Internal dependencies
+ */
 import { SupportContentBlockAttributes } from './block';
 import { WordPressIcon } from './wordpress-icon';
 import { InlineSkeleton } from './inline-skeleton';
@@ -8,12 +17,18 @@ import { getRelativeDate } from './utils';
 
 /**
  * Rendered embed for the Support Content blocks
+ *
+ * @param {Object}                        props                  - Component props.
+ * @param {SupportContentBlockAttributes} props.attributes       - Block attributes.
+ * @param {boolean}                       props.clickable        - Whether the embed is clickable.
+ * @param {boolean}                       props.showRelativeDate - Whether to show relative date.
+ * @return {JSX.Element} The rendered embed component.
  */
 export const SupportContentEmbed = ( props: {
 	attributes: SupportContentBlockAttributes;
 	clickable?: boolean;
 	showRelativeDate?: boolean;
-} ) => {
+} ): JSX.Element => {
 	const loaded = !! props.attributes.content;
 
 	const likes = sprintf(
@@ -80,7 +95,15 @@ export const SupportContentEmbed = ( props: {
 			) }
 
 			{ /* Only make embed clickable while viewing content for author not to lose unsaved changes */ }
-			{ props.clickable && <a className="be-support-content__opener" href={ props.attributes.url } /> }
+			{ props.clickable && (
+				<a
+					className="be-support-content__opener"
+					href={ props.attributes.url }
+					aria-label={ props.attributes.title }
+				>
+					<span className="screen-reader-text">{ props.attributes.title }</span>
+				</a>
+			) }
 
 			<div className="be-support-content__header">
 				<WordPressIcon />
@@ -94,7 +117,11 @@ export const SupportContentEmbed = ( props: {
 					<div className="be-support-content__source">
 						<InlineSkeleton hidden loaded={ loaded }>
 							{ createInterpolateElement( source, {
-								a: <a className="be-support-content__link" href={ props.attributes.sourceURL } />,
+								a: (
+									<a className="be-support-content__link" href={ props.attributes.sourceURL }>
+										{ props.attributes.source }
+									</a>
+								),
 							} ) }
 						</InlineSkeleton>
 					</div>

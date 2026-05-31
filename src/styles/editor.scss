@@ -1,16 +1,243 @@
-// Basic editor fixes
-.gutenberg-support .iso-editor {
-	min-height: 280px;
+// WordPress Component CSS Variable Mapping
+// Maps Gutenberg's component CSS variables to theme variables for dark mode compatibility.
+// This approach ensures all WP components automatically inherit theme colors.
+.gutenberg-support {
+	// Core color mappings
+	// Audit 2026-05-26 (issue #31): every variable here is verified to be
+	// consumed by at least one rule in node_modules/@wordpress/components
+	// or related @wordpress/* build-style CSS. Five formerly-mapped variables
+	// (--wp-components-color-gray-200 / -900 / -950, -icon, -icon-inverted)
+	// were dropped after the audit confirmed they are dead across the full
+	// @wordpress/* package set. Re-run the diff if upstream renames or adds
+	// component tokens in a Gutenberg minor:
+	//   comm -23 <(grep -oE -- "--wp-components-color-[a-z0-9-]+" src/styles/editor.scss | sort -u) \
+	//            <(grep -hoE -- "--wp-components-color-[a-z0-9-]+" node_modules/@wordpress/components/build-style/style.css | sort -u)
+	--wp-components-color-foreground: var(--text-color);
+	--wp-components-color-foreground-inverted: var(--background-color);
+	--wp-components-color-background: var(--background-color);
 
-	.iso-editor .edit-post-editor-regions__header {
-		margin: 0 15px;
+	// Accent colors
+	--wp-components-color-accent: var(--accent);
+	--wp-components-color-accent-darker-10: var(--accent-hover);
+	--wp-components-color-accent-darker-20: var(--accent-hover);
+	--wp-components-color-accent-inverted: var(--button-text-color);
+
+	// WP admin focus/selection color (kills default WP blue)
+	--wp-admin-theme-color: var(--accent);
+	--wp-admin-theme-color-darker-10: var(--accent-hover);
+	--wp-admin-theme-color-darker-20: var(--accent-hover);
+
+	// Gray scale mapping for dark mode
+	--wp-components-color-gray-100: var(--card-background);
+	--wp-components-color-gray-300: var(--border-color);
+	--wp-components-color-gray-400: var(--muted-text);
+	--wp-components-color-gray-600: var(--muted-text);
+	--wp-components-color-gray-700: var(--text-color);
+	--wp-components-color-gray-800: var(--text-color);
+}
+
+// Outer PHP-rendered wrapper (`<div class="blocks-everywhere ...">` from
+// classes/class-handler.php::the_editor). Establish a flex column so
+// `.blocks-everywhere-editor` (the React shell mounted inside) can
+// `flex: 1` upward into whatever height the host gives us.
+//
+// Default `min-height: 400px` gives an empty editor a sensible writing
+// surface when no host parent constrains BE (the bbPress reply form is
+// grid-sized by its template, but doesn't enforce a useful minimum on
+// its own; without this, the canvas collapses to intrinsic content
+// height which leaves the empty-block placeholder cramped against the
+// toolbar). The selector is low specificity on purpose — consumers
+// override via their own `.<parent-context> .blocks-everywhere`
+// declaration without needing `!important` (e.g. a parent-scoped override
+// such as `.my-compose-surface .blocks-everywhere { min-height: 400px }`
+// wins by virtue of the parent selector chain). Consumers that want a
+// smaller editor simply set their own value:
+//   .my-context .blocks-everywhere { min-height: 200px; }
+.gutenberg-support .blocks-everywhere {
+	display: flex;
+	flex-direction: column;
+	min-height: 400px;
+}
+
+// Basic editor container styles
+.gutenberg-support .blocks-everywhere-editor {
+	border: 1px solid var(--border-color);
+	background-color: var(--background-color);
+
+	// Lay the editor shell out as a flex column so the canvas body can
+	// stretch to fill whatever vertical space the host gives BE. Without
+	// this, `.blocks-everywhere-editor__body` collapses to intrinsic
+	// height and `<BlockCanvas height="100%" />` (see editor/index.tsx)
+	// has nothing to resolve `100%` against — so the iframe falls back to
+	// 0 / its default 300px and leaves dead space below it when the host
+	// container is taller (e.g. a compose surface with min-height: 400px;
+	// bbPress reply form is sized by its parent grid). Pairing
+	// `flex: 1` on the shell with `flex-direction: column` and `flex: 1`
+	// on the body matches what wp-admin's <VisualEditor> /
+	// <ResizableEditor> chain does for the post editor canvas.
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-height: 0;
+
+	// The min-height policy lives on `.blocks-everywhere` (the outer PHP
+	// wrapper) at 400px default — see the rule above for the override
+	// pattern. We do NOT also set a min-height on the iframe itself; the
+	// flex chain below (`flex: 1; min-height: 0` on this shell + the body)
+	// stretches the canvas to fill whatever vertical room the wrapper has,
+	// without locking the iframe to a fixed minimum that would clip oversized
+	// content or burst out of shorter host containers.
+
+	.blocks-everywhere-editor__top-bar,
+	.blocks-everywhere-editor__secondary-toolbar {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-xs, 4px);
+		padding: var(--spacing-xs, 4px) var(--spacing-sm, 8px);
+		background-color: var(--background-color);
+		color: var(--text-color);
+		border-bottom: 1px solid var(--border-color);
 	}
 
-	.edit-post-header-toolbar__left {
-		padding-left: 15px;
+	.blocks-everywhere-editor__top-bar {
+		justify-content: space-between;
 	}
 
-	// Fix titles that may get changed
+	.blocks-everywhere-editor__body-row {
+		display: flex;
+		flex: 1;
+		min-height: 0;
+	}
+
+	.blocks-everywhere-editor__sidebar {
+		box-sizing: border-box;
+		width: min(280px, 35%);
+		min-width: 220px;
+		overflow: auto;
+		background-color: var(--background-color);
+		color: var(--text-color);
+	}
+
+	.blocks-everywhere-editor__sidebar--document {
+		border-right: 1px solid var(--border-color);
+	}
+
+	.blocks-everywhere-editor__sidebar--inserter {
+		border-left: 1px solid var(--border-color);
+	}
+
+	// Body fills the remaining space below the toolbar. `min-height: 0`
+	// is required so the flex item can shrink below its content's
+	// intrinsic height — without it, an iframe taller than the available
+	// space would push the shell beyond its container instead of fitting
+	// into the allocated flex slot.
+	.blocks-everywhere-editor__body {
+		flex: 1;
+		min-height: 0;
+	}
+
+	&.blocks-everywhere-editor--compact {
+		min-height: 0;
+
+		.blocks-everywhere-editor__toolbar {
+			min-height: 40px;
+		}
+
+		iframe[name="editor-canvas"] {
+			min-height: 200px;
+		}
+	}
+
+	&.blocks-everywhere-editor--modal,
+	&.blocks-everywhere-editor--full-height {
+		height: 100%;
+	}
+
+	// Default canvas iframe sizing. Gutenberg's `<BlockCanvas height="100%">`
+	// already gives us 100% inside the flex chain (see editor/index.tsx),
+	// but on hosts where the wrapper's flex parent doesn't resolve to a
+	// useful height the iframe collapses to its intrinsic content (just
+	// the empty-block placeholder, ~80px tall). The 400px floor here is
+	// the same kind of "sensible empty-state height" that wp-admin's
+	// post editor gives via `.editor-visual-editor { min-height: ... }`.
+	//
+	// Selector is intentionally low specificity. Consumers override via
+	// their own parent-scoped declaration without `!important`:
+	//   .my-context .blocks-everywhere-editor iframe[name="editor-canvas"] {
+	//       min-height: 200px;
+	//   }
+	iframe[name="editor-canvas"] {
+		box-sizing: border-box;
+		display: block;
+		height: 100%;
+		width: 100%;
+		min-height: 400px;
+	}
+
+	// Keep theme background + separator on the BE toolbar bar.
+	// Lay out the toolbar contents on a single row. The toolbar div is a
+	// flat container for any combination of:
+	//   - <Toolbar label="Document tools"> wrapping inserter / undo / redo / list-view
+	//     (.components-accessible-toolbar — see editor/index.tsx)
+	//   - <BlockToolbar /> block format buttons (only when a block is selected)
+	//   - host-page slot fills (blocks-everywhere/heading, /toolbar)
+	// Without an explicit flex layout, each child stacks block-level — the
+	// document tools group ends up on its own row above the format buttons,
+	// which doesn't match upstream Gutenberg's single-row toolbar shape. IBE
+	// used to provide this via its InterfaceSkeleton wrapper (dropped in #6).
+	//
+	// `min-height: 48px` matches the canonical toolbar-button contract
+	// (see `@wordpress/components/build-style/style.css` lines 3789-3848:
+	// `.components-accessible-toolbar .components-button { height: 48px }`).
+	// Without it the wrapper sizes to its tallest child, which works in
+	// practice but leaves no visual breathing room and makes the
+	// `border-bottom` look glued to the buttons. An explicit min-height
+	// guarantees the bar matches its 48px children even before any
+	// toolbar primitives have mounted.
+	.blocks-everywhere-editor__toolbar {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: var(--spacing-xs, 4px);
+		min-height: 48px;
+		padding: var(--spacing-xs, 4px) var(--spacing-sm, 8px);
+		background-color: var(--background-color);
+		color: var(--text-color);
+		border-bottom: 1px solid var(--border-color);
+	}
+
+	// Override Gutenberg's default `.block-editor-block-contextual-toolbar
+	// { width: 100% }` rule inside BE's flex toolbar. That width:100%
+	// forces <BlockToolbar /> to claim a full row by itself, breaking
+	// the single-row layout of the toolbar even when there's plenty of
+	// horizontal space for the format buttons to sit inline next to the
+	// document tools (inserter / undo / redo / list-view). Letting the
+	// contextual toolbar size to its own content fixes the wrap.
+	.blocks-everywhere-editor__toolbar .block-editor-block-contextual-toolbar {
+		width: auto;
+		flex-shrink: 1;
+	}
+
+	// `.components-accessible-toolbar` ships a default
+	// `border: 1px solid var(--wp-components-color-foreground)` (see
+	// `@wordpress/components/build-style/style.css` line 3769). BE's
+	// toolbar bar is itself already bordered (the `border-bottom` above)
+	// and lives inside the editor card's outer border, so the default
+	// per-group border produces visible double-bordering around BOTH the
+	// document-tools <Toolbar> and the <BlockToolbar />'s internal
+	// accessible toolbar. Strip the per-group border inside BE's toolbar
+	// bar — the bar itself is the only visual frame we want.
+	.blocks-everywhere-editor__toolbar .components-accessible-toolbar {
+		border: 0;
+	}
+	// <BlockToolbar />'s contextual wrapper renders `.components-toolbar`
+	// (the legacy ToolbarGroup container) in some compositions. Same
+	// double-border story; strip it.
+	.blocks-everywhere-editor__toolbar .components-toolbar {
+		border: 0;
+	}
+
+	// Font size fixes
 	.block-editor-inserter__panel-header h2 {
 		font-size: 11px;
 	}
@@ -23,18 +250,13 @@
 		font-size: 13px;
 	}
 
-	:where(.wp-block):not(ul > li > ul, li) {
-		margin-top: 28px !important;
-		margin-bottom: 28px !important;
-	}
-
-	// Highlight on block inserter
-	.edit-post-header__toolbar button:hover svg,
+	// Icon hover highlight
 	.block-editor-block-types-list__list-item:hover span {
-		color: var(--wp-admin-theme-color);
-		fill: var(--wp-admin-theme-color);
+		color: var(--accent);
+		fill: currentColor;
 	}
 
+	// List block spacing fixes
 	.block-editor-writing-flow [data-type="core/list"] {
 		ul {
 			margin-top: 0.5em;
@@ -55,26 +277,209 @@
 			margin-left: 0;
 		}
 	}
+}
 
-	.components-input-control__container {
-		background-color: white !important;
+// Popover and sidebar styles (elements that render to body)
+// Note: In-canvas editor styles (inside iframe) are in class-editor.php as $iframe_editor_css
+.gutenberg-support {
+	// Popover content backgrounds
+	.components-popover__content,
+	.block-editor-inserter__menu,
+	.block-editor-tabbed-sidebar {
+		background-color: var(--background-color);
+		border: 1px solid var(--border-color);
+		color: var(--wp-components-color-foreground);
+	}
+
+
+	// List View / Block Navigation popover (needs explicit border + row hover)
+	.components-popover.block-editor-block-navigation__popover .components-popover__content {
+		background-color: var(--background-color);
+		border: 1px solid var(--border-color);
+		color: var(--wp-components-color-foreground);
+	}
+
+	// List view tree rows can pick up WP blue selection; normalize to theme tokens.
+	.block-editor-list-view-tree .block-editor-list-view-block-select-button {
+		color: var(--text-color);
+
+		&:hover,
+		&:focus,
+		&:focus-visible {
+			background-color: var(--card-background);
+			color: var(--wp-components-color-accent);
+			box-shadow: inset 0 0 0 var(--wp-admin-border-width-focus) var(--wp-components-color-accent);
+		}
+	}
+
+	// Quick inserter popover (in-canvas and other "is-quick" contexts) can render icons black in dark mode.
+	.components-popover.block-editor-inserter__popover.is-quick {
+		color: var(--wp-components-color-foreground);
+
+		.components-search-control__icon,
+		.block-editor-inserter__quick-inserter svg,
+		.block-editor-inserter__quick-inserter svg *,
+		.block-editor-block-icon,
+		.block-editor-block-icon.has-colors {
+			color: var(--wp-components-color-icon);
+			fill: currentColor;
+		}
+
+		svg [stroke]:not([stroke="none"]) {
+			stroke: currentColor;
+		}
+	}
+
+	// Tabbed sidebar border
+	.block-editor-tabbed-sidebar__tablist-and-close-button {
+		border-bottom: 1px solid var(--border-color);
+	}
+
+	// Close icons/buttons inside inserter/menu should inherit theme color
+	.block-editor-inserter__menu .components-button.has-icon,
+	.components-popover__content .components-button.has-icon {
+		background: transparent;
+		color: var(--wp-components-color-icon);
+
+		&:hover,
+		&:focus,
+		&:focus-visible {
+			background-color: var(--card-background);
+		}
+	}
+
+	.block-editor-inserter__menu .components-button.has-icon svg,
+	.block-editor-inserter__menu .components-button.has-icon svg *,
+	.components-popover__content .components-button.has-icon svg,
+	.components-popover__content .components-button.has-icon svg * {
+		color: var(--wp-components-color-icon);
+		fill: currentColor;
+	}
+
+	.block-editor-inserter__menu .components-button.has-icon svg [stroke]:not([stroke="none"]),
+	.components-popover__content .components-button.has-icon svg [stroke]:not([stroke="none"]) {
+		stroke: currentColor;
+	}
+
+	// Active tab indicator
+	.block-editor-tabbed-sidebar__tab {
+		&[aria-selected="true"],
+		&[data-active-item="true"] {
+			color: var(--accent);
+		}
+	}
+
+	// Block side inserter popover should not have a visible border
+	.block-editor-block-list__block-side-inserter-popover > .components-popover__content {
+		border: 0;
 	}
 }
 
-/* Fix some Gutenberg issues when media upload is disabled */
+// Fix Gutenberg issues when media upload is disabled
 body:not(.gutenberg-support-upload) {
 	.block-editor-media-flow__url-input {
 		margin-top: 0;
 		border-top: none;
 	}
 
-	// Hide upload button
 	.block-editor-media-replace-flow__media-upload-menu {
 		display: none;
 	}
 }
 
-// Make the change from loading to loaded a bit better
-.blocks-everywhere.iso-editor__loading {
+// Loading state
+.blocks-everywhere.blocks-everywhere-editor__loading {
 	min-height: 200px;
+}
+
+// ── Inserter menu icons (detached-sidebar-safe) ──
+// The detached-sidebar feature portals the inserter into a target
+// element outside .blocks-everywhere-editor. Scoping inserter rules
+// under .blocks-everywhere-editor therefore misses the detached case.
+// Scope to body.gutenberg-support so the rules apply regardless of
+// where the inserter renders.
+.gutenberg-support .block-editor-inserter__menu .block-editor-block-types-list__item-icon,
+.gutenberg-support .block-editor-inserter__menu .block-editor-block-patterns-list__item-icon,
+.gutenberg-support .block-editor-inserter__menu .block-editor-block-types-list__item svg,
+.gutenberg-support .block-editor-inserter__menu .block-editor-block-patterns-list__item svg,
+.gutenberg-support .block-editor-inserter__menu .block-editor-block-types-list__item svg *,
+.gutenberg-support .block-editor-inserter__menu .block-editor-block-patterns-list__item svg *,
+.gutenberg-support .block-editor-inserter__menu .block-editor-inserter__tabs button svg,
+.gutenberg-support .block-editor-inserter__menu .block-editor-inserter__tabs button svg *,
+.gutenberg-support .block-editor-inserter__menu button[aria-label="Close"] svg,
+.gutenberg-support .block-editor-inserter__menu button[aria-label="Close"] svg * {
+	color: var(--wp-components-color-icon);
+	fill: currentColor;
+}
+
+.gutenberg-support .block-editor-inserter__menu svg [stroke]:not([stroke="none"]) {
+	stroke: currentColor;
+}
+
+// ── Block preview popover (hover-preview in the inserter) ──
+// Renders inside .block-editor-inserter__preview-container__popover, which
+// Gutenberg portals to document.body. Without theming:
+//   - .block-editor-block-card { color: #1e1e1e } → invisible block-card icon in dark mode
+//   - .block-editor-inserter__preview-content { background: #f0f0f0 } → huge light-gray
+//     panel inside the dark popover
+// Both are body-scoped so they apply even when the inserter is detached.
+.gutenberg-support .block-editor-inserter__preview-container__popover,
+.gutenberg-support .block-editor-inserter__preview-container {
+	color: var(--wp-components-color-foreground);
+
+	.block-editor-block-card,
+	.block-editor-block-card__title,
+	.block-editor-block-card__description,
+	.block-editor-block-card__name {
+		color: var(--wp-components-color-foreground);
+	}
+
+	// Gutenberg ships .block-editor-block-card { padding: 16px } which makes
+	// the icon + name + description row sit way too far below the block
+	// render above it inside this popover. Drop the padding so the card
+	// abuts the preview tightly.
+	.block-editor-block-card {
+		padding: 0;
+	}
+
+	.block-editor-block-icon,
+	.block-editor-block-icon.has-colors,
+	.block-editor-block-card .block-editor-block-icon,
+	.block-editor-block-card__child-indicator-icon {
+		color: var(--wp-components-color-icon);
+		fill: currentColor;
+	}
+
+	svg,
+	svg * {
+		fill: currentColor;
+	}
+
+	svg [stroke]:not([stroke="none"]) {
+		stroke: currentColor;
+	}
+
+	// The actual block-render preview area and its empty/missing-preview
+	// fallback both ship with hardcoded light-gray backgrounds. In dark
+	// mode that leaves a glaring white-ish panel inside the popover.
+	.block-editor-inserter__preview-content,
+	.block-editor-inserter__preview-content-missing {
+		background: var(--card-background);
+		color: var(--wp-components-color-foreground);
+	}
+}
+
+// Toolbar button active state fix for dark mode
+.gutenberg-support .components-toolbar-button.is-active,
+.gutenberg-support .components-toolbar-button.is-pressed,
+.gutenberg-support .components-toolbar-button[aria-pressed="true"] {
+    background-color: var(--wp-components-color-gray-100);
+    color: var(--wp-components-color-foreground);
+    border-color: var(--wp-components-color-accent);
+}
+
+// Toolbar button pressed state ::before pseudo-element fix
+.gutenberg-support .components-accessible-toolbar .components-button.is-pressed::before,
+.gutenberg-support .components-toolbar .components-button.is-pressed::before {
+    background-color: var(--wp-components-color-gray-100);
 }

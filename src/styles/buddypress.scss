@@ -1,6 +1,5 @@
 // BuddyPress & 2021
 .gutenberg-support {
-	.edit-post-header button:not(:hover):not(:active):not(.has-background):not(.is-primary),
 	.block-editor-inserter__panel-content button:not(:hover):not(:active):not(.has-background),
 	.block-editor-inserter__tabs button:not(:hover):not(:active):not(.has-background),
 	#buddypress.twentytwentyone button {
@@ -8,7 +7,7 @@
 		border: inherit;
 		border-radius: inherit;
 		color: inherit;
-		border-color: inherit !important;
+		border-color: inherit;
 	}
 
 	#whats-new-content {

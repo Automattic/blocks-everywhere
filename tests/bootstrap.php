@@ -1,38 +1,106 @@
 <?php
 
 // Basic WP setup without needing PHPUnit and WP setup together
+require_once dirname( __DIR__ ) . '/classes/class-editor.php';
 require_once dirname( __DIR__ ) . '/classes/class-handler.php';
+require_once dirname( __DIR__ ) . '/classes/class-engine.php';
+require_once dirname( __DIR__ ) . '/classes/contexts/bbpress-callbacks.php';
+require_once dirname( __DIR__ ) . '/classes/contexts/bbpress.php';
+require_once dirname( __DIR__ ) . '/classes/contexts/buddypress.php';
+require_once dirname( __DIR__ ) . '/classes/contexts/comments.php';
 
 function is_admin() {
 	return false;
 }
 
-function add_action() {
+function doing_filter( $hook_name = null ) {
+	if ( null === $hook_name ) {
+		return ! empty( $GLOBALS['__wp_current_filter'] );
+	}
+
+	return in_array( $hook_name, (array) $GLOBALS['__wp_current_filter'], true );
 }
 
-function add_filter() {
+function remove_filter( $hook_name, $callback, $priority = 10 ) {
+	if ( empty( $GLOBALS['__wp_filters'][ $hook_name ][ $priority ] ) ) {
+		return;
+	}
+
+	$GLOBALS['__wp_filters'][ $hook_name ][ $priority ] = array_values(
+		array_filter(
+			$GLOBALS['__wp_filters'][ $hook_name ][ $priority ],
+			function( $entry ) use ( $callback ) {
+				return $entry['callback'] !== $callback;
+			}
+		)
+	);
 }
 
-function apply_filters() {
+function add_action( $hook_name, $callback = null, $priority = 10, $accepted_args = 1 ) {
+	add_filter( $hook_name, $callback, $priority, $accepted_args );
+}
+
+$GLOBALS['__wp_filters'] = [];
+$GLOBALS['__wp_current_filter'] = [];
+
+function add_filter( $hook_name, $callback, $priority = 10, $accepted_args = 1 ) {
+	$GLOBALS['__wp_filters'][ $hook_name ][ $priority ][] = [
+		'callback'      => $callback,
+		'accepted_args' => $accepted_args,
+	];
+}
+
+function apply_filters( $hook_name, $value, ...$args ) {
+	$GLOBALS['__wp_current_filter'][] = $hook_name;
+	try {
+		if ( empty( $GLOBALS['__wp_filters'][ $hook_name ] ) ) {
+			return $value;
+		}
+
+		ksort( $GLOBALS['__wp_filters'][ $hook_name ] );
+		foreach ( $GLOBALS['__wp_filters'][ $hook_name ] as $callbacks ) {
+			foreach ( $callbacks as $entry ) {
+				$callback = $entry['callback'];
+				$accepted_args = (int) $entry['accepted_args'];
+				$call_args = array_merge( [ $value ], $args );
+				$call_args = array_slice( $call_args, 0, max( 1, $accepted_args ) );
+				$value = call_user_func_array( $callback, $call_args );
+			}
+		}
+
+		return $value;
+	} finally {
+		array_pop( $GLOBALS['__wp_current_filter'] );
+	}
 }
 
 function current_filter() {
-	return '';
+	if ( empty( $GLOBALS['__wp_current_filter'] ) ) {
+		return '';
+	}
+
+	return end( $GLOBALS['__wp_current_filter'] );
 }
 
 function has_filter() {
 	return true;
 }
 
+function current_user_can( $cap ) {
+	return false;
+}
+
 function bbp_kses_allowed_tags() {
-	return [
-		'a' => true,
-		'div' => true,
-		'blockquote' => true,
-		'p' => true,
-		'pre' => true,
-		'code' => true,
+	$tags = [
+		'a'          => [],
+		'div'        => [],
+		'blockquote' => [],
+		'p'          => [],
+		'pre'        => [ 'class' => true ],
+		'code'       => [],
 	];
+
+	return apply_filters( 'bbp_kses_allowed_tags', $tags );
 }
 
 function bbp_encode_normal_callback( &$content = '', $key = '', $preg = '' ) {
@@ -43,7 +111,7 @@ function bbp_encode_normal_callback( &$content = '', $key = '', $preg = '' ) {
 
 function bbp_encode_empty_callback( &$content = '', $key = '', $preg = '' ) {
 	if ( strpos( $content, '`' ) !== 0 ) {
-		$content = preg_replace( "|&lt;({$preg})\s*?/*?&gt;|i", '<$1 />', $content );
+		$content = preg_replace( "|&lt;({$preg})\\s*?/*?&gt;|i", '<$1 />', $content );
 	}
 }
 
@@ -159,6 +227,53 @@ function _wp_specialchars( $string, $quote_style = ENT_NOQUOTES, $charset = fals
 	return $string;
 }
 
+function wpautop( $content ) {
+	return $content;
+}
+
+function add_shortcode() {
+}
+
+function do_shortcode( $content ) {
+	return $content;
+}
+
+function wp_parse_args( $args, $defaults = [] ) {
+	if ( is_object( $args ) ) {
+		$parsed_args = get_object_vars( $args );
+	} elseif ( is_array( $args ) ) {
+		$parsed_args = $args;
+	} else {
+		$parsed_args = [];
+	}
+
+	return array_merge( (array) $defaults, $parsed_args );
+}
+
+function plugins_url( $path = '', $plugin = '' ) {
+	return $path;
+}
+
+function wp_register_script() {
+}
+
+function wp_register_style() {
+}
+
+function wp_enqueue_script() {
+}
+
+function wp_enqueue_style() {
+}
+
+function wp_script_is() {
+	return false;
+}
+
+function wp_style_is() {
+	return false;
+}
+
 function bbp_encode_bad( $content = '' ) {
 
 	// Setup variables
@@ -178,7 +293,7 @@ function bbp_encode_bad( $content = '' ) {
 
 	// Loop through allowed tags and compare for empty and normal tags
 	foreach ( $allowed as $tag => $args ) {
-		$preg = $args ? "{$tag}(?:\s.*?)?" : $tag;
+		$preg = $args ? "{$tag}(?:\\s.*?)?" : $tag;
 
 		// Which walker to use based on the tag and arguments
 		if ( isset( $empty[ $tag ] ) ) {

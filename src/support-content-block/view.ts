@@ -1,3 +1,6 @@
+/**
+ * Internal dependencies
+ */
 import { getRelativeDate } from './utils';
 import './view.scss';
 

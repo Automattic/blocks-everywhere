@@ -1,47 +1,41 @@
 <?php
 /*
 Plugin Name: Blocks Everywhere
-Description: Because somewhere is just not enough. Add Gutenberg to WordPress comments, bbPress forums, and BuddyPress streams. Also enables Gutenberg for comment & bbPress moderation.
-Version: 1.23.0
+Description: Use the Gutenberg block editor anywhere in WordPress. Register a context with a config array and get the full block editing experience on any page.
+Version: 3.2.5
 Author: Automattic
 Text Domain: 'blocks-everywhere'
 */
 
 namespace Automattic\Blocks_Everywhere;
 
-use Automattic\Blocks_Everywhere\Handler;
-
 require_once __DIR__ . '/classes/class-handler.php';
 require_once __DIR__ . '/classes/class-editor.php';
-require_once __DIR__ . '/classes/handlers/class-bbpress.php';
-require_once __DIR__ . '/classes/handlers/class-buddypress.php';
-require_once __DIR__ . '/classes/handlers/class-comments.php';
+require_once __DIR__ . '/classes/class-engine.php';
+require_once __DIR__ . '/classes/contexts/bbpress-callbacks.php';
+require_once __DIR__ . '/classes/contexts/bbpress.php';
+require_once __DIR__ . '/classes/contexts/buddypress.php';
+require_once __DIR__ . '/classes/contexts/comments.php';
 
 class Blocks_Everywhere {
-	const VERSION = '1.23.0';
+	const VERSION = '3.2.5';
 
 	/**
 	 * Instance variable
+	 *
 	 * @var Blocks_Everywhere|null
 	 */
 	private static $instance = null;
 
 	/**
-	 * Gutenberg editor
+	 * The context engine.
 	 *
-	 * @var Blocks_Everywhere|null
+	 * @var Engine|null
 	 */
-	private $gutenberg = null;
+	private $engine = null;
 
 	/**
-	 * Gutenberg handlers
-	 *
-	 * @var Handler\Handler[]
-	 */
-	private $handlers = [];
-
-	/**
-	 * Singleton access
+	 * Singleton access.
 	 *
 	 * @return Blocks_Everywhere
 	 */
@@ -54,83 +48,89 @@ class Blocks_Everywhere {
 	}
 
 	/**
-	 * Constructor
+	 * Constructor.
 	 */
 	public function __construct() {
-		add_action( 'init', [ $this, 'load_handlers' ] );
+		$this->engine = new Engine();
 
-		// Admin editors
-		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
+		// Register built-in contexts at priority 5 so third-party can modify at 10.
+		add_filter( 'blocks_everywhere_contexts', [ $this, 'register_builtin_contexts' ], 5 );
+
+		add_action( 'init', [ $this, 'boot' ] );
 	}
 
 	/**
-	 * Load whatever handler is configured
+	 * Register the built-in contexts (bbPress, BuddyPress, Comments).
+	 *
+	 * Uses the same filter mechanism as external consumers.
+	 *
+	 * @param array $contexts Existing contexts.
+	 * @return array
+	 */
+	public function register_builtin_contexts( $contexts ) {
+		$bbpress = Contexts\bbpress_context( $this->engine );
+		if ( $bbpress ) {
+			$contexts['bbpress'] = $bbpress;
+		}
+
+		$buddypress = Contexts\buddypress_context( $this->engine );
+		if ( $buddypress ) {
+			$contexts['buddypress'] = $buddypress;
+		}
+
+		$comments = Contexts\comments_context( $this->engine );
+		if ( $comments ) {
+			$contexts['comments'] = $comments;
+		}
+
+		return $contexts;
+	}
+
+	/**
+	 * Boot the engine on init.
 	 *
 	 * @return void
 	 */
-	public function load_handlers() {
-		$default_comments = defined( 'BLOCKS_EVERYWHERE_COMMENTS' ) ? BLOCKS_EVERYWHERE_COMMENTS : false;
-		$default_bbpress = defined( 'BLOCKS_EVERYWHERE_BBPRESS' ) ? BLOCKS_EVERYWHERE_BBPRESS : false;
-		$default_buddypress = defined( 'BLOCKS_EVERYWHERE_BUDDYPRESS' ) ? BLOCKS_EVERYWHERE_BUDDYPRESS : false;
+	public function boot() {
+		$this->engine->boot();
 
-		if ( apply_filters( 'blocks_everywhere_comments', $default_comments ) ) {
-			$this->handlers['Comments'] = new Handler\Comments();
-		}
-
-		if ( apply_filters( 'blocks_everywhere_bbpress', $default_bbpress ) ) {
-			$this->handlers['bbPress'] = new Handler\bbPress();
-		}
-
-		if ( apply_filters( 'blocks_everywhere_buddypress', $default_buddypress ) ) {
-			$this->handlers['BuddyPress'] = new Handler\BuddyPress();
+		// Wire bbPress admin hooks if context is active.
+		if ( $this->engine->get_context( 'bbpress' ) ) {
+			Contexts\bbpress_wire_admin( $this->engine );
 		}
 	}
 
 	/**
-	 * Get the instantiated handler class for the specified type, or null if it isn't configured or known.
+	 * Get the engine instance.
 	 *
-	 * @param 'Comments'|'bbPress'|'BuddyPress' $which The handler type.
-	 * @return Handler\Handler|null object or null it not configured.
+	 * @return Engine
+	 */
+	public function get_engine() {
+		return $this->engine;
+	}
+
+	/**
+	 * Backward compatibility — get a handler-like object for the specified type.
+	 *
+	 * Returns the engine itself since it handles all contexts now.
+	 *
+	 * @param string $which The handler type ('Comments', 'bbPress', 'BuddyPress').
+	 * @return Engine|null
 	 */
 	public function get_handler( $which ) {
-		if ( isset( $this->handlers[ $which ] ) ) {
-			return $this->handlers[ $which ];
+		$map = [
+			'Comments'   => 'comments',
+			'bbPress'    => 'bbpress',
+			'BuddyPress' => 'buddypress',
+		];
+
+		$context_id = $map[ $which ] ?? strtolower( $which );
+
+		if ( $this->engine->get_context( $context_id ) ) {
+			return $this->engine;
 		}
 
 		return null;
-	}
-
-	/**
-	 * Perform additional admin tasks when on the comment page
-	 *
-	 * @param String $hook Page hook.
-	 * @return void
-	 */
-	public function admin_enqueue_scripts( $hook ) {
-		foreach ( $this->handlers as $handler ) {
-			if ( $handler->can_show_admin_editor( $hook ) ) {
-				add_action(
-					'admin_head',
-					function() use ( $handler ) {
-						add_filter( 'the_editor', [ $handler, 'the_editor' ] );
-						add_filter( 'wp_editor_settings', [ $handler, 'wp_editor_settings' ], 10, 2 );
-					}
-				);
-
-				// Stops a problem with the Gutenberg plugin accessing widgets that don't exist
-				remove_action( 'admin_footer', 'gutenberg_block_editor_admin_footer' );
-
-				// Load Gutenberg in in_admin_header so WP admin doesn't set the 'block-editor-page' body class
-				add_action(
-					'in_admin_header',
-					function() use ( $handler ) {
-						$handler->load_editor( '.wp-editor-area' );
-					}
-				);
-
-				break;
-			}
-		}
 	}
 }
 

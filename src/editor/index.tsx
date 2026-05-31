@@ -1,43 +1,1019 @@
 /**
  * WordPress dependencies
  */
-
 import { MediaUpload } from '@wordpress/media-utils';
-import { mediaUpload } from '@wordpress/editor';
-import { createRoot, useEffect } from '@wordpress/element';
-import IsolatedBlockEditor, { EditorLoaded } from '@automattic/isolated-block-editor';
+import apiFetch from '@wordpress/api-fetch';
+import {
+	BlockContextProvider,
+	BlockEditorProvider,
+	mediaUpload as blockEditorMediaUpload,
+	// @ts-ignore __experimentalLibrary is an unstable API but is the only
+	// way to render the inline block inserter panel (same surface IBE used).
+	__experimentalLibrary as Library,
+} from '@wordpress/block-editor';
+import { mediaUpload as legacyMediaUpload } from '@wordpress/editor';
+import { SlotFillProvider } from '@wordpress/components';
+import { createRoot, useCallback, useEffect, useState } from '@wordpress/element';
 import { addFilter } from '@wordpress/hooks';
-import { __ } from '@wordpress/i18n';
-import { getBlockTypes, unregisterBlockType } from '@wordpress/blocks';
+import { createBlock, parse, rawHandler, serialize } from '@wordpress/blocks';
+import { createRegistry, RegistryProvider, useDispatch, useRegistry } from '@wordpress/data';
 
 /**
- * Local dependencies
+ * Internal dependencies
  */
-
 import BuddyPress from './buddypress';
+import { createBbPressAdapter } from './bbpress-adapter';
+import ContentBridge from './content-bridge';
+import DetachedSidebar from './detached-sidebar';
+import EmbeddedEditorShell, { type ResolvedChromeConfig, type ResolvedToolbarConfig } from './embedded-editor-shell';
+import type { EditorMountSettings, EditorServiceContext, EditorServices } from './editor-services';
+import PostEntityShell, { EditorEditsBridge, type PostEntityRef } from './post-entity-shell';
+import { RegisteredSlotFills } from './slot-fills';
+import { getBootstrapSettingsSummary } from '../bootstrap-settings';
+
+export type { EditorMountSettings, EditorServiceContext, EditorServices } from './editor-services';
+
+export interface EditorMountOptions {
+	container?: HTMLElement | string | null;
+	mode?: string | string[];
+	services?: EditorServices;
+	settings?: Partial< EditorMountSettings >;
+	settingsTransforms?: SettingsTransform[];
+}
+
+type SettingsTransformContext = {
+	mode?: string;
+	modes: string[];
+	options: EditorMountOptions;
+	settings: EditorMountSettings;
+	textarea: HTMLTextAreaElement | null;
+};
+
+type SettingsTransform =
+	| Record< string, unknown >
+	| ( ( settings: EditorMountSettings, context: SettingsTransformContext ) => Record< string, unknown > | void );
+
+export interface EditorMount {
+	container: HTMLElement;
+	context?: Record< string, unknown >;
+	entity?: Record< string, unknown >;
+	focus: () => void;
+	getEntityEdits?: () => Record< string, unknown >;
+	registry?: unknown;
+	resetEntity?: ( reason?: string ) => void;
+	textarea: HTMLTextAreaElement;
+	unmount: () => void;
+}
+
+const mountedEditors = new WeakMap< HTMLTextAreaElement, EditorMount >();
+let isMediaUploadFilterInstalled = false;
+
+function ensureMediaUploadFilterInstalled() {
+	if ( isMediaUploadFilterInstalled ) {
+		return;
+	}
+
+	// Gutenberg exposes editor.MediaUpload as a global hook, so install it once
+	// and leave it in place to avoid cross-editor unmount races.
+	addFilter( 'editor.MediaUpload', 'blocks-everywhere/media-upload', () => MediaUpload );
+	isMediaUploadFilterInstalled = true;
+}
+
+const removeNullPostFromFileUploadMiddleware = ( options, next ) => {
+	if ( options.method === 'POST' && options.path === '/wp/v2/media' ) {
+		const formData = options.body;
+
+		if ( formData instanceof FormData && formData.has( 'post' ) && formData.get( 'post' ) === 'null' ) {
+			formData.delete( 'post' );
+		}
+	}
+
+	return next( options );
+};
+
+function toArray< T >( value: T | T[] | undefined ): T[] {
+	if ( Array.isArray( value ) ) {
+		return value;
+	}
+
+	return value ? [ value ] : [];
+}
+
+function createServiceContext( settings, textarea?, container? ): EditorServiceContext {
+	return {
+		container,
+		editorType: settings?.editorType,
+		mode: normalizeModeNames( settings?.blocksEverywhere?.mode )[ 0 ],
+		settings,
+		textarea,
+	};
+}
+
+function notifyService(
+	services: EditorServices,
+	type: string,
+	message: string,
+	context: EditorServiceContext,
+	details?
+) {
+	const notices = services?.notices;
+
+	try {
+		if ( typeof notices === 'function' ) {
+			notices( type, message, context, details );
+			return;
+		}
+
+		notices?.[ type ]?.( message, context, details );
+	} catch ( error ) {
+		// eslint-disable-next-line no-console
+		console.error( 'Blocks Everywhere: notice service failed', error );
+	}
+}
+
+function createScopedApiFetch( services: EditorServices ) {
+	const baseApiFetch = typeof services?.apiFetch === 'function' ? services.apiFetch : apiFetch;
+	const middlewares = [ ...toArray( services?.apiFetchMiddleware ), ...toArray( services?.apiFetchMiddlewares ) ];
+
+	return middlewares.reduceRight(
+		( next, middleware ) => ( options ) => middleware( options, next ),
+		( options ) => baseApiFetch( options )
+	);
+}
+
+function getDefaultApiFetchMiddlewares( settings ) {
+	const middlewares = [ removeNullPostFromFileUploadMiddleware ];
+
+	if ( settings?.restNonce ) {
+		middlewares.push( apiFetch.createNonceMiddleware( settings.restNonce ) );
+	}
+
+	return middlewares;
+}
+
+function resolvePermission(
+	services: EditorServices,
+	capability: string,
+	context: EditorServiceContext,
+	fallback: boolean
+) {
+	const permissions = services?.permissions;
+
+	if ( ! permissions ) {
+		return fallback;
+	}
+
+	try {
+		const delegated = permissions.can?.( capability, context );
+		if ( typeof delegated === 'boolean' ) {
+			return delegated;
+		}
+
+		if ( capability === 'uploadMedia' ) {
+			const uploadPermission = permissions.canUploadMedia;
+			if ( typeof uploadPermission === 'function' ) {
+				const value = uploadPermission( context );
+				if ( typeof value === 'boolean' ) {
+					return value;
+				}
+			}
+
+			if ( typeof uploadPermission === 'boolean' ) {
+				return uploadPermission;
+			}
+		}
+	} catch ( error ) {
+		// eslint-disable-next-line no-console
+		console.error( 'Blocks Everywhere: permissions service failed', error );
+	}
+
+	return fallback;
+}
+
+function resolveEditorServices( settings, mountServices?: EditorServices ): EditorServices {
+	const blocksEverywhere = settings?.blocksEverywhere || {};
+	const modes = normalizeModeNames( blocksEverywhere.mode );
+	const servicesByMode = blocksEverywhere.servicesByMode || {};
+	const resolvedServices = {
+		...( blocksEverywhere.services || {} ),
+		...modes.reduce( ( services, mode ) => ( { ...services, ...( servicesByMode?.[ mode ] || {} ) } ), {} ),
+		...( mountServices || {} ),
+	};
+	const apiFetchMiddlewares = [
+		...getDefaultApiFetchMiddlewares( settings ),
+		...toArray( resolvedServices.apiFetchMiddlewares ),
+	];
+
+	return {
+		...resolvedServices,
+		apiFetchMiddlewares,
+	};
+}
+
+function getEditorDataSettings( settings ) {
+	const data = settings?.blocksEverywhere?.data;
+	return isPlainObject( data ) ? data : {};
+}
+
+function getEditorContext( settings ) {
+	const context = getEditorDataSettings( settings )?.context;
+	return isPlainObject( context ) ? context : {};
+}
+
+function getBlockContext( settings ) {
+	const context = getEditorDataSettings( settings )?.blockContext;
+	return isPlainObject( context ) ? context : {};
+}
+
+function getEntityBridge( settings ) {
+	const bridge = settings?.blocksEverywhere?.entityBridge;
+	return isPlainObject( bridge ) ? bridge : null;
+}
+
+function getEntityBridgeEntity( settings ) {
+	const bridge = getEntityBridge( settings );
+	if ( ! bridge ) {
+		return {};
+	}
+
+	const entity = isPlainObject( bridge.entity ) ? { ...bridge.entity } : {};
+	Object.keys( bridge ).forEach( ( key ) => {
+		if ( [ 'entity', 'load', 'getEdits', 'saveEdits', 'reset' ].includes( key ) ) {
+			return;
+		}
+
+		if ( typeof bridge[ key ] !== 'function' ) {
+			entity[ key ] = bridge[ key ];
+		}
+	} );
+
+	return entity;
+}
+
+function hasEditorDataBoundary( settings ) {
+	const data = getEditorDataSettings( settings );
+	return Boolean(
+		data.register ||
+			( Array.isArray( data.stores ) && data.stores.length > 0 ) ||
+			Object.keys( getBlockContext( settings ) ).length > 0
+	);
+}
+
+function registerEditorStore( registry, store, helpers ) {
+	if ( typeof store === 'function' ) {
+		return store( helpers );
+	}
+
+	if ( typeof store?.register === 'function' ) {
+		return store.register( helpers );
+	}
+
+	if ( store?.descriptor ) {
+		registry.register( store.descriptor );
+		return undefined;
+	}
+
+	if ( store?.name && store?.config ) {
+		registry.registerStore( store.name, store.config );
+		return undefined;
+	}
+
+	if ( store?.name && typeof store?.instantiate === 'function' ) {
+		registry.register( store );
+	}
+
+	return undefined;
+}
+
+function EditorDataBoundary( { children, instance, settings, textarea } ) {
+	const parentRegistry = useRegistry();
+	const [ controller ] = useState( () => {
+		const data = getEditorDataSettings( settings );
+		const context = getEditorContext( settings );
+		const blockContext = getBlockContext( settings );
+		const registry = createRegistry( {}, parentRegistry );
+		const helpers = {
+			blockContext,
+			context,
+			instance,
+			registry,
+			settings,
+			textarea,
+		};
+		const cleanupCallbacks = [];
+
+		( Array.isArray( data.stores ) ? data.stores : [] ).forEach( ( store ) => {
+			const cleanup = registerEditorStore( registry, store, helpers );
+			if ( typeof cleanup === 'function' ) {
+				cleanupCallbacks.push( cleanup );
+			}
+		} );
+
+		if ( typeof data.register === 'function' ) {
+			const cleanup = data.register( helpers );
+			if ( typeof cleanup === 'function' ) {
+				cleanupCallbacks.push( cleanup );
+			}
+		}
+
+		instance.context = context;
+		instance.registry = registry;
+
+		return {
+			blockContext,
+			cleanup: () => cleanupCallbacks.forEach( ( cleanup ) => cleanup() ),
+			registry,
+		};
+	} );
+
+	useEffect( () => () => controller.cleanup(), [ controller ] );
+
+	return (
+		<RegistryProvider value={ controller.registry }>
+			<BlockContextProvider value={ controller.blockContext }>{ children }</BlockContextProvider>
+		</RegistryProvider>
+	);
+}
+
+function MaybeEditorDataBoundary( { children, instance, settings, textarea } ) {
+	if ( ! hasEditorDataBoundary( settings ) ) {
+		return <>{ children }</>;
+	}
+
+	return (
+		<EditorDataBoundary instance={ instance } settings={ settings } textarea={ textarea }>
+			{ children }
+		</EditorDataBoundary>
+	);
+}
+
+/**
+ * Inline block inserter panel rendered into the detached sidebar portal.
+ *
+ * Mirrors the surface IBE's `InserterSidebar` exposed via
+ * `__experimentalLibrary`. We deliberately keep this minimal — no close
+ * button, no tab filtering — because the BE detached sidebar is intended
+ * for persistent host-owned slots (e.g. a host application sidebar). Tab
+ * filtering can be reintroduced if/when a consumer needs it.
+ */
+function DetachedInserterPanel() {
+	return (
+		<div className="blocks-everywhere-editor__detached-inserter edit-widgets-layout__inserter-panel">
+			<div className="edit-widgets-layout__inserter-panel-content blocks-everywhere-editor__inserter-tabs">
+				{ /* @ts-ignore __experimentalLibrary is unstable */ }
+				<Library showMostUsedBlocks={ false } showInserterHelpPanel />
+			</div>
+		</div>
+	);
+}
 
 /**
  * Save blocks to the comment form
  *
- * @param {string} content Comment content.
+ * @param {HTMLTextAreaElement} textarea - The textarea element.
+ * @param {string}              content  - Comment content.
  */
-function saveBlocks( textarea, content ) {
+function saveBlocks( textarea: HTMLTextAreaElement, content: string ): void {
 	if ( textarea ) {
 		textarea.value = content;
 	}
 }
 
+function createContentBridgeHelpers( textarea, settings ) {
+	return {
+		parse,
+		rawHandler,
+		serialize,
+		getTextareaContent() {
+			return textarea?.value || '';
+		},
+		setTextareaContent( content ) {
+			if ( textarea ) {
+				textarea.value = String( content || '' );
+			}
+		},
+		textarea,
+		settings,
+	};
+}
+
+function createContentBridgeContext( textarea, settings ) {
+	return {
+		blockContext: getBlockContext( settings ),
+		context: getEditorContext( settings ),
+		entity: getEntityBridgeEntity( settings ),
+		textarea,
+		settings,
+		editorType: settings?.editorType,
+	};
+}
+
+function normalizeLoadedBlocks( value, helpers ) {
+	if ( Array.isArray( value ) ) {
+		return value;
+	}
+
+	if ( typeof value === 'string' ) {
+		return helpers.parse( value );
+	}
+
+	return null;
+}
+
+function hasMeaningfulInitialContent( blocks ) {
+	if ( ! Array.isArray( blocks ) || blocks.length === 0 ) {
+		return false;
+	}
+
+	return blocks.some( ( block ) => {
+		const name = block?.name || block?.blockName || '';
+		const attributes = block?.attributes || block?.attrs || {};
+		const innerBlocks = block?.innerBlocks || [];
+
+		if ( Array.isArray( innerBlocks ) && hasMeaningfulInitialContent( innerBlocks ) ) {
+			return true;
+		}
+
+		if ( name !== 'core/paragraph' ) {
+			return true;
+		}
+
+		return Object.values( attributes ).some( ( value ) => String( value || '' ).trim() !== '' );
+	} );
+}
+
+function resolveInitialContentValue( value, context, helpers ) {
+	if ( typeof value === 'function' ) {
+		return value( context, helpers );
+	}
+
+	return value;
+}
+
+function resolveInitialContentBlocks( value, context, helpers ) {
+	return normalizeLoadedBlocks( resolveInitialContentValue( value, context, helpers ), helpers );
+}
+
+function applyInitialContentPipeline( blocks, contentBridge ) {
+	const initialContent = contentBridge?.helpers?.settings?.blocksEverywhere?.initialContent || null;
+	if ( ! initialContent || typeof initialContent !== 'object' ) {
+		return blocks;
+	}
+
+	const helpers = contentBridge.helpers;
+	const baseContext = {
+		...contentBridge.context,
+		blocks,
+		hasContent: hasMeaningfulInitialContent( blocks ),
+		serialized: helpers.serialize( blocks ),
+		source: 'initial',
+	};
+	let nextBlocks = blocks;
+	const loaded = resolveInitialContentBlocks( initialContent.load, baseContext, helpers );
+
+	if ( loaded ) {
+		nextBlocks = loaded;
+	}
+
+	const transforms = [ ...toArray( initialContent.transform ), ...toArray( initialContent.transforms ) ];
+	transforms.forEach( ( transform ) => {
+		if ( typeof transform !== 'function' ) {
+			return;
+		}
+
+		const serialized = helpers.serialize( nextBlocks );
+		const transformed = transform(
+			serialized,
+			{
+				...baseContext,
+				blocks: nextBlocks,
+				hasContent: hasMeaningfulInitialContent( nextBlocks ),
+				serialized,
+			},
+			helpers
+		);
+		const transformedBlocks = normalizeLoadedBlocks( transformed, helpers );
+
+		if ( transformedBlocks ) {
+			nextBlocks = transformedBlocks;
+		}
+	} );
+
+	if ( hasMeaningfulInitialContent( nextBlocks ) ) {
+		return nextBlocks;
+	}
+
+	const starter =
+		resolveInitialContentBlocks( initialContent.pattern, baseContext, helpers ) ||
+		resolveInitialContentBlocks( initialContent.template, baseContext, helpers ) ||
+		resolveInitialContentBlocks( initialContent.starter, baseContext, helpers );
+
+	return starter || nextBlocks;
+}
+
+function createContentBridgeController( textarea, settings ) {
+	const bridge = settings?.blocksEverywhere?.contentBridge || null;
+	const helpers = createContentBridgeHelpers( textarea, settings );
+	const context = createContentBridgeContext( textarea, settings );
+	const syncTextarea = bridge?.syncTextarea !== false;
+	const serializeBlocks = ( blocks ) => {
+		const serialized = helpers.serialize( blocks );
+
+		if ( typeof bridge?.serialize !== 'function' ) {
+			return serialized;
+		}
+
+		const nextSerialized = bridge.serialize( blocks, context, helpers );
+		return typeof nextSerialized === 'string' ? nextSerialized : serialized;
+	};
+
+	return {
+		bridge,
+		helpers,
+		context,
+		prepareInitialContent( blocks ) {
+			return applyInitialContentPipeline( blocks, this );
+		},
+		load() {
+			let loaded;
+			if ( typeof bridge?.load === 'function' ) {
+				loaded = normalizeLoadedBlocks( bridge.load( helpers, context ), helpers );
+				if ( loaded ) {
+					return applyInitialContentPipeline( loaded, this );
+				}
+			}
+
+			loaded = textarea && textarea.nodeName === 'TEXTAREA' ? helpers.parse( textarea.value ) : [];
+			return applyInitialContentPipeline( loaded, this );
+		},
+		serializeBlocks,
+		save( blocks ) {
+			const serialized = serializeBlocks( blocks );
+
+			if ( syncTextarea ) {
+				saveBlocks( textarea, serialized );
+			}
+
+			if ( typeof bridge?.save === 'function' ) {
+				bridge.save( blocks, serialized, context, helpers );
+			}
+
+			return serialized;
+		},
+		replaceContent( content ) {
+			let nextContent = content;
+
+			if ( typeof bridge?.replaceContent === 'function' ) {
+				const replaced = bridge.replaceContent( content, context, helpers );
+				if ( replaced !== undefined ) {
+					nextContent = replaced;
+				}
+			}
+
+			const nextBlocks = normalizeLoadedBlocks( nextContent, helpers );
+			return nextBlocks || [];
+		},
+	};
+}
+
+function createEntityBridgeContext( { container, instance, settings, source, textarea } ) {
+	return {
+		blockContext: getBlockContext( settings ),
+		container,
+		context: getEditorContext( settings ),
+		editorType: settings?.editorType,
+		entity: getEntityBridgeEntity( settings ),
+		getContentApi: () => textarea?.__blocksEverywhereContentApi ?? null,
+		instance,
+		settings,
+		source,
+		textarea,
+	};
+}
+
+function createEntityBridgeController( { container, contentBridge, instance, settings, textarea } ) {
+	const bridge = getEntityBridge( settings );
+	const getContext = ( source? ) =>
+		createEntityBridgeContext( {
+			container,
+			instance,
+			settings,
+			source,
+			textarea,
+		} );
+
+	return {
+		bridge,
+		entity: getEntityBridgeEntity( settings ),
+		getEdits() {
+			if ( typeof bridge?.getEdits !== 'function' ) {
+				return {};
+			}
+
+			try {
+				const edits = bridge.getEdits( getContext() );
+				return isPlainObject( edits ) ? edits : {};
+			} catch ( error ) {
+				// eslint-disable-next-line no-console
+				console.error( 'Blocks Everywhere: entity bridge getEdits failed', error );
+				return {};
+			}
+		},
+		load() {
+			if ( typeof bridge?.load === 'function' ) {
+				try {
+					const loaded = normalizeLoadedBlocks( bridge.load( getContext( 'load' ) ), contentBridge.helpers );
+					if ( loaded ) {
+						return contentBridge.prepareInitialContent( loaded );
+					}
+				} catch ( error ) {
+					// eslint-disable-next-line no-console
+					console.error( 'Blocks Everywhere: entity bridge load failed', error );
+				}
+			}
+
+			return contentBridge.load();
+		},
+		reset( reason = 'reset' ) {
+			if ( typeof bridge?.reset !== 'function' ) {
+				return;
+			}
+
+			try {
+				bridge.reset( getContext( reason ) );
+			} catch ( error ) {
+				// eslint-disable-next-line no-console
+				console.error( 'Blocks Everywhere: entity bridge reset failed', error );
+			}
+		},
+		saveEdits( blocks, serialized, source ) {
+			if ( typeof bridge?.saveEdits !== 'function' ) {
+				return;
+			}
+
+			const bridgeEdits = this.getEdits();
+			try {
+				bridge.saveEdits(
+					{
+						...bridgeEdits,
+						blocks,
+						content: serialized,
+						entity: this.entity,
+						serialized,
+						source,
+					},
+					getContext( source )
+				);
+			} catch ( error ) {
+				// eslint-disable-next-line no-console
+				console.error( 'Blocks Everywhere: entity bridge saveEdits failed', error );
+			}
+		},
+	};
+}
+
+const lifecycleCallbackNames = {
+	'before-mount': 'onBeforeMount',
+	mounted: 'onMounted',
+	'before-load': 'onBeforeLoad',
+	loaded: 'onLoaded',
+	input: 'onInput',
+	change: 'onChange',
+	'content-change': 'onContentChange',
+	save: 'onSave',
+	submit: 'onSubmit',
+	'focus-requested': 'onFocusRequested',
+	focused: 'onFocused',
+	blurred: 'onBlurred',
+	error: 'onError',
+	'before-unmount': 'onBeforeUnmount',
+	unmounted: 'onUnmounted',
+};
+
+const hostAdapterContentEvents = new Set( [ 'input', 'change', 'content-change', 'save' ] );
+
+function createPublicEditorInstance( instance ) {
+	if ( ! instance ) {
+		return null;
+	}
+
+	return {
+		container: instance.container,
+		context: instance.context,
+		entity: instance.entity,
+		focus: instance.focus,
+		getEntityEdits: instance.getEntityEdits,
+		resetEntity: instance.resetEntity,
+		textarea: instance.textarea,
+		unmount: instance.unmount,
+	};
+}
+
+function createPublicLifecycleEventDetail( eventDetail ) {
+	const publicDetail = {
+		blocks: eventDetail.blocks,
+		container: eventDetail.container,
+		context: eventDetail.context,
+		entity: eventDetail.entity,
+		error: eventDetail.error,
+		event: eventDetail.event,
+		getContentApi: eventDetail.getContentApi,
+		instance: createPublicEditorInstance( eventDetail.instance ),
+		metadata: eventDetail.metadata,
+		serialized: eventDetail.serialized,
+		source: eventDetail.source,
+		textarea: eventDetail.textarea,
+	};
+
+	Object.keys( publicDetail ).forEach( ( key ) => {
+		if ( publicDetail[ key ] === undefined || publicDetail[ key ] === null ) {
+			delete publicDetail[ key ];
+		}
+	} );
+
+	return publicDetail;
+}
+
+function getHostAdapter( settings ) {
+	const adapter = settings?.blocksEverywhere?.hostAdapter;
+	return adapter && typeof adapter === 'object' ? adapter : null;
+}
+
+function getHostAdapterMetadata( settings ) {
+	return getHostAdapter( settings )?.metadata ?? settings?.blocksEverywhere?.hostContext ?? undefined;
+}
+
+function createHostAdapterContext( { container, instance, settings, textarea } ) {
+	return {
+		container,
+		entity: getEntityBridgeEntity( settings ),
+		getContentApi: () => textarea?.__blocksEverywhereContentApi ?? null,
+		instance,
+		metadata: getHostAdapterMetadata( settings ),
+		settings,
+		textarea,
+	};
+}
+
+function invokeHostAdapterCallback( adapter, callbackName, args ) {
+	if ( ! adapter || typeof adapter?.[ callbackName ] !== 'function' ) {
+		return undefined;
+	}
+
+	return adapter[ callbackName ]( ...args );
+}
+
+function runHostAdapterCallback( adapter, callbackName, args ) {
+	try {
+		return invokeHostAdapterCallback( adapter, callbackName, args );
+	} catch ( error ) {
+		// eslint-disable-next-line no-console
+		console.error( 'Blocks Everywhere: host adapter callback failed', error );
+		return undefined;
+	}
+}
+
+function runHostAdapterCleanup( cleanup ) {
+	if ( typeof cleanup !== 'function' ) {
+		return;
+	}
+
+	try {
+		cleanup();
+	} catch ( error ) {
+		// eslint-disable-next-line no-console
+		console.error( 'Blocks Everywhere: host adapter cleanup failed', error );
+	}
+}
+
 function setLoaded( container ) {
-	const closest = container.closest( '.iso-editor__loading' );
+	const closest = container.closest( '.blocks-everywhere-editor__loading' );
 
 	if ( closest ) {
-		closest.classList.remove( 'iso-editor__loading' );
+		closest.classList.remove( 'blocks-everywhere-editor__loading' );
 	}
+}
+
+function dispatchLifecycleEvent( name, { container, detail = {}, settings, textarea } ) {
+	const instance =
+		detail?.instance || textarea?.__blocksEverywhereEditor || container?.__blocksEverywhereEditor || null;
+	const eventDetail = {
+		context: getEditorContext( settings ),
+		container,
+		entity: getEntityBridgeEntity( settings ),
+		getContentApi: () => textarea?.__blocksEverywhereContentApi ?? null,
+		instance,
+		metadata: getHostAdapterMetadata( settings ),
+		settings,
+		textarea,
+		...detail,
+	};
+	const lifecycle = settings?.blocksEverywhere?.lifecycle;
+	const hostAdapter = getHostAdapter( settings );
+	const event = new CustomEvent( `blocksEverywhere:editor:${ name }`, {
+		bubbles: true,
+		cancelable: false,
+		detail: createPublicLifecycleEventDetail( eventDetail ),
+	} );
+
+	container?.dispatchEvent?.( event );
+
+	try {
+		lifecycle?.onEvent?.( name, eventDetail );
+
+		const callbackName = lifecycleCallbackNames[ name ];
+		if ( callbackName ) {
+			lifecycle?.[ callbackName ]?.( eventDetail );
+		}
+
+		hostAdapter?.onEvent?.( name, eventDetail );
+
+		if ( callbackName && ! hostAdapterContentEvents.has( name ) ) {
+			hostAdapter?.[ callbackName ]?.( eventDetail );
+		}
+	} catch ( error ) {
+		// eslint-disable-next-line no-console
+		console.error( 'Blocks Everywhere: lifecycle callback failed', error );
+	}
+}
+
+function focusEditor( container ) {
+	const target = container?.querySelector?.(
+		'.block-editor-block-list__layout [contenteditable="true"], .block-editor-block-list__layout textarea, .block-editor-block-list__layout input'
+	);
+	target?.focus?.();
+}
+
+function EditorLoaded( { onLoaded } ) {
+	useEffect( () => {
+		onLoaded?.();
+	}, [ onLoaded ] );
+
+	return null;
+}
+
+/**
+ * Resolve the consumer's toolbar configuration into a fully-specified
+ * `ResolvedToolbarConfig`.
+ *
+ * Default toolbar matches the upstream wp-admin post editor (every primitive
+ * enabled). Consumers opt OUT individual primitives via
+ * `settings.blocksEverywhere.toolbar`; they never need to opt IN. Any key left
+ * `undefined` is treated as `true`.
+ *
+ * Notes on the underlying primitives (rendered by `<EmbeddedEditorShell>`):
+ * - `inserter` — document-level "+" block inserter button. May be effectively
+ *   suppressed when a persistent detached sidebar is mounted (the sidebar
+ *   always shows the inserter panel, making the toolbar button redundant).
+ * - `undo` / `redo` — delegate to the core editor history. They are no-ops
+ *   when no entity is being edited (BE mounts without a `postEntity` do not
+ *   accumulate undo state); the buttons render disabled in that case, which
+ *   matches the upstream behavior for an empty post.
+ * - `listView` — block list-view tree. Toggle button + dropdown panel on the
+ *   toolbar, owned by the shell.
+ * - `blockTools` — selected-block format toolbar (the contextual `¶ B I link`
+ *   row Gutenberg shows when a block is selected).
+ *
+ * @param raw              Consumer-supplied partial toolbar config from `settings.blocksEverywhere.toolbar`, or undefined.
+ * @param suppressInserter When true, forces `inserter: false` regardless of consumer config. Used when a persistent detached sidebar already exposes the inserter panel.
+ */
+function resolveToolbarConfig(
+	raw: Partial< ResolvedToolbarConfig > | undefined,
+	suppressInserter: boolean
+): ResolvedToolbarConfig {
+	const requested: ResolvedToolbarConfig = {
+		inserter: raw?.inserter !== false,
+		undo: raw?.undo !== false,
+		redo: raw?.redo !== false,
+		listView: raw?.listView !== false,
+		blockTools: raw?.blockTools !== false,
+	};
+
+	// Persistent detached sidebar already exposes the inserter; the toolbar
+	// button becomes redundant chrome. Suppression is orthogonal to the
+	// consumer's `toolbar.inserter` config — it modifies the effective value.
+	if ( suppressInserter ) {
+		requested.inserter = false;
+	}
+
+	return requested;
+}
+
+function resolveChromeConfig( raw: Partial< ResolvedChromeConfig > | undefined ): ResolvedChromeConfig {
+	const mode = [ 'inline', 'full-height', 'modal', 'compact' ].includes( String( raw?.mode ) )
+		? ( raw?.mode as ResolvedChromeConfig[ 'mode' ] )
+		: 'inline';
+
+	return {
+		mode,
+		topBar: raw?.topBar === true,
+		toolbar: raw?.toolbar !== false,
+		secondaryToolbar: raw?.secondaryToolbar === true,
+		footer: raw?.footer !== false,
+		documentSidebar: raw?.documentSidebar === true,
+		inserterSidebar: raw?.inserterSidebar === true,
+	};
+}
+
+function ensureSeededBlocks( blocks ) {
+	if ( Array.isArray( blocks ) && blocks.length > 0 ) {
+		return blocks;
+	}
+	return [ createBlock( 'core/paragraph' ) ];
+}
+
+function EmbeddedBlockEditor( { children, className, onChange, onError, onInput, onLoad, onSelection, settings } ) {
+	const [ blocks, setBlocks ] = useState( () => {
+		try {
+			const initial = onLoad ? onLoad( parse, rawHandler ) : [];
+			return ensureSeededBlocks( initial );
+		} catch ( error ) {
+			onError?.( error );
+			return ensureSeededBlocks( [] );
+		}
+	} );
+	const [ selection, setSelection ] = useState( null );
+
+	// Public API for a detached sidebar portal:
+	// `settings.blocksEverywhere.sidebar.detached = { target, className?, persistent?, defaultView? }`.
+	// `target` is required to enable the detached portal. `defaultView`
+	// currently supports only `'inserter'`; `'list-view'` is reserved and
+	// falls back to the inserter panel (BE has no list-view chrome yet).
+	const detachedSidebar = settings?.blocksEverywhere?.sidebar?.detached || null;
+	const hasDetachedSidebar = Boolean( detachedSidebar?.target );
+	// When the detached sidebar is persistent, the inserter panel is always
+	// visible in the host's portal target — so the toolbar's "+" inserter
+	// button becomes redundant chrome. Suppress it in that case.
+	// Non-persistent detached sidebars (or the default in-shell sidebar)
+	// keep the toolbar button as the trigger.
+	const suppressToolbarInserter = Boolean( hasDetachedSidebar && detachedSidebar?.persistent );
+
+	// Resolve the toolbar config (consumer overrides + persistent-sidebar
+	// inserter suppression). Defaults match the upstream wp-admin post editor:
+	// every primitive on, consumers opt OUT individually.
+	const toolbar = resolveToolbarConfig( settings?.blocksEverywhere?.toolbar, suppressToolbarInserter );
+	const chrome = resolveChromeConfig( settings?.blocksEverywhere?.chrome );
+
+	const updateBlocks = useCallback(
+		( nextBlocks ) => {
+			setBlocks( nextBlocks );
+			onChange?.( nextBlocks );
+		},
+		[ onChange ]
+	);
+	const inputBlocks = useCallback(
+		( nextBlocks ) => {
+			setBlocks( nextBlocks );
+			onInput?.( nextBlocks );
+		},
+		[ onInput ]
+	);
+	const replaceBlocks = useCallback(
+		( nextBlocks ) => {
+			setBlocks( nextBlocks );
+			onChange?.( nextBlocks );
+		},
+		[ onChange ]
+	);
+	const updateSelection = useCallback(
+		( nextSelection ) => {
+			setSelection( nextSelection );
+			onSelection?.( nextSelection );
+		},
+		[ onSelection ]
+	);
+
+	return (
+		<SlotFillProvider>
+			<BlockEditorProvider
+				value={ blocks }
+				onInput={ inputBlocks }
+				onChange={ updateBlocks }
+				selection={ selection }
+				onChangeSelection={ updateSelection }
+				settings={ settings.editor }
+				useSubRegistry={ false }
+			>
+				<EmbeddedEditorShell
+					chrome={ chrome }
+					toolbar={ toolbar }
+					styles={ settings.editor?.styles || [] }
+					className={ className }
+				/>
+				{ hasDetachedSidebar && (
+					<DetachedSidebar target={ detachedSidebar.target } className={ detachedSidebar.className }>
+						<DetachedInserterPanel />
+					</DetachedSidebar>
+				) }
+				{ typeof children === 'function' ? children( { blocks, replaceBlocks } ) : children }
+			</BlockEditorProvider>
+		</SlotFillProvider>
+	);
 }
 
 function createContainer( textarea, existingContainer ) {
 	if ( existingContainer && ! existingContainer.contains( textarea ) ) {
-		return existingContainer;
+		return { container: existingContainer, inserted: false };
 	}
 
 	const container = document.createElement( 'div' );
@@ -45,49 +1021,321 @@ function createContainer( textarea, existingContainer ) {
 	// Insert the container
 	textarea.parentNode.insertBefore( container, textarea );
 
-	return container;
+	return { container, inserted: true };
 }
 
-function RemoveBlockTypes() {
+function PageGlobalBbpressBlockVariationPruner( { settings } ) {
 	useEffect( () => {
-		const blocks = getBlockTypes()
-			.filter( ( block ) => wpBlocksEverywhere.iso.blocks.allowBlocks.indexOf( block.name ) === -1 )
-			.forEach( ( block ) => {
-				unregisterBlockType( block.name );
+		// Core block variations are registered page-wide. Prune bbPress-only
+		// Stretchy variations when any registered bootstrap settings mount bbPress.
+		if ( settings?.editorType !== 'bbpress' && ! getBootstrapSettingsSummary().hasBbpressEditor ) {
+			return;
+		}
+
+		try {
+			window?.wp?.blocks?.unregisterBlockVariation?.( 'core/paragraph', 'stretchy-paragraph' );
+			window?.wp?.blocks?.unregisterBlockVariation?.( 'core/heading', 'stretchy-heading' );
+		} catch ( error ) {
+			// eslint-disable-next-line no-console
+			console.error( 'Blocks Everywhere: failed to prune block variations', error );
+		}
+	}, [ settings?.editorType ] );
+
+	return null;
+}
+
+/**
+ * Dispatches theme supports to WordPress core store.
+ * This enables blocks like core/embed to detect responsive-embeds support
+ * and apply proper aspect ratio classes when saving content.
+ * @param root0
+ * @param root0.themeSupports
+ */
+function ThemeSupportsDispatcher( { themeSupports } ) {
+	const { receiveCurrentTheme } = useDispatch( 'core' );
+
+	useEffect( () => {
+		if ( themeSupports && receiveCurrentTheme ) {
+			receiveCurrentTheme( {
+				theme_supports: themeSupports,
 			} );
-	}, [] );
+		}
+	}, [ themeSupports, receiveCurrentTheme ] );
 
 	return null;
 }
 
 function createEditorContainer( container, textarea, settings ) {
 	const root = createRoot( container );
+	const cleanupCallbacks = [];
+	const hostAdapter = getHostAdapter( settings );
+	const services: EditorServices = settings?.blocksEverywhere?.services || {};
+	const serviceContext = createServiceContext( settings, textarea, container );
+	const scopedApiFetch = createScopedApiFetch( services );
 
-	if ( settings?.editor?.hasUploadPermissions ) {
-		// Connect the media uploader if it's enabled
-		settings.editor.mediaUpload = mediaUpload;
-		addFilter( 'editor.MediaUpload', 'blocks-everywhere/media-upload', () => MediaUpload );
+	const hasUploadPermission = resolvePermission(
+		services,
+		'uploadMedia',
+		serviceContext,
+		settings?.editor?.hasUploadPermissions === true
+	);
+	let isUnmounted = false;
+	const editorKey = 0;
+	const contentBridge = createContentBridgeController( textarea, settings );
+	let entityBridge = null;
+	let hasEditorFocus = false;
+	const bbpressAdapter =
+		settings?.editorType === 'bbpress'
+			? createBbPressAdapter( {
+					container,
+					settings,
+					textarea,
+					services,
+					serviceContext,
+					scopedApiFetch,
+					notifyService,
+			  } )
+			: null;
+
+	const emitLifecycle = ( name, detail = {} ) => {
+		dispatchLifecycleEvent( name, { container, detail, settings, textarea } );
+	};
+	const emitContentHook = ( name, blocks, serialized ) => {
+		const context = createHostAdapterContext( { container, instance, settings, textarea } );
+		const callbackName = lifecycleCallbackNames[ name ];
+
+		runHostAdapterCallback( hostAdapter, 'onContent', [ name, blocks, serialized, context ] );
+		if ( callbackName ) {
+			runHostAdapterCallback( hostAdapter, callbackName, [ blocks, serialized, context ] );
+		}
+
+		runHostAdapterCallback( hostAdapter, 'onContentChange', [ blocks, serialized, context, { source: name } ] );
+		// Legacy portable adapter alias. Content edits are not persistence saves.
+		runHostAdapterCallback( hostAdapter, 'onSave', [ blocks, serialized, context, { source: name } ] );
+		emitLifecycle( name, { blocks, serialized, instance } );
+		emitLifecycle( 'content-change', { blocks, serialized, source: name, instance } );
+	};
+
+	const onFocusIn = () => {
+		if ( hasEditorFocus ) {
+			return;
+		}
+
+		hasEditorFocus = true;
+		emitLifecycle( 'focused', { instance } );
+	};
+	const onFocusOut = ( event ) => {
+		if ( ! container?.contains?.( event.relatedTarget ) ) {
+			hasEditorFocus = false;
+			emitLifecycle( 'blurred', { instance } );
+		}
+	};
+
+	container?.addEventListener?.( 'focusin', onFocusIn );
+	container?.addEventListener?.( 'focusout', onFocusOut );
+
+	const instance = {
+		container,
+		context: getEditorContext( settings ),
+		entity: getEntityBridgeEntity( settings ),
+		focus: () => {
+			emitLifecycle( 'focus-requested', { instance } );
+			focusEditor( container );
+		},
+		getEntityEdits: () => entityBridge?.getEdits?.() || {},
+		services,
+		registry: undefined,
+		resetEntity: ( reason?: string ) => entityBridge?.reset?.( reason ),
+		textarea,
+		unmount: () => unmountEditor( textarea ),
+	};
+	entityBridge = createEntityBridgeController( { container, contentBridge, instance, settings, textarea } );
+
+	textarea.__blocksEverywhereEditor = instance;
+	container.__blocksEverywhereEditor = instance;
+
+	emitLifecycle( 'before-mount', { instance } );
+	const hostAdapterContext = createHostAdapterContext( { container, instance, settings, textarea } );
+	runHostAdapterCallback( hostAdapter, 'beforeMount', [ hostAdapterContext ] );
+	const cleanupHostAdapter = runHostAdapterCallback( hostAdapter, 'setup', [ hostAdapterContext ] );
+	if ( typeof cleanupHostAdapter === 'function' ) {
+		cleanupCallbacks.push( () => runHostAdapterCleanup( cleanupHostAdapter ) );
+	}
+	emitLifecycle( 'mounted', { instance } );
+
+	const form = container.closest( 'form' );
+	if ( form ) {
+		const onSubmit = ( event ) => emitLifecycle( 'submit', { event, instance } );
+		form.addEventListener( 'submit', onSubmit );
+		cleanupCallbacks.push( () => form.removeEventListener( 'submit', onSubmit ) );
+	}
+
+	const renderEditor = () => {
+		// Opt-in postEntity wiring: when the consumer declares this BE mount is
+		// backed by a canonical WP post, wrap the editor in <EditorProvider> so
+		// `core/editor` is populated. <AutosaveMonitor> + <LocalAutosaveMonitor>
+		// then fire on the standard WordPress autosave path with no per-consumer
+		// debounce/in-flight/sendBeacon code required.
+		//
+		// When postEntity is absent or has no id, PostEntityShell is a pass-through
+		// — existing textarea-only behavior is preserved.
+		const postEntity: PostEntityRef | null =
+			settings?.postEntity && typeof settings.postEntity === 'object'
+				? {
+						type: String( settings.postEntity.type || '' ),
+						id: Number( settings.postEntity.id ) || 0,
+				  }
+				: null;
+
+		root.render(
+			<MaybeEditorDataBoundary instance={ instance } settings={ settings } textarea={ textarea }>
+				<PostEntityShell postEntity={ postEntity } editorSettings={ settings?.editor }>
+					<EmbeddedBlockEditor
+						key={ editorKey }
+						settings={ settings }
+						onLoad={ () => entityBridge.load() }
+						onError={ ( error ) => {
+							// eslint-disable-next-line no-console
+							console.error( 'Blocks Everywhere: editor initialization failed', error );
+							container?.classList?.add( 'blocks-everywhere--error' );
+							document?.body?.classList?.add( 'gutenberg-support-loaded' );
+							setLoaded( container );
+							emitLifecycle( 'error', { error, instance } );
+						} }
+						onInput={ ( newBlocks ) => {
+							settings?.blocksEverywhere?.__experimentalOnInput?.( newBlocks );
+							const serialized = contentBridge.save( newBlocks );
+							entityBridge.saveEdits( newBlocks, serialized, 'input' );
+							emitContentHook( 'input', newBlocks, serialized );
+							bbpressAdapter?.scheduleAutosave( serialized );
+						} }
+						onChange={ ( newBlocks ) => {
+							settings?.blocksEverywhere?.__experimentalOnChange?.( newBlocks );
+							const serialized = contentBridge.save( newBlocks );
+							entityBridge.saveEdits( newBlocks, serialized, 'change' );
+							emitContentHook( 'change', newBlocks, serialized );
+							bbpressAdapter?.scheduleAutosave( serialized );
+						} }
+						onSelection={ ( selection ) =>
+							settings?.blocksEverywhere?.__experimentalOnSelection?.( selection )
+						}
+						className={ settings?.blocksEverywhere?.className }
+					>
+						{ ( { blocks, replaceBlocks } ) => (
+							<>
+								<EditorLoaded
+									onLoaded={ () => {
+										setLoaded( container );
+										emitLifecycle( 'loaded', { instance } );
+									} }
+								/>
+								<ThemeSupportsDispatcher themeSupports={ settings?.editor?.themeSupports } />
+								<ContentBridge
+									textarea={ textarea }
+									blocks={ blocks }
+									replaceBlocks={ replaceBlocks }
+									contentBridge={ contentBridge }
+								/>
+								<RegisteredSlotFills textarea={ textarea } />
+
+								{ /* Forward block changes to core/editor edits so <AutosaveMonitor> sees dirty state. */ }
+								{ postEntity?.id > 0 && <EditorEditsBridge blocks={ blocks } /> }
+
+								{ settings.editorType === 'buddypress' && <BuddyPress textarea={ textarea } /> }
+								<PageGlobalBbpressBlockVariationPruner settings={ settings } />
+							</>
+						) }
+					</EmbeddedBlockEditor>
+				</PostEntityShell>
+			</MaybeEditorDataBoundary>
+		);
+	};
+
+	bbpressAdapter?.installHandlers();
+
+	if ( services?.fetchLinkSuggestions !== undefined ) {
+		settings.editor.__experimentalFetchLinkSuggestions = services.fetchLinkSuggestions || undefined;
+	}
+
+	if ( services?.mediaUpload !== undefined ) {
+		settings.editor.mediaUpload = services.mediaUpload || null;
+
+		if ( services.mediaUpload ) {
+			ensureMediaUploadFilterInstalled();
+		}
+	} else if ( settings?.editorType === 'bbpress' ) {
+		if ( ! hasUploadPermission || ! bbpressAdapter?.mediaEndpoint ) {
+			settings.editor.mediaUpload = null;
+		} else {
+			settings.editor.mediaUpload = ( { filesList, onFileChange, onError } ) => {
+				const files = Array.from( filesList );
+
+				Promise.all(
+					files.map( async ( file ) => {
+						const result = await bbpressAdapter.uploadMedia( file );
+						const attachment = result?.attachment;
+						if ( attachment ) {
+							return attachment;
+						}
+
+						return {
+							id: result?.attachment_id,
+							url: result?.url,
+						};
+					} )
+				)
+					.then( ( mediaItems ) => onFileChange( mediaItems ) )
+					.catch( ( error ) => onError( error ) );
+			};
+
+			ensureMediaUploadFilterInstalled();
+		}
+	} else if ( hasUploadPermission ) {
+		// Prefer block-editor mediaUpload; fall back to legacy editor if absent.
+		const resolvedMediaUpload = blockEditorMediaUpload || legacyMediaUpload || null;
+		settings.editor.mediaUpload = resolvedMediaUpload;
+
+		if ( resolvedMediaUpload ) {
+			ensureMediaUploadFilterInstalled();
+		}
 	} else {
 		settings.editor.mediaUpload = null;
 	}
 
-	root.render(
-		<IsolatedBlockEditor
-			settings={ settings }
-			onSaveContent={ ( content ) => saveBlocks( textarea, content ) }
-			onLoad={ ( parser ) => ( textarea && textarea.nodeName === 'TEXTAREA' ? parser( textarea.value ) : [] ) }
-			onError={ () => document.location.reload() }
-			__experimentalOnInput={ ( newBlocks ) => settings?.iso.__experimentalOnInput?.( newBlocks ) }
-			__experimentalOnChange={ ( newBlocks ) => settings?.iso.__experimentalOnChange?.( newBlocks ) }
-			__experimentalOnSelection={ ( selection ) => settings?.iso.__experimentalOnSelection?.( selection ) }
-			className={ settings?.iso?.className }
-		>
-			<EditorLoaded onLoaded={ () => setLoaded( container ) } />
+	void ( async () => {
+		try {
+			emitLifecycle( 'before-load', { instance } );
+			await bbpressAdapter?.restoreDraftIfNeeded();
+			if ( isUnmounted ) {
+				return;
+			}
 
-			{ settings.editorType === 'buddypress' && <BuddyPress textarea={ textarea } /> }
-			<RemoveBlockTypes />
-		</IsolatedBlockEditor>
-	);
+			renderEditor();
+		} catch ( error ) {
+			// eslint-disable-next-line no-console
+			console.error( 'Blocks Everywhere: editor initialization failed', error );
+			container?.classList?.add( 'blocks-everywhere--error' );
+			document?.body?.classList?.add( 'gutenberg-support-loaded' );
+			setLoaded( container );
+			emitLifecycle( 'error', { error, instance } );
+		}
+	} )();
+
+	return () => {
+		emitLifecycle( 'before-unmount', { instance } );
+		isUnmounted = true;
+
+		bbpressAdapter?.cleanup();
+		container?.removeEventListener?.( 'focusin', onFocusIn );
+		container?.removeEventListener?.( 'focusout', onFocusOut );
+		cleanupCallbacks.forEach( ( cleanup ) => cleanup() );
+		root.unmount();
+		delete textarea.__blocksEverywhereContentApi;
+		delete textarea.__blocksEverywhereEditor;
+		delete container.__blocksEverywhereEditor;
+		emitLifecycle( 'unmounted', { instance } );
+		delete instance.registry;
+	};
 }
 
 // If the container is inside a form then we need insulate button clicks inside the editor from propagating out into the form
@@ -96,26 +1344,397 @@ function insulateForm( container ) {
 	const form = container.closest( 'form' );
 
 	if ( form ) {
-		form.addEventListener( 'submit', ( ev ) => {
-			if ( ev.submitter && ev.submitter.closest( '.iso-editor' ) ) {
+		const handler = ( ev ) => {
+			if ( ev.submitter && ev.submitter.closest( '.blocks-everywhere-editor' ) ) {
 				ev.stopPropagation();
 				ev.preventDefault();
 			}
+		};
+
+		form.addEventListener( 'submit', handler );
+
+		return () => form.removeEventListener( 'submit', handler );
+	}
+
+	return () => {};
+}
+
+function resolveContainerOption( container ) {
+	if ( typeof container === 'string' ) {
+		return document.querySelector( container );
+	}
+
+	return container || null;
+}
+
+function isPlainObject( value ) {
+	return Boolean( value ) && typeof value === 'object' && ! Array.isArray( value );
+}
+
+function cloneSettingsValue( value ) {
+	if ( Array.isArray( value ) ) {
+		return [ ...value ];
+	}
+
+	if ( isPlainObject( value ) ) {
+		return Object.keys( value ).reduce( ( next, key ) => {
+			next[ key ] = cloneSettingsValue( value[ key ] );
+			return next;
+		}, {} );
+	}
+
+	return value;
+}
+
+function mergeSettingsValue( base, override ) {
+	if ( override === undefined ) {
+		return cloneSettingsValue( base );
+	}
+
+	if ( Array.isArray( override ) ) {
+		return [ ...override ];
+	}
+
+	if ( isPlainObject( base ) && isPlainObject( override ) ) {
+		const merged = { ...cloneSettingsValue( base ) };
+		Object.keys( override ).forEach( ( key ) => {
+			merged[ key ] = mergeSettingsValue( merged[ key ], override[ key ] );
 		} );
+
+		return merged;
+	}
+
+	return cloneSettingsValue( override );
+}
+
+function mergeSettings( base, override ) {
+	return mergeSettingsValue( base || {}, override || {} );
+}
+
+function normalizeModeNames( mode ) {
+	const modes = Array.isArray( mode ) ? mode : [ mode ];
+	return modes.map( ( name ) => String( name || '' ).trim() ).filter( Boolean );
+}
+
+function normalizeTransformPatch( patch ) {
+	if ( ! isPlainObject( patch ) ) {
+		return null;
+	}
+
+	const rootPatch = { ...patch };
+	const blocksEverywherePatch = {};
+	const editorPatch = {};
+
+	[
+		'allowEmbeds',
+		'blocks',
+		'chrome',
+		'className',
+		'contentBridge',
+		'defaultPreferences',
+		'features',
+		'entityBridge',
+		'initialContent',
+		'lifecycle',
+		'mode',
+		'modes',
+		'patterns',
+		'preferenceKey',
+		'services',
+		'settingsTransforms',
+		'sidebar',
+		'toolbar',
+	].forEach( ( key ) => {
+		if ( Object.prototype.hasOwnProperty.call( rootPatch, key ) ) {
+			blocksEverywherePatch[ key ] = rootPatch[ key ];
+			delete rootPatch[ key ];
+		}
+	} );
+
+	if ( Object.prototype.hasOwnProperty.call( rootPatch, 'allowedBlocks' ) ) {
+		blocksEverywherePatch.blocks = {
+			...( blocksEverywherePatch.blocks || {} ),
+			allowBlocks: rootPatch.allowedBlocks,
+		};
+		delete rootPatch.allowedBlocks;
+	}
+
+	if ( Object.prototype.hasOwnProperty.call( rootPatch, 'disallowedBlocks' ) ) {
+		blocksEverywherePatch.blocks = {
+			...( blocksEverywherePatch.blocks || {} ),
+			disallowBlocks: rootPatch.disallowedBlocks,
+		};
+		delete rootPatch.disallowedBlocks;
+	}
+
+	[ 'template', 'templateLock' ].forEach( ( key ) => {
+		if ( Object.prototype.hasOwnProperty.call( rootPatch, key ) ) {
+			editorPatch[ key ] = rootPatch[ key ];
+			delete rootPatch[ key ];
+		}
+	} );
+
+	if ( Object.keys( blocksEverywherePatch ).length > 0 ) {
+		rootPatch.blocksEverywhere = mergeSettingsValue( rootPatch.blocksEverywhere || {}, blocksEverywherePatch );
+	}
+
+	if ( Object.keys( editorPatch ).length > 0 ) {
+		rootPatch.editor = mergeSettingsValue( rootPatch.editor || {}, editorPatch );
+	}
+
+	return rootPatch;
+}
+
+function applySettingsTransform( settings, transform, context ) {
+	const patch = typeof transform === 'function' ? transform( settings, context ) : transform;
+	const normalizedPatch = normalizeTransformPatch( patch );
+
+	if ( ! normalizedPatch ) {
+		return settings;
+	}
+
+	return mergeSettings( settings, normalizedPatch );
+}
+
+function resolveModeTransforms( settings, modes ) {
+	const configuredModes = settings?.blocksEverywhere?.modes;
+	if ( ! isPlainObject( configuredModes ) ) {
+		return [];
+	}
+
+	return modes.map( ( mode ) => configuredModes[ mode ] ).filter( Boolean );
+}
+
+function resolveAllowedBlocks( settings ) {
+	const allowedBlocks = settings?.blocksEverywhere?.blocks?.allowBlocks;
+	const disallowedBlocks = settings?.blocksEverywhere?.blocks?.disallowBlocks || [];
+
+	if ( ! Array.isArray( allowedBlocks ) ) {
+		return;
+	}
+
+	const nextAllowedBlocks = allowedBlocks.filter( ( blockName ) => disallowedBlocks.indexOf( blockName ) === -1 );
+	settings.blocksEverywhere.blocks.allowBlocks = nextAllowedBlocks;
+	settings.editor.allowedBlockTypes = nextAllowedBlocks;
+}
+
+function getPatternIdentifier( pattern ) {
+	return String( pattern?.name || pattern?.slug || pattern?.title || '' );
+}
+
+function filterPatternsBySettings( patterns, allowPatterns, disallowPatterns ) {
+	if ( ! Array.isArray( patterns ) ) {
+		return patterns;
+	}
+
+	const allowed = Array.isArray( allowPatterns ) ? allowPatterns.map( String ) : [];
+	const disallowed = Array.isArray( disallowPatterns ) ? disallowPatterns.map( String ) : [];
+
+	if ( allowed.length === 0 && disallowed.length === 0 ) {
+		return patterns;
+	}
+
+	return patterns.filter( ( pattern ) => {
+		const identifier = getPatternIdentifier( pattern );
+		if ( disallowed.includes( identifier ) ) {
+			return false;
+		}
+
+		return allowed.length === 0 || allowed.includes( identifier );
+	} );
+}
+
+function appendUniquePatterns( basePatterns, additionalPatterns ) {
+	const patterns = [ ...( Array.isArray( basePatterns ) ? basePatterns : [] ) ];
+	const seen = new Set( patterns.map( getPatternIdentifier ).filter( Boolean ) );
+
+	( Array.isArray( additionalPatterns ) ? additionalPatterns : [] ).forEach( ( pattern ) => {
+		const identifier = getPatternIdentifier( pattern );
+		if ( identifier && seen.has( identifier ) ) {
+			return;
+		}
+
+		if ( identifier ) {
+			seen.add( identifier );
+		}
+		patterns.push( pattern );
+	} );
+
+	return patterns;
+}
+
+function appendUniquePatternCategories( baseCategories, additionalCategories ) {
+	const categories = [ ...( Array.isArray( baseCategories ) ? baseCategories : [] ) ];
+	const seen = new Set( categories.map( ( category ) => String( category?.name || '' ) ).filter( Boolean ) );
+
+	( Array.isArray( additionalCategories ) ? additionalCategories : [] ).forEach( ( category ) => {
+		const name = String( category?.name || '' );
+		if ( name && seen.has( name ) ) {
+			return;
+		}
+
+		if ( name ) {
+			seen.add( name );
+		}
+		categories.push( category );
+	} );
+
+	return categories;
+}
+
+function resolvePatternSettings( settings ) {
+	const patternSettings = settings?.blocksEverywhere?.patterns || {};
+	const additionalPatterns = patternSettings.items;
+	const additionalCategories = patternSettings.categories;
+	const allowPatterns = patternSettings.allowPatterns;
+	const disallowPatterns = patternSettings.disallowPatterns;
+	const hasPatternFilter =
+		( Array.isArray( allowPatterns ) && allowPatterns.length > 0 ) ||
+		( Array.isArray( disallowPatterns ) && disallowPatterns.length > 0 );
+	const hasAdditionalPatterns =
+		Array.isArray( settings.editor.__experimentalAdditionalBlockPatterns ) || Array.isArray( additionalPatterns );
+	const hasBlockPatterns =
+		Array.isArray( settings.editor.__experimentalBlockPatterns ) || Array.isArray( additionalPatterns );
+	const hasAdditionalCategories =
+		Array.isArray( settings.editor.__experimentalAdditionalBlockPatternCategories ) ||
+		Array.isArray( additionalCategories );
+
+	if ( hasAdditionalPatterns ) {
+		settings.editor.__experimentalAdditionalBlockPatterns = filterPatternsBySettings(
+			appendUniquePatterns( settings.editor.__experimentalAdditionalBlockPatterns, additionalPatterns ),
+			allowPatterns,
+			disallowPatterns
+		);
+	}
+
+	if ( hasBlockPatterns || hasPatternFilter ) {
+		settings.editor.__experimentalBlockPatterns = filterPatternsBySettings(
+			appendUniquePatterns( settings.editor.__experimentalBlockPatterns, additionalPatterns ),
+			allowPatterns,
+			disallowPatterns
+		);
+	}
+
+	if ( hasAdditionalCategories ) {
+		settings.editor.__experimentalAdditionalBlockPatternCategories = appendUniquePatternCategories(
+			settings.editor.__experimentalAdditionalBlockPatternCategories,
+			additionalCategories
+		);
 	}
 }
 
-export default function createEditor( node ) {
-	let container;
+function resolveMountSettings(
+	settings,
+	options: EditorMountOptions = {},
+	textarea: HTMLTextAreaElement | null = null
+) {
+	let resolvedSettings = mergeSettings( {}, settings ) as EditorMountSettings;
+	resolvedSettings.editor = resolvedSettings?.editor || {};
+	resolvedSettings.blocksEverywhere = resolvedSettings?.blocksEverywhere || {};
+
+	const modes = [
+		...normalizeModeNames( resolvedSettings.blocksEverywhere?.mode ),
+		...normalizeModeNames( options.mode ),
+	].filter( ( mode, index, allModes ) => allModes.indexOf( mode ) === index );
+
+	const transforms = [
+		...( Array.isArray( resolvedSettings.blocksEverywhere?.settingsTransforms )
+			? resolvedSettings.blocksEverywhere.settingsTransforms
+			: [] ),
+		...resolveModeTransforms( resolvedSettings, modes ),
+		...( Array.isArray( options.settingsTransforms ) ? options.settingsTransforms : [] ),
+	];
+
+	transforms.forEach( ( transform ) => {
+		resolvedSettings = applySettingsTransform( resolvedSettings, transform, {
+			mode: modes[ 0 ],
+			modes,
+			options,
+			settings: resolvedSettings,
+			textarea,
+		} ) as EditorMountSettings;
+		resolvedSettings.editor = resolvedSettings?.editor || {};
+		resolvedSettings.blocksEverywhere = resolvedSettings?.blocksEverywhere || {};
+	} );
+
+	if ( modes.length > 0 ) {
+		resolvedSettings.blocksEverywhere.mode = modes.length === 1 ? modes[ 0 ] : modes;
+	}
+
+	resolvedSettings.blocksEverywhere.services = resolveEditorServices( resolvedSettings, options.services );
+
+	resolvePatternSettings( resolvedSettings );
+	resolveAllowedBlocks( resolvedSettings );
+
+	return resolvedSettings;
+}
+
+export function mountEditor( node: HTMLTextAreaElement, options: EditorMountOptions = {} ): EditorMount | null {
+	const globalSettings = typeof wpBlocksEverywhere !== 'undefined' ? wpBlocksEverywhere : null;
+	const baseSettings =
+		options.settings && globalSettings
+			? mergeSettings( globalSettings, options.settings )
+			: options.settings || globalSettings;
+	if ( ! baseSettings?.container ) {
+		// eslint-disable-next-line no-console
+		console.error( 'Blocks Everywhere: settings object missing; cannot initialize editor.' );
+		setLoaded( node?.parentNode || document.body );
+		return null;
+	}
+
+	const existingMount = mountedEditors.get( node );
+	if ( existingMount ) {
+		return existingMount;
+	}
+
+	let containerSource = resolveContainerOption( options.container );
+	const settings = resolveMountSettings( baseSettings, options, node );
 
 	// Prefer enclosing containers, so check if one exists outside.
-	const outerContainerNode = node.closest( wpBlocksEverywhere.container );
-	if ( outerContainerNode ) {
-		container = createContainer( node, outerContainerNode );
-	} else {
-		container = createContainer( node, document.querySelector( wpBlocksEverywhere.container ) );
+	const outerContainerNode = node.closest( settings.container );
+	containerSource = containerSource || outerContainerNode || document.querySelector( settings.container );
+	const { container, inserted } = createContainer( node, containerSource );
+	const cleanupInsulatedForm = insulateForm( container );
+	const cleanupEditorContainer = createEditorContainer( container, node, settings );
+
+	const mount: EditorMount = {
+		container,
+		get context() {
+			return node.__blocksEverywhereEditor?.context;
+		},
+		focus: () => node.__blocksEverywhereEditor?.focus?.(),
+		get registry() {
+			return node.__blocksEverywhereEditor?.registry;
+		},
+		textarea: node,
+		unmount: () => {
+			if ( ! mountedEditors.has( node ) ) {
+				return;
+			}
+
+			cleanupEditorContainer?.();
+			cleanupInsulatedForm?.();
+			mountedEditors.delete( node );
+
+			if ( inserted ) {
+				container.remove();
+			}
+		},
+	};
+
+	mountedEditors.set( node, mount );
+
+	return mount;
+}
+
+export function unmountEditor( target: EditorMount | HTMLTextAreaElement ): boolean {
+	const mount = 'unmount' in target ? target : mountedEditors.get( target );
+	if ( ! mount ) {
+		return false;
 	}
 
-	insulateForm( container );
-	createEditorContainer( container, node, wpBlocksEverywhere );
+	mount.unmount();
+	return true;
 }
+
+export default mountEditor;

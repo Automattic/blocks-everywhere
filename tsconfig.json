@@ -6,6 +6,7 @@
     "allowJs": true,
     "esModuleInterop": true,
     "jsx": "react-jsx",
-    "lib": ["dom", "esnext"]
+    "lib": ["dom", "esnext"],
+    "noEmit": true
   }
 }

@@ -1,7 +1,16 @@
+/**
+ * External dependencies
+ */
 import React from 'react';
+/**
+ * WordPress dependencies
+ */
 import { BlockInstance, createBlock, registerBlockType } from '@wordpress/blocks';
 import { renderToString } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
+/**
+ * Internal dependencies
+ */
 import { getContentTypeFromUrl, SupportContentBlockAttributes } from './block';
 import { Edit } from './edit';
 import { Save } from './save';

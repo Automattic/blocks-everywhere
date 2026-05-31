@@ -14,15 +14,16 @@ import {
 	InspectorControls,
 	RichText,
 	useBlockProps,
-	useSetting,
+	useSettings,
 } from '@wordpress/block-editor';
 import { createBlock } from '@wordpress/blocks';
-import { formatLtr } from '@wordpress/icons';
+import { formatLTR } from '@wordpress/icons';
 
 /**
  * Internal dependencies
  */
 import { useOnEnter } from './use-enter';
+import { getBootstrapSettingsSummary } from '../../bootstrap-settings';
 
 const name = 'core/paragraph';
 
@@ -30,7 +31,7 @@ function ParagraphRTLControl( { direction, setDirection } ) {
 	return (
 		isRTL() && (
 			<ToolbarButton
-				icon={ formatLtr }
+				icon={ formatLTR }
 				title={ _x( 'Left to right', 'editor button' ) }
 				isActive={ direction === 'ltr' }
 				onClick={ () => {
@@ -64,7 +65,10 @@ function isPossiblyCode( blocks ) {
 	}
 
 	// Count the number of lines within the blocks
-	const lineLength = paragraphs.reduce( ( total, block ) =>( block.attributes?.content.split( '<br>' ).length ?? 1 ) + total, 0 );
+	const lineLength = paragraphs.reduce(
+		( total, block ) => ( block.attributes?.content.split( '<br>' ).length ?? 1 ) + total,
+		0
+	);
 	if ( lineLength > 20 ) {
 		return true;
 	}
@@ -75,7 +79,10 @@ function isPossiblyCode( blocks ) {
 
 function ParagraphBlock( { attributes, mergeBlocks, onReplace, onRemove, setAttributes, clientId } ) {
 	const { align, content, direction, dropCap, placeholder } = attributes;
-	const isDropCapFeatureEnabled = useSetting( 'typography.dropCap' );
+	// This edit component is installed through the page-global block registry.
+	// Plain-text paste therefore follows the aggregate bootstrap summary.
+	const pastePlainText = getBootstrapSettingsSummary().pastePlainText;
+	const [ isDropCapFeatureEnabled ] = useSettings( 'typography.dropCap' );
 	const blockProps = useBlockProps( {
 		ref: useOnEnter( { clientId, content } ),
 		className: classnames( {
@@ -96,8 +103,8 @@ function ParagraphBlock( { attributes, mergeBlocks, onReplace, onRemove, setAttr
 
 	function hijackedReplace( values ) {
 		if ( isPossiblyCode( values ) ) {
-			const content = values.map( ( block ) => block.attributes.content ).join( '\n\n' );
-			const block = createBlock( 'core/code', { content } );
+			const codeContent = values.map( ( block ) => block.attributes.content ).join( '\n\n' );
+			const block = createBlock( 'core/code', { content: codeContent } );
 
 			onReplace( [ block ] );
 			return;
@@ -180,7 +187,7 @@ function ParagraphBlock( { attributes, mergeBlocks, onReplace, onRemove, setAttr
 				data-custom-placeholder={ placeholder ? true : undefined }
 				__unstableEmbedURLOnPaste
 				__unstableAllowPrefixTransformations
-				__unstablePastePlainText={ wpBlocksEverywhere?.pastePlainText ?? false }
+				__unstablePastePlainText={ pastePlainText }
 			/>
 		</>
 	);

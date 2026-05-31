@@ -1,5 +1,3 @@
-@import "@wordpress/base-styles/_colors";
-
 // bbPress
 .gutenberg-support {
 	iframe {
@@ -12,46 +10,21 @@
 	}
 
 	// Let popovers show outside the editor
-	#bbpress-forums,
-	.interface-interface-skeleton,
-	.interface-interface-skeleton__body,
-	.interface-interface-skeleton__content,
-	.interface-interface-skeleton__editor {
+	#bbpress-forums {
 		overflow: inherit;
 	}
 
 	#bbpress-forums,
 	.bbp-topic-form {
-		/* Override bbPress list styles */
-		.editor-styles-wrapper li,
-		.editor-styles-wrapper ul {
-			list-style: inherit;
-			margin: inherit;
-			padding: inherit;
-			font-size: inherit;
-		}
-
-		.editor-styles-wrapper ul {
-			padding-left: 15px;
-		}
-
-		.editor-styles-wrapper li {
-			margin-top: 0;
-			padding-left: 5px;
-			margin-bottom: 0.5em;
-		}
+		// .editor-styles-wrapper list rules (bbPress overrides) moved to
+		// classes/class-editor.php::get_iframe_canvas_css() so they reach the
+		// iframe via the canonical editor_settings['styles'][] path.
 
 		// Clean up the link popup
 		fieldset.bbp-form .block-editor-link-control input[type="text"] {
 			padding: 11px 16px;
 			height: 100%;
 		}
-	}
-
-	.block-editor-block-contextual-toolbar.is-fixed {
-		// Offset the admin bar
-		top: 32px;
-		width: 100%;
 	}
 
 	.bbp-reply-form fieldset.bbp-form,
@@ -80,9 +53,9 @@
 
 				&:hover,
 				&:focus {
-					box-shadow: inset 0 0 0 var(--wp-admin-border-width-focus) #fff;
+					box-shadow: inset 0 0 0 var(--wp-admin-border-width-focus) var(--wp-components-color-accent);
 					background-color: transparent;
-					color: #fff;
+					color: var(--wp-components-color-accent);
 				}
 			}
 		}
@@ -92,37 +65,20 @@
 // Loading animation until JS is loaded
 body:not(.gutenberg-support-loaded) .blocks-everywhere {
 	min-height: 280px;
-	background-color: $gray-200;
-	border: 1px solid $gray-200;
+	background-color: var(--card-background);
+	border: 1px solid var(--border-color);
 	animation: loading-fade 1.6s ease-in-out infinite;
 	margin-bottom: 57px;
 }
 
-body:not(.gutenberg-support-loaded) .iso-editor {
+body:not(.gutenberg-support-loaded) .blocks-everywhere-editor {
 	display: none;
 }
 
-/* Reset bbPress code style */
-body.page .bbp-topic-form,
-body.single-topic .bbp-reply-form,
-body.topic-edit .bbp-topic-form,
-body.reply-edit .bbp-reply-form,
-body.single-forum .bbp-topic-form {
-	.editor-styles-wrapper code {
-		border: none;
-		background-color: inherit;
-		font-size: inherit;
-		padding: 0;
-		margin-top: 0;
-		width: inherit;
-		display: inline;
-	}
-
-	.editor-styles-wrapper pre {
-		margin-top: 16px;
-		margin-bottom: 16px;
-	}
-}
+/* Reset bbPress code style — .editor-styles-wrapper rules moved to
+ * classes/class-editor.php::get_iframe_canvas_css() so they reach the iframe
+ * via the canonical editor_settings['styles'][] path instead of the
+ * iframe-compat clone. */
 
 @keyframes loading-fade {
 	0% {

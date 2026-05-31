@@ -26,10 +26,11 @@ import { createBbPressAdapter } from './bbpress-adapter';
 import ContentBridge from './content-bridge';
 import DetachedSidebar from './detached-sidebar';
 import EmbeddedEditorShell, { type ResolvedChromeConfig, type ResolvedToolbarConfig } from './embedded-editor-shell';
+import type { EditorMountSettings, EditorServiceContext, EditorServices } from './editor-services';
 import PostEntityShell, { EditorEditsBridge, type PostEntityRef } from './post-entity-shell';
 import { RegisteredSlotFills } from './slot-fills';
 
-export type EditorMountSettings = typeof wpBlocksEverywhere;
+export type { EditorMountSettings, EditorServiceContext, EditorServices } from './editor-services';
 
 export interface EditorMountOptions {
 	container?: HTMLElement | string | null;
@@ -61,49 +62,6 @@ export interface EditorMount {
 	resetEntity?: ( reason?: string ) => void;
 	textarea: HTMLTextAreaElement;
 	unmount: () => void;
-}
-
-type EditorServiceContext = {
-	container?: HTMLElement;
-	editorType?: string;
-	mode?: string;
-	settings: EditorMountSettings;
-	textarea?: HTMLTextAreaElement;
-};
-
-type EditorAutosaveService =
-	| ( ( payload: Record< string, unknown >, context: EditorServiceContext ) => unknown )
-	| {
-			delay?: number;
-			save?: ( payload: Record< string, unknown >, context: EditorServiceContext ) => unknown;
-			cancel?: ( context: EditorServiceContext ) => void;
-	  }
-	| null;
-
-type EditorNoticeService =
-	| ( ( type: string, message: string, context: EditorServiceContext, details?: unknown ) => void )
-	| {
-			error?: ( message: string, context: EditorServiceContext, details?: unknown ) => void;
-			success?: ( message: string, context: EditorServiceContext, details?: unknown ) => void;
-			warning?: ( message: string, context: EditorServiceContext, details?: unknown ) => void;
-			info?: ( message: string, context: EditorServiceContext, details?: unknown ) => void;
-	  }
-	| null;
-
-type EditorPermissionsService = {
-	can?: ( capability: string, context: EditorServiceContext ) => boolean | undefined;
-	canUploadMedia?: boolean | ( ( context: EditorServiceContext ) => boolean | undefined );
-} | null;
-
-export interface EditorServices {
-	apiFetch?: ( options: Record< string, unknown > ) => Promise< unknown >;
-	apiFetchMiddleware?: ( options: Record< string, unknown >, next: Function ) => unknown;
-	apiFetchMiddlewares?: Array< ( options: Record< string, unknown >, next: Function ) => unknown >;
-	autosave?: EditorAutosaveService;
-	fetchLinkSuggestions?: ( search: string, searchOptions?: Record< string, unknown > ) => Promise< unknown >;
-	mediaUpload?: Function | null;
-	notices?: EditorNoticeService;
-	permissions?: EditorPermissionsService;
 }
 
 const mountedEditors = new WeakMap< HTMLTextAreaElement, EditorMount >();

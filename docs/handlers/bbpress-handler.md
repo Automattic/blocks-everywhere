@@ -4,14 +4,14 @@
 
 The BBPress handler integrates the Gutenberg block editor into bbPress forums, enabling forum participants to use rich block editing for topics, replies, and forum content.
 
-**Status**: Good (fully supported)  
+**Status**: Good (fully supported)
 **Minimum bbPress**: 2.6+
 
 ## File Location
 
 `classes/handlers/class-bbpress.php`
 
-**Namespace**: `Automattic\Blocks_Everywhere\Handler`  
+**Namespace**: `Automattic\Blocks_Everywhere\Handler`
 **Class**: `bbPress extends Handler`
 
 ## Integration Points
@@ -39,7 +39,7 @@ When a user visits forum pages, the handler:
 #### Reply Creation & Editing
 
 - User replies to existing topic
-- Editor loads on reply form  
+- Editor loads on reply form
 - User edits with blocks
 - Form saves reply with block content
 
@@ -164,10 +164,10 @@ add_filter( 'blocks_everywhere_editor_settings', function( $settings ) {
         'core/image',
         'core/quote',
     ];
-    
+
     // Disable embeds in forum
     $settings['blocksEverywhere']['allowEmbeds'] = [];
-    
+
     return $settings;
 } );
 ```
@@ -217,7 +217,7 @@ add_filter( 'blocks_everywhere_editor_settings', function( $settings ) {
         $settings['blocksEverywhere']['blocks']['allowBlocks'],
         [ 'core/embed', 'core/gallery' ]
     );
-    
+
     return $settings;
 } );
 ```
@@ -322,7 +322,7 @@ If `BLOCKS_EVERYWHERE_EMAIL` is enabled:
 ### Frontend Testing
 
 - [ ] Topic creation with blocks
-- [ ] Reply creation with blocks  
+- [ ] Reply creation with blocks
 - [ ] Topic editing preserves blocks
 - [ ] Reply editing preserves blocks
 - [ ] Block content displays correctly
@@ -436,10 +436,10 @@ add_filter( 'blocks_everywhere_editor_settings', function( $settings ) {
         'core/image',
         'core/quote',
     ];
-    
+
     // Add custom class
     $settings['blocksEverywhere']['className'] = 'my-forum-editor';
-    
+
     return $settings;
 } );
 

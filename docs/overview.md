@@ -159,7 +159,7 @@ The Isolated Block Editor is placed directly on the page alongside page content.
 Blocks Everywhere includes modular CSS files for platform-specific styling:
 
 - `styles/editor.scss` - Editor base styles
-- `styles/bbpress.scss` - BBPress-specific styles  
+- `styles/bbpress.scss` - BBPress-specific styles
 - `styles/comments.scss` - Comments-specific styles
 - `styles/buddypress.scss` - BuddyPress-specific styles
 - `styles/theme-compat.scss` - Theme compatibility overrides
@@ -191,7 +191,7 @@ Better approach: Modify theme to be more specific in selectors rather than relyi
 ### Capability Checks
 
 - Comments: Requires `edit_posts` capability
-- BBPress: Topic/reply authors or users with `moderate` capability  
+- BBPress: Topic/reply authors or users with `moderate` capability
 - Admin: Requires `manage_options` capability (customizable)
 
 ## Development & Build System
@@ -250,6 +250,6 @@ The plugin includes:
 
 ---
 
-**See Also**: 
+**See Also**:
 - [Isolated Block Editor](https://github.com/Automattic/isolated-block-editor) - Core dependency
 - [WordPress.org Plugin Page](https://wordpress.org/plugins/blocks-everywhere/)

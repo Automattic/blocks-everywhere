@@ -18,7 +18,7 @@ Automattic\Blocks_Everywhere\
 
 ### Editor Class
 
-**File**: `classes/class-editor.php`  
+**File**: `classes/class-editor.php`
 **Namespace**: `Automattic\Blocks_Everywhere`
 
 Manages the loading and configuration of Gutenberg editor assets across all platforms.
@@ -49,7 +49,7 @@ The Editor class provides:
 
 ### Handler Base Class
 
-**File**: `classes/class-handler.php`  
+**File**: `classes/class-handler.php`
 **Namespace**: `Automattic\Blocks_Everywhere`
 
 Abstract base class defining the interface and shared functionality for all platform handlers.
@@ -86,8 +86,8 @@ Return rendered content
 
 ### bbPress Handler
 
-**File**: `classes/handlers/class-bbpress.php`  
-**Namespace**: `Automattic\Blocks_Everywhere\Handler`  
+**File**: `classes/handlers/class-bbpress.php`
+**Namespace**: `Automattic\Blocks_Everywhere\Handler`
 **Class**: `bbPress extends Handler`
 
 Integrates Gutenberg editor into bbPress forum interface.
@@ -117,7 +117,7 @@ Integrates Gutenberg editor into bbPress forum interface.
 Filters applied to bbPress output:
 
 - `bbp_get_forum_content` - Process forum content blocks
-- `bbp_get_topic_content` - Process topic content blocks  
+- `bbp_get_topic_content` - Process topic content blocks
 - `bbp_get_reply_content` - Process reply content blocks
 
 All filters:
@@ -149,8 +149,8 @@ Enable with filters:
 
 ### Comments Handler
 
-**File**: `classes/handlers/class-comments.php`  
-**Namespace**: `Automattic\Blocks_Everywhere\Handler`  
+**File**: `classes/handlers/class-comments.php`
+**Namespace**: `Automattic\Blocks_Everywhere\Handler`
 **Class**: `Comments extends Handler`
 
 Integrates Gutenberg editor into WordPress comment forms.
@@ -202,8 +202,8 @@ Enable with filters:
 
 ### BuddyPress Handler
 
-**File**: `classes/handlers/class-buddypress.php`  
-**Namespace**: `Automattic\Blocks_Everywhere\Handler`  
+**File**: `classes/handlers/class-buddypress.php`
+**Namespace**: `Automattic\Blocks_Everywhere\Handler`
 **Class**: `BuddyPress extends Handler`
 
 Integrates Gutenberg editor into BuddyPress activity stream and messaging.
@@ -344,7 +344,7 @@ styles/editor.scss
 
 // Platform-specific overrides
 styles/bbpress.scss      (Forum styling)
-styles/comments.scss     (Comment styling)  
+styles/comments.scss     (Comment styling)
 styles/buddypress.scss   (Activity styling)
 styles/theme-compat.scss (Theme fixes)
 ```
@@ -357,7 +357,7 @@ Assets loaded based on context:
 if ( should_load_block_editor_scripts_and_styles() ) {
     wp_enqueue_script( 'blocks-everywhere' );
     wp_enqueue_style( 'blocks-everywhere' );
-    
+
     if ( is_bbpress() ) {
         wp_enqueue_style( 'blocks-everywhere-bbpress' );
     }
@@ -418,13 +418,13 @@ if ( should_load_block_editor_scripts_and_styles() ) {
 add_filter( 'blocks_everywhere_editor_settings', function( $settings ) {
     // Add custom blocks
     $settings['blocksEverywhere']['blocks']['allowBlocks'][] = 'custom/block';
-    
+
     // Modify allowed embeds
     $settings['blocksEverywhere']['allowEmbeds'] = [ 'youtube', 'twitter' ];
-    
+
     // Custom CSS classes
     $settings['blocksEverywhere']['className'] = 'my-custom-editor-class';
-    
+
     return $settings;
 } );
 ```
@@ -439,7 +439,7 @@ add_filter( 'blocks_everywhere_editor_settings', function( $settings ) {
         'core/heading',
         'core/list',
     ];
-    
+
     return $settings;
 } );
 ```

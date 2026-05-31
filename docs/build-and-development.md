@@ -456,10 +456,10 @@ SCRIPT_DEBUG=true yarn start
 
 1. **Settings** → **Languages & Frameworks** → **Node.js**
    - Set Node interpreter
-   
+
 2. **Settings** → **Languages & Frameworks** → **PHP**
    - Set PHP executable path
-   
+
 3. **Settings** → **Tools** → **Composer**
    - Set Composer executable path
 

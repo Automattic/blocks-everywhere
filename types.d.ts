@@ -329,6 +329,7 @@ declare interface BlocksEverywhereModeSettings {
 	editor?: Record< string, unknown >;
 	entityBridge?: BlocksEverywhereEntityBridge;
 	features?: Record< string, unknown >;
+	initialContent?: BlocksEverywhereInitialContent;
 	preferenceKey?: string;
 	services?: BlocksEverywhereEditorServices;
 	servicesByMode?: Record< string, BlocksEverywhereEditorServices >;
@@ -362,6 +363,7 @@ declare interface BlocksEverywhere {
 	lifecycle?: BlocksEverywhereLifecycleCallbacks;
 	hostAdapter?: BlocksEverywhereHostAdapter;
 	hostContext?: Record< string, unknown >;
+	initialContent?: BlocksEverywhereInitialContent;
 	mediaUploadEndpoint?: string;
 	__experimentalOnInput?: ( block: unknown ) => unknown;
 	__experimentalOnChange?: ( block: unknown ) => unknown;
@@ -386,6 +388,57 @@ declare interface BlocksEverywhere {
 			defaultView?: 'inserter' | 'list-view';
 		};
 	};
+}
+
+declare interface BlocksEverywhereInitialContentHelpers {
+	parse: ( content: string ) => object[];
+	rawHandler: ( options: unknown ) => object[];
+	serialize: ( blocks: object[] ) => string;
+	getTextareaContent: () => string;
+	setTextareaContent: ( content: string ) => void;
+	textarea: HTMLTextAreaElement;
+	settings: typeof wpBlocksEverywhere;
+}
+
+declare interface BlocksEverywhereInitialContentContext {
+	blockContext: Record< string, unknown >;
+	blocks: object[];
+	context: Record< string, unknown >;
+	entity?: BlocksEverywhereEntityBridgeEntity;
+	editorType?: string;
+	hasContent: boolean;
+	serialized: string;
+	source: 'initial';
+	textarea: HTMLTextAreaElement;
+	settings: typeof wpBlocksEverywhere;
+}
+
+declare type BlocksEverywhereInitialContentValue =
+	| string
+	| object[]
+	| null
+	| undefined
+	| ( (
+		context: BlocksEverywhereInitialContentContext,
+		helpers: BlocksEverywhereInitialContentHelpers
+	) => string | object[] | null | undefined );
+
+declare type BlocksEverywhereInitialContentTransform = (
+	serialized: string,
+	context: BlocksEverywhereInitialContentContext,
+	helpers: BlocksEverywhereInitialContentHelpers
+) => string | object[] | null | undefined;
+
+declare interface BlocksEverywhereInitialContent {
+	/** Optional adapter-provided source loaded before transforms run. */
+	load?: BlocksEverywhereInitialContentValue;
+	/** Single transform or pipeline that orchestrates adapter-owned conversion before mount. */
+	transform?: BlocksEverywhereInitialContentTransform | BlocksEverywhereInitialContentTransform[];
+	transforms?: BlocksEverywhereInitialContentTransform[];
+	/** Empty-state starter content. Heavy conversion should live in adapter-provided transforms, not BE. */
+	pattern?: BlocksEverywhereInitialContentValue;
+	template?: BlocksEverywhereInitialContentValue;
+	starter?: BlocksEverywhereInitialContentValue;
 }
 
 declare interface BlocksEverywhereDataRegistrationHelpers {

@@ -420,6 +420,97 @@ function normalizeLoadedBlocks( value, helpers ) {
 	return null;
 }
 
+function hasMeaningfulInitialContent( blocks ) {
+	if ( ! Array.isArray( blocks ) || blocks.length === 0 ) {
+		return false;
+	}
+
+	return blocks.some( ( block ) => {
+		const name = block?.name || block?.blockName || '';
+		const attributes = block?.attributes || block?.attrs || {};
+		const innerBlocks = block?.innerBlocks || [];
+
+		if ( Array.isArray( innerBlocks ) && hasMeaningfulInitialContent( innerBlocks ) ) {
+			return true;
+		}
+
+		if ( name !== 'core/paragraph' ) {
+			return true;
+		}
+
+		return Object.values( attributes ).some( ( value ) => String( value || '' ).trim() !== '' );
+	} );
+}
+
+function resolveInitialContentValue( value, context, helpers ) {
+	if ( typeof value === 'function' ) {
+		return value( context, helpers );
+	}
+
+	return value;
+}
+
+function resolveInitialContentBlocks( value, context, helpers ) {
+	return normalizeLoadedBlocks( resolveInitialContentValue( value, context, helpers ), helpers );
+}
+
+function applyInitialContentPipeline( blocks, contentBridge ) {
+	const initialContent = contentBridge?.helpers?.settings?.blocksEverywhere?.initialContent || null;
+	if ( ! initialContent || typeof initialContent !== 'object' ) {
+		return blocks;
+	}
+
+	const helpers = contentBridge.helpers;
+	const baseContext = {
+		...contentBridge.context,
+		blocks,
+		hasContent: hasMeaningfulInitialContent( blocks ),
+		serialized: helpers.serialize( blocks ),
+		source: 'initial',
+	};
+	let nextBlocks = blocks;
+	const loaded = resolveInitialContentBlocks( initialContent.load, baseContext, helpers );
+
+	if ( loaded ) {
+		nextBlocks = loaded;
+	}
+
+	const transforms = [ ...toArray( initialContent.transform ), ...toArray( initialContent.transforms ) ];
+	transforms.forEach( ( transform ) => {
+		if ( typeof transform !== 'function' ) {
+			return;
+		}
+
+		const serialized = helpers.serialize( nextBlocks );
+		const transformed = transform(
+			serialized,
+			{
+				...baseContext,
+				blocks: nextBlocks,
+				hasContent: hasMeaningfulInitialContent( nextBlocks ),
+				serialized,
+			},
+			helpers
+		);
+		const transformedBlocks = normalizeLoadedBlocks( transformed, helpers );
+
+		if ( transformedBlocks ) {
+			nextBlocks = transformedBlocks;
+		}
+	} );
+
+	if ( hasMeaningfulInitialContent( nextBlocks ) ) {
+		return nextBlocks;
+	}
+
+	const starter =
+		resolveInitialContentBlocks( initialContent.pattern, baseContext, helpers ) ||
+		resolveInitialContentBlocks( initialContent.template, baseContext, helpers ) ||
+		resolveInitialContentBlocks( initialContent.starter, baseContext, helpers );
+
+	return starter || nextBlocks;
+}
+
 function createContentBridgeController( textarea, settings ) {
 	const bridge = settings?.blocksEverywhere?.contentBridge || null;
 	const helpers = createContentBridgeHelpers( textarea, settings );
@@ -440,15 +531,20 @@ function createContentBridgeController( textarea, settings ) {
 		bridge,
 		helpers,
 		context,
+		prepareInitialContent( blocks ) {
+			return applyInitialContentPipeline( blocks, this );
+		},
 		load() {
+			let loaded;
 			if ( typeof bridge?.load === 'function' ) {
-				const loaded = normalizeLoadedBlocks( bridge.load( helpers, context ), helpers );
+				loaded = normalizeLoadedBlocks( bridge.load( helpers, context ), helpers );
 				if ( loaded ) {
-					return loaded;
+					return applyInitialContentPipeline( loaded, this );
 				}
 			}
 
-			return textarea && textarea.nodeName === 'TEXTAREA' ? helpers.parse( textarea.value ) : [];
+			loaded = textarea && textarea.nodeName === 'TEXTAREA' ? helpers.parse( textarea.value ) : [];
+			return applyInitialContentPipeline( loaded, this );
 		},
 		serializeBlocks,
 		save( blocks ) {
@@ -528,7 +624,7 @@ function createEntityBridgeController( { container, contentBridge, instance, set
 				try {
 					const loaded = normalizeLoadedBlocks( bridge.load( getContext( 'load' ) ), contentBridge.helpers );
 					if ( loaded ) {
-						return loaded;
+						return contentBridge.prepareInitialContent( loaded );
 					}
 				} catch ( error ) {
 					// eslint-disable-next-line no-console
@@ -1338,6 +1434,7 @@ function normalizeTransformPatch( patch ) {
 		'defaultPreferences',
 		'features',
 		'entityBridge',
+		'initialContent',
 		'lifecycle',
 		'mode',
 		'modes',

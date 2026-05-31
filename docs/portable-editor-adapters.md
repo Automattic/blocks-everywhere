@@ -79,7 +79,7 @@ Do not switch these surfaces to Gutenberg private APIs or fake a post entity to 
 | Content bridges              | Load initial serialized blocks and save edited serialized blocks through the host persistence layer. | Normalize content read/write beyond textarea mirroring.                                        | [#52](https://github.com/Extra-Chill/blocks-everywhere/issues/52)                                                                    |
 | Custom stores/context        | Register host data needed by blocks or chrome without coupling the editor to host internals.         | Accept per-instance data stores and context injection.                                         | [#53](https://github.com/Extra-Chill/blocks-everywhere/issues/53)                                                                    |
 | Slot/chrome extension        | Render host actions, status, and metadata in editor-owned chrome.                                    | Provide stable slot APIs for toolbar, heading, footer, and additional host-owned chrome areas. | [#54](https://github.com/Extra-Chill/blocks-everywhere/issues/54)                                                                    |
-| Initial transforms/templates | Convert legacy content, empty states, starter blocks, or host templates before the first edit.       | Support initial transforms, starter patterns, and template bootstrapping.                      | [#55](https://github.com/Extra-Chill/blocks-everywhere/issues/55)                                                                    |
+| Initial transforms/templates | Provide adapter-owned conversion, empty states, starter blocks, or host templates before the first edit. | Orchestrate pre-mount transforms, starter patterns, and template bootstrapping.                | [#55](https://github.com/Extra-Chill/blocks-everywhere/issues/55)                                                                    |
 | Editor modes                 | Select the mode for a post, comment, reply, draft, compact composer, or read-modify-save flow.       | Apply mode-aware settings transforms.                                                          | [#56](https://github.com/Extra-Chill/blocks-everywhere/issues/56)                                                                    |
 | Host entity bridges          | Map host entity IDs, revisions, authors, parents, URLs, and capabilities to the editor instance.     | Provide a generic host entity bridge beyond canonical WordPress posts.                         | [#57](https://github.com/Extra-Chill/blocks-everywhere/issues/57)                                                                    |
 | Service injection            | Provide fetch, media, autosave, upload, mention, notification, or telemetry services.                | Accept per-instance editor services without global coupling.                                   | [#59](https://github.com/Extra-Chill/blocks-everywhere/issues/59)                                                                    |
@@ -114,6 +114,35 @@ The adapter should provide:
 - `onError`: maps editor or persistence failures to host notifications.
 
 Prefer serialized block markup as the bridge format. If the host currently stores another format, convert it at the adapter boundary and track the missing generic bridge work in [#52](https://github.com/Extra-Chill/blocks-everywhere/issues/52) and [#55](https://github.com/Extra-Chill/blocks-everywhere/issues/55).
+
+### Initial Content Transforms
+
+Initial content transforms run once before the editor's first React state is seeded. Use them for adapter orchestration: choosing a starter pattern, invoking an external converter, or normalizing host-owned source content before mount. Blocks Everywhere does not own heavy HTML-to-block conversion; adapters should call a conversion library from a transform when they need that behavior.
+
+```javascript
+const mount = window.blocksEverywhere.mountEditor( textarea, {
+	settings: {
+		...window.wpBlocksEverywhere,
+		blocksEverywhere: {
+			...window.wpBlocksEverywhere.blocksEverywhere,
+			initialContent: {
+				transforms: [
+					( serialized, context, helpers ) => {
+						if ( ! context.context.needsImport ) {
+							return undefined;
+						}
+
+						return hostHtmlToBlocks( serialized, helpers );
+					},
+				],
+				pattern: () => '<!-- wp:paragraph --><p>Start writing...</p><!-- /wp:paragraph -->',
+			},
+		},
+	},
+} );
+```
+
+The pipeline accepts serialized block markup or parsed block arrays. Starter values such as `pattern`, `template`, and `starter` are used only when the loaded/transformed content is empty, so existing documents do not receive template pollution. Because this happens during initial mount, replacing content through the pipeline does not represent a user edit or add an undo step.
 
 ### Custom Stores And Context
 

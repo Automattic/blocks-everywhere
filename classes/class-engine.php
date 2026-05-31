@@ -341,6 +341,12 @@ class Engine extends Handler {
 		$disallowed_patterns = $this->resolve_context_value( $config['disallowed_patterns'] ?? null, $settings, $id, $config );
 		if ( is_array( $disallowed_patterns ) ) {
 			$settings['blocksEverywhere']['patterns']['disallowPatterns'] = array_values( array_unique( $disallowed_patterns ) );
+
+			if ( isset( $settings['blocksEverywhere']['patterns']['allowPatterns'] ) ) {
+				$settings['blocksEverywhere']['patterns']['allowPatterns'] = array_values(
+					array_diff( $settings['blocksEverywhere']['patterns']['allowPatterns'], $settings['blocksEverywhere']['patterns']['disallowPatterns'] )
+				);
+			}
 		}
 
 		$entity_bridge = $this->resolve_context_value( $config['entity_bridge'] ?? null, $settings, $id, $config );

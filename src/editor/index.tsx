@@ -1467,38 +1467,6 @@ function normalizeTransformPatch( patch ) {
 		delete rootPatch.disallowedBlocks;
 	}
 
-	if ( Object.prototype.hasOwnProperty.call( rootPatch, 'blockPatterns' ) ) {
-		blocksEverywherePatch.patterns = {
-			...( blocksEverywherePatch.patterns || {} ),
-			items: rootPatch.blockPatterns,
-		};
-		delete rootPatch.blockPatterns;
-	}
-
-	if ( Object.prototype.hasOwnProperty.call( rootPatch, 'patternCategories' ) ) {
-		blocksEverywherePatch.patterns = {
-			...( blocksEverywherePatch.patterns || {} ),
-			categories: rootPatch.patternCategories,
-		};
-		delete rootPatch.patternCategories;
-	}
-
-	if ( Object.prototype.hasOwnProperty.call( rootPatch, 'allowedPatterns' ) ) {
-		blocksEverywherePatch.patterns = {
-			...( blocksEverywherePatch.patterns || {} ),
-			allowPatterns: rootPatch.allowedPatterns,
-		};
-		delete rootPatch.allowedPatterns;
-	}
-
-	if ( Object.prototype.hasOwnProperty.call( rootPatch, 'disallowedPatterns' ) ) {
-		blocksEverywherePatch.patterns = {
-			...( blocksEverywherePatch.patterns || {} ),
-			disallowPatterns: rootPatch.disallowedPatterns,
-		};
-		delete rootPatch.disallowedPatterns;
-	}
-
 	[ 'template', 'templateLock' ].forEach( ( key ) => {
 		if ( Object.prototype.hasOwnProperty.call( rootPatch, key ) ) {
 			editorPatch[ key ] = rootPatch[ key ];

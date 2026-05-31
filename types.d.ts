@@ -356,10 +356,6 @@ declare interface BlocksEverywhereModeSettings {
 	features?: Record< string, unknown >;
 	initialContent?: BlocksEverywhereInitialContent;
 	patterns?: BlocksEverywherePatterns;
-	blockPatterns?: BlocksEverywherePattern[];
-	patternCategories?: BlocksEverywherePatternCategory[];
-	allowedPatterns?: string[];
-	disallowedPatterns?: string[];
 	preferenceKey?: string;
 	services?: BlocksEverywhereEditorServices;
 	servicesByMode?: Record< string, BlocksEverywhereEditorServices >;

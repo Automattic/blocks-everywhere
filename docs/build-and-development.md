@@ -303,7 +303,7 @@ blocks-everywhere/
 
 ### Modifying an Existing Block
 
-1. **Locate block** in `src/blocks/`
+1. **Locate block** in its feature directory, such as `src/support-content-block/`
 2. **Edit `edit.tsx`** for editing interface
 3. **Edit `save.tsx`** for saved output
 4. **Modify `index.tsx`** if changing configuration

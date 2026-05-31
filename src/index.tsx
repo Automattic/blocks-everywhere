@@ -13,47 +13,13 @@ import { unregisterFormatType } from '@wordpress/rich-text';
 import mountEditor, { unmountEditor } from './editor';
 import { registerSlotFill } from './editor/slot-fills';
 import customBlocks from './block-customization';
+import {
+	getBootstrapSetting,
+	getBootstrapSettingsSummary,
+	getRegisteredBootstrapSettings,
+	registerBootstrapSettings,
+} from './bootstrap-settings';
 import './styles/style.scss';
-
-const getBootstrapSettings = () => ( typeof wpBlocksEverywhere !== 'undefined' ? wpBlocksEverywhere : null );
-
-const getServerBootstrapSettings = () => {
-	const settings = ( window as any ).wpBlocksEverywhereSettings;
-	return settings && typeof settings === 'object' ? settings : {};
-};
-
-const bootstrapSettingsRegistry = new Map< string, typeof wpBlocksEverywhere >();
-
-const getBootstrapSettingKeys = ( settings: typeof wpBlocksEverywhere, explicitKey?: string ) => {
-	return [
-		explicitKey,
-		settings?.blocksEverywhere?.settingsKey,
-		settings?.blocksEverywhere?.contextId,
-		settings?.blocksEverywhere?.context,
-		settings?.saveTextarea,
-	]
-		.map( ( key ) => ( typeof key === 'string' ? key.trim() : '' ) )
-		.filter( ( key, index, keys ) => key && keys.indexOf( key ) === index );
-};
-
-const registerBootstrapSettings = ( key: string, settings: typeof wpBlocksEverywhere ) => {
-	if ( ! settings ) {
-		return null;
-	}
-
-	getBootstrapSettingKeys( settings, key ).forEach( ( settingKey ) => {
-		bootstrapSettingsRegistry.set( settingKey, settings );
-	} );
-
-	return settings;
-};
-
-registerBootstrapSettings( 'default', getBootstrapSettings() );
-Object.entries( getServerBootstrapSettings() ).forEach( ( [ key, settings ] ) => {
-	registerBootstrapSettings( key, settings as typeof wpBlocksEverywhere );
-} );
-
-const getRegisteredBootstrapSettings = () => Array.from( new Set( bootstrapSettingsRegistry.values() ) );
 
 // Back-compat alias for dynamic editor initialization.
 ( window as any ).blocksEverywhereCreateEditor = mountEditor;
@@ -101,14 +67,16 @@ const getContentApi = ( textarea: HTMLTextAreaElement ) => {
 	unmount: unmountEditor,
 	getContentApi,
 	getEditor: ( textarea: HTMLTextAreaElement ) => textarea?.__blocksEverywhereEditor ?? null,
-	getSettings: ( key = 'default' ) => bootstrapSettingsRegistry.get( key ) ?? null,
+	getSettings: getBootstrapSetting,
 	registerSettings: registerBootstrapSettings,
 	registerSlotFill,
 };
 
 domReady( () => {
-	// Gutenberg package bootstrap below is intentionally global: these APIs
+	// Gutenberg package bootstrap below is intentionally page-global: these APIs
 	// register filters, blocks, rich-text formats, and host-page DOM behavior.
+	// Decisions here use the aggregate bootstrap settings summary because
+	// Gutenberg does not expose per-editor registrations for these hooks.
 	// Editor REST behavior is scoped through per-instance services in src/editor.
 	// Modify any blocks we need to
 	addFilter( 'blocks.registerBlockType', 'blocks-everywhere/modify-blocks', customBlocks );
@@ -126,7 +94,7 @@ domReady( () => {
 		( window as any ).blocksEverywhereCoreBlocksRegistered = true;
 	}
 
-	// Remove some formatting options
+	// Rich-text formats are a Gutenberg-wide registry, not an instance adapter.
 	unregisterFormatType( 'core/text-color' );
 	unregisterFormatType( 'core/image' );
 
@@ -137,7 +105,7 @@ domReady( () => {
 	unregisterFormatType( 'core/language' );
 	unregisterFormatType( 'core/math' );
 
-	if ( getRegisteredBootstrapSettings().some( ( settings ) => settings?.patchEmoji ) && window?.twemoji?.parse ) {
+	if ( getBootstrapSettingsSummary().patchEmoji && window?.twemoji?.parse ) {
 		const original = window.twemoji.parse;
 
 		window.twemoji.parse = ( object, args ) => {

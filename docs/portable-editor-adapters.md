@@ -465,6 +465,8 @@ const replySettings = window.blocksEverywhere.getSettings( 'reply-composer' );
 
 The registry is a compatibility layer around settings lookup, not a place to store secrets. Keep nonces and privileged operations behind server-rendered WordPress settings or explicit per-instance services.
 
+Some Gutenberg APIs are page-global rather than editor-instance scoped, including block registration filters, block variations, rich-text formats, and the legacy twemoji parser hook. Those bootstrap paths use the aggregate registered settings summary to preserve existing page behavior without treating those hooks as portable adapter contracts.
+
 ## Second-Wave Coordination
 
 The remaining parallel issues should compose into one adapter contract rather than landing as unrelated option bags.

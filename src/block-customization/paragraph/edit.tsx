@@ -23,6 +23,7 @@ import { formatLTR } from '@wordpress/icons';
  * Internal dependencies
  */
 import { useOnEnter } from './use-enter';
+import { getBootstrapSettingsSummary } from '../../bootstrap-settings';
 
 const name = 'core/paragraph';
 
@@ -78,6 +79,9 @@ function isPossiblyCode( blocks ) {
 
 function ParagraphBlock( { attributes, mergeBlocks, onReplace, onRemove, setAttributes, clientId } ) {
 	const { align, content, direction, dropCap, placeholder } = attributes;
+	// This edit component is installed through the page-global block registry.
+	// Plain-text paste therefore follows the aggregate bootstrap summary.
+	const pastePlainText = getBootstrapSettingsSummary().pastePlainText;
 	const [ isDropCapFeatureEnabled ] = useSettings( 'typography.dropCap' );
 	const blockProps = useBlockProps( {
 		ref: useOnEnter( { clientId, content } ),
@@ -183,7 +187,7 @@ function ParagraphBlock( { attributes, mergeBlocks, onReplace, onRemove, setAttr
 				data-custom-placeholder={ placeholder ? true : undefined }
 				__unstableEmbedURLOnPaste
 				__unstableAllowPrefixTransformations
-				__unstablePastePlainText={ wpBlocksEverywhere?.pastePlainText ?? false }
+				__unstablePastePlainText={ pastePlainText }
 			/>
 		</>
 	);

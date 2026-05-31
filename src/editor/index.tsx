@@ -29,6 +29,7 @@ import EmbeddedEditorShell, { type ResolvedChromeConfig, type ResolvedToolbarCon
 import type { EditorMountSettings, EditorServiceContext, EditorServices } from './editor-services';
 import PostEntityShell, { EditorEditsBridge, type PostEntityRef } from './post-entity-shell';
 import { RegisteredSlotFills } from './slot-fills';
+import { getBootstrapSettingsSummary } from '../bootstrap-settings';
 
 export type { EditorMountSettings, EditorServiceContext, EditorServices } from './editor-services';
 
@@ -927,9 +928,11 @@ function createContainer( textarea, existingContainer ) {
 	return { container, inserted: true };
 }
 
-function RemoveBlockVariations() {
+function PageGlobalBbpressBlockVariationPruner( { settings } ) {
 	useEffect( () => {
-		if ( wpBlocksEverywhere?.editorType !== 'bbpress' ) {
+		// Core block variations are registered page-wide. Prune bbPress-only
+		// Stretchy variations when any registered bootstrap settings mount bbPress.
+		if ( settings?.editorType !== 'bbpress' && ! getBootstrapSettingsSummary().hasBbpressEditor ) {
 			return;
 		}
 
@@ -940,7 +943,7 @@ function RemoveBlockVariations() {
 			// eslint-disable-next-line no-console
 			console.error( 'Blocks Everywhere: failed to prune block variations', error );
 		}
-	}, [] );
+	}, [ settings?.editorType ] );
 
 	return null;
 }
@@ -1143,7 +1146,7 @@ function createEditorContainer( container, textarea, settings ) {
 								{ postEntity?.id > 0 && <EditorEditsBridge blocks={ blocks } /> }
 
 								{ settings.editorType === 'buddypress' && <BuddyPress textarea={ textarea } /> }
-								<RemoveBlockVariations />
+								<PageGlobalBbpressBlockVariationPruner settings={ settings } />
 							</>
 						) }
 					</EmbeddedBlockEditor>

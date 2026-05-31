@@ -429,6 +429,7 @@ abstract class Handler {
 		$settings['editor']       = array_merge( $settings['editor'], $this->editor->get_editor_settings() );
 		$settings['saveTextarea'] = $textarea;
 		$settings['container']    = $container;
+		$settings['blocksEverywhere']['settingsKey'] = $this->get_bootstrap_settings_key( $settings );
 
 		$this->editor->load( $settings );
 		$this->settings = $settings;
@@ -437,13 +438,13 @@ abstract class Handler {
 		// Gutenberg's iframe style syncing reads `window.__editorAssets` early.
 		if ( ! wp_script_is( 'blocks-everywhere-settings', 'registered' ) ) {
 			wp_register_script( 'blocks-everywhere-settings', '', [], $settings['version'], false );
-			wp_add_inline_script(
-				'blocks-everywhere-settings',
-				'window.wpBlocksEverywhere = ' . wp_json_encode( $settings ) . ';'
-				. 'window.__editorAssets=(window.wpBlocksEverywhere&&window.wpBlocksEverywhere.editor&&window.wpBlocksEverywhere.editor.__unstableResolvedAssets)?window.wpBlocksEverywhere.editor.__unstableResolvedAssets:{styles:"",scripts:""};',
-				'before'
-			);
 		}
+
+		wp_add_inline_script(
+			'blocks-everywhere-settings',
+			$this->get_bootstrap_settings_script( $settings ),
+			'before'
+		);
 
 		if ( ! wp_script_is( 'blocks-everywhere-settings', 'enqueued' ) ) {
 			wp_enqueue_script( 'blocks-everywhere-settings' );
@@ -501,6 +502,48 @@ abstract class Handler {
 			wp_register_style( 'blocks-everywhere-compat', plugins_url( 'build/theme-compat.min.css', $plugin ), [ 'blocks-everywhere' ], true );
 			wp_enqueue_style( 'blocks-everywhere-compat' );
 		}
+	}
+
+	/**
+	 * Get the stable settings key for a server-rendered editor bootstrap.
+	 *
+	 * @param array $settings Editor settings.
+	 * @return string
+	 */
+	private function get_bootstrap_settings_key( array $settings ) {
+		$candidates = [
+			$settings['blocksEverywhere']['settingsKey'] ?? null,
+			$settings['blocksEverywhere']['contextId'] ?? null,
+			$settings['blocksEverywhere']['context'] ?? null,
+			$settings['saveTextarea'] ?? null,
+			'default',
+		];
+
+		foreach ( $candidates as $candidate ) {
+			if ( is_string( $candidate ) && '' !== trim( $candidate ) ) {
+				return trim( $candidate );
+			}
+		}
+
+		return 'default';
+	}
+
+	/**
+	 * Build the inline bootstrap script for one editor settings object.
+	 *
+	 * @param array $settings Editor settings.
+	 * @return string
+	 */
+	private function get_bootstrap_settings_script( array $settings ) {
+		$key = $settings['blocksEverywhere']['settingsKey'];
+
+		return '(function(settingsKey,settings){'
+			. 'window.wpBlocksEverywhereSettings=window.wpBlocksEverywhereSettings||{};'
+			. 'window.wpBlocksEverywhereSettings[settingsKey]=settings;'
+			. 'window.wpBlocksEverywhere=window.wpBlocksEverywhere||settings;'
+			. 'window.wpBlocksEverywhereSettings.default=window.wpBlocksEverywhereSettings.default||window.wpBlocksEverywhere;'
+			. 'window.__editorAssets=(window.wpBlocksEverywhere&&window.wpBlocksEverywhere.editor&&window.wpBlocksEverywhere.editor.__unstableResolvedAssets)?window.wpBlocksEverywhere.editor.__unstableResolvedAssets:{styles:"",scripts:""};'
+			. '})(' . wp_json_encode( $key ) . ',' . wp_json_encode( $settings ) . ');';
 	}
 
 	/**

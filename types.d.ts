@@ -356,6 +356,7 @@ declare interface BlocksEverywhere {
 	blocks: Blocks;
 	context?: string;
 	contextId?: string;
+	settingsKey?: string;
 	data?: BlocksEverywhereData;
 	entityBridge?: BlocksEverywhereEntityBridge;
 	lifecycle?: BlocksEverywhereLifecycleCallbacks;
@@ -459,6 +460,8 @@ declare const wpBlocksEverywhere: {
 	};
 };
 
+declare const wpBlocksEverywhereSettings: Record< string, typeof wpBlocksEverywhere >;
+
 declare const wp: {
 	hooks: {
 		addFilter: (
@@ -486,6 +489,7 @@ declare interface Window {
 		root?: string;
 		nonce?: string;
 	};
+	wpBlocksEverywhereSettings?: Record< string, typeof wpBlocksEverywhere >;
 	blocksEverywhere?: {
 		mountEditor: (
 			textarea: HTMLTextAreaElement,

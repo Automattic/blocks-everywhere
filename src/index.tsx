@@ -17,12 +17,17 @@ import './styles/style.scss';
 
 const getBootstrapSettings = () => ( typeof wpBlocksEverywhere !== 'undefined' ? wpBlocksEverywhere : null );
 
+const getServerBootstrapSettings = () => {
+	const settings = ( window as any ).wpBlocksEverywhereSettings;
+	return settings && typeof settings === 'object' ? settings : {};
+};
+
 const bootstrapSettingsRegistry = new Map< string, typeof wpBlocksEverywhere >();
 
 const getBootstrapSettingKeys = ( settings: typeof wpBlocksEverywhere, explicitKey?: string ) => {
 	return [
 		explicitKey,
-		'default',
+		settings?.blocksEverywhere?.settingsKey,
 		settings?.blocksEverywhere?.contextId,
 		settings?.blocksEverywhere?.context,
 		settings?.saveTextarea,
@@ -44,6 +49,11 @@ const registerBootstrapSettings = ( key: string, settings: typeof wpBlocksEveryw
 };
 
 registerBootstrapSettings( 'default', getBootstrapSettings() );
+Object.entries( getServerBootstrapSettings() ).forEach( ( [ key, settings ] ) => {
+	registerBootstrapSettings( key, settings as typeof wpBlocksEverywhere );
+} );
+
+const getRegisteredBootstrapSettings = () => Array.from( new Set( bootstrapSettingsRegistry.values() ) );
 
 // Back-compat alias for dynamic editor initialization.
 ( window as any ).blocksEverywhereCreateEditor = mountEditor;
@@ -127,7 +137,7 @@ domReady( () => {
 	unregisterFormatType( 'core/language' );
 	unregisterFormatType( 'core/math' );
 
-	if ( wpBlocksEverywhere?.patchEmoji && window?.twemoji?.parse ) {
+	if ( getRegisteredBootstrapSettings().some( ( settings ) => settings?.patchEmoji ) && window?.twemoji?.parse ) {
 		const original = window.twemoji.parse;
 
 		window.twemoji.parse = ( object, args ) => {
@@ -140,8 +150,14 @@ domReady( () => {
 	}
 
 	// Add the editor
-	document.querySelectorAll( wpBlocksEverywhere.saveTextarea ).forEach( ( node ) => {
-		mountEditor( node as HTMLTextAreaElement );
+	getRegisteredBootstrapSettings().forEach( ( settings ) => {
+		if ( ! settings?.saveTextarea ) {
+			return;
+		}
+
+		document.querySelectorAll( settings.saveTextarea ).forEach( ( node ) => {
+			mountEditor( node as HTMLTextAreaElement, { settings } );
+		} );
 	} );
 
 	// Set the loaded flag

@@ -263,6 +263,8 @@ abstract class Handler {
 		$tags['mark'] = [ 'class' => true ];
 		$tags['sub'] = [];
 		$tags['sup'] = [];
+		$tags['span'] = [ 'style' => true ];
+		$tags['bdo'] = [ 'lang' => true, 'dir' => true ];
 
 		return $tags;
 	}

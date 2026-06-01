@@ -16,6 +16,7 @@ require_once __DIR__ . '/classes/class-editor.php';
 require_once __DIR__ . '/classes/handlers/class-bbpress.php';
 require_once __DIR__ . '/classes/handlers/class-buddypress.php';
 require_once __DIR__ . '/classes/handlers/class-comments.php';
+require_once __DIR__ . '/classes/handlers/class-terms.php';
 
 class Blocks_Everywhere {
 	const VERSION = '1.23.0';
@@ -72,6 +73,7 @@ class Blocks_Everywhere {
 		$default_comments = defined( 'BLOCKS_EVERYWHERE_COMMENTS' ) ? BLOCKS_EVERYWHERE_COMMENTS : false;
 		$default_bbpress = defined( 'BLOCKS_EVERYWHERE_BBPRESS' ) ? BLOCKS_EVERYWHERE_BBPRESS : false;
 		$default_buddypress = defined( 'BLOCKS_EVERYWHERE_BUDDYPRESS' ) ? BLOCKS_EVERYWHERE_BUDDYPRESS : false;
+		$default_terms = defined( 'BLOCKS_EVERYWHERE_TERMS' ) ? BLOCKS_EVERYWHERE_TERMS : false;
 
 		if ( apply_filters( 'blocks_everywhere_comments', $default_comments ) ) {
 			$this->handlers['Comments'] = new Handler\Comments();
@@ -84,12 +86,16 @@ class Blocks_Everywhere {
 		if ( apply_filters( 'blocks_everywhere_buddypress', $default_buddypress ) ) {
 			$this->handlers['BuddyPress'] = new Handler\BuddyPress();
 		}
+
+		if ( apply_filters( 'blocks_everywhere_terms', $default_terms ) ) {
+			$this->handlers['Terms'] = new Handler\Terms();
+		}
 	}
 
 	/**
 	 * Get the instantiated handler class for the specified type, or null if it isn't configured or known.
 	 *
-	 * @param 'Comments'|'bbPress'|'BuddyPress' $which The handler type.
+	 * @param 'Comments'|'bbPress'|'BuddyPress'|'Terms' $which The handler type.
 	 * @return Handler\Handler|null object or null it not configured.
 	 */
 	public function get_handler( $which ) {

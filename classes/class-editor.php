@@ -26,11 +26,11 @@ class Editor {
 	/**
 	 * Provide theme.json
 	 *
-	 * @param \WP_Theme_JSON_Data_Gutenberg $json JSON.
-	 * @return \WP_Theme_JSON_Data_Gutenberg
+	 * @param \WP_Theme_JSON_Data $theme_json JSON.
+	 * @return \WP_Theme_JSON_Data
 	 */
-	public function wp_theme_json_data_theme( $json ) {
-		$theme = new \WP_Theme_JSON_Data_Gutenberg(
+	public function wp_theme_json_data_theme( $theme_json ) {
+		$new_data = array(
 			[
 				'version' => 2,
 				'settings' => [
@@ -59,7 +59,7 @@ class Editor {
 			]
 		);
 
-		return $theme;
+		return $theme_json->update_with( $new_data );
 	}
 
 	/**

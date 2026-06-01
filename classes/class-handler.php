@@ -68,6 +68,10 @@ abstract class Handler {
 	 * @return String
 	 */
 	public function do_blocks( $content, $hook ) {
+		// Don't touch non-block comments.
+		if ( ! has_blocks( $content ) ) {
+			return $content;
+		}
 		$blocks = parse_blocks( $content );
 		$output = '';
 

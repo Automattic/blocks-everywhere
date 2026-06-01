@@ -60,6 +60,24 @@ function RemoveBlockTypes() {
 	return null;
 }
 
+/**
+ * Initial content loader. Determine if the textarea contains blocks or raw HTML
+ *
+ * @param {string} content Text area content
+ * @param {*} parser Gutenberg `parse` function
+ * @param {*} rawHandler Gutenberg `rawHandler` function
+ */
+function onLoad( content, parser, rawHandler ) {
+	// Does the content contain blocks?
+	if ( content.indexOf( '<!-- wp:' ) !== -1 ) {
+		// Parse the blocks
+		return parser( content );
+	}
+
+	// Raw HTML - do our best
+	return rawHandler( { HTML: content } );
+}
+
 function createEditorContainer( container, textarea, settings ) {
 	const root = createRoot( container );
 
@@ -75,7 +93,7 @@ function createEditorContainer( container, textarea, settings ) {
 		<IsolatedBlockEditor
 			settings={ settings }
 			onSaveContent={ ( content ) => saveBlocks( textarea, content ) }
-			onLoad={ ( parser ) => ( textarea && textarea.nodeName === 'TEXTAREA' ? parser( textarea.value ) : [] ) }
+			onLoad={ ( parser, rawHandler ) => onLoad( ( textarea && textarea.nodeName === 'TEXTAREA' ? textarea.value : '' ), parser, rawHandler ) }
 			onError={ () => document.location.reload() }
 			__experimentalOnInput={ ( newBlocks ) => settings?.iso.__experimentalOnInput?.( newBlocks ) }
 			__experimentalOnChange={ ( newBlocks ) => settings?.iso.__experimentalOnChange?.( newBlocks ) }

@@ -331,6 +331,10 @@ abstract class Handler {
 					'imgur',
 				],
 			],
+			'unregisterFormatType' => [
+				'core/text-color',
+				'core/image',
+			],
 			'editorType' => $this->get_editor_type(),
 			'allowUrlEmbed' => false,
 			'pastePlainText' => false,

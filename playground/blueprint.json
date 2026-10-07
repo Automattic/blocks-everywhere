@@ -1,0 +1,51 @@
+{
+	"$schema": "https://playground.wordpress.net/blueprint-schema.json",
+	"landingPage": "/forums/topic/test-topic/",
+	"steps": [
+		{
+			"step": "installPlugin",
+			"pluginData": {
+				"resource": "url",
+				"url": "https://downloads.wordpress.org/plugin/gutenberg.GUTENBERG_VERSION.zip"
+			}
+		},
+		{
+			"step": "installPlugin",
+			"pluginData": {
+				"resource": "wordpress.org/plugins",
+				"slug": "bbpress"
+			}
+		},
+		{
+			"step": "installPlugin",
+			"pluginData": {
+				"resource": "wordpress.org/plugins",
+				"slug": "buddypress"
+			}
+		},
+		{
+			"step": "installTheme",
+			"themeData": {
+				"resource": "wordpress.org/themes",
+				"slug": "twentytwentyone"
+			}
+		},
+		{
+			"step": "writeFile",
+			"path": "/wordpress/wp-content/mu-plugins/blocks-everywhere-playground.php",
+			"data": "<?php require '/playground/mu-plugin.php';"
+		},
+		{
+			"step": "activatePlugin",
+			"pluginPath": "blocks-everywhere/blocks-everywhere.php"
+		},
+		{
+			"step": "runPHP",
+			"code": "<?php require '/playground/setup-buddypress.php';"
+		},
+		{
+			"step": "runPHP",
+			"code": "<?php require '/playground/setup.php';"
+		}
+	]
+}

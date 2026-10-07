@@ -2,11 +2,12 @@ import React from 'react';
 import './edit.scss';
 import { __experimentalElevation as Elevation, MenuItem, NavigableMenu, Popover } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
+import { getSafeUrl } from './block';
 
 export const ConfirmContent = ( { url, confirm, cancel } ) => {
 	return (
 		<>
-			<a href={ url } target="_blank">
+			<a href={ getSafeUrl( url ) } target="_blank">
 				{ url }
 			</a>
 

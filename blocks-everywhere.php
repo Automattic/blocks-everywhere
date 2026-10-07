@@ -2,7 +2,7 @@
 /*
 Plugin Name: Blocks Everywhere
 Description: Because somewhere is just not enough. Add Gutenberg to WordPress comments, bbPress forums, and BuddyPress streams. Also enables Gutenberg for comment & bbPress moderation.
-Version: 1.23.0
+Version: 1.23.1
 Author: Automattic
 Text Domain: 'blocks-everywhere'
 */
@@ -18,7 +18,7 @@ require_once __DIR__ . '/classes/handlers/class-buddypress.php';
 require_once __DIR__ . '/classes/handlers/class-comments.php';
 
 class Blocks_Everywhere {
-	const VERSION = '1.23.0';
+	const VERSION = '1.23.1';
 
 	/**
 	 * Instance variable
@@ -111,7 +111,7 @@ class Blocks_Everywhere {
 			if ( $handler->can_show_admin_editor( $hook ) ) {
 				add_action(
 					'admin_head',
-					function() use ( $handler ) {
+					function () use ( $handler ) {
 						add_filter( 'the_editor', [ $handler, 'the_editor' ] );
 						add_filter( 'wp_editor_settings', [ $handler, 'wp_editor_settings' ], 10, 2 );
 					}
@@ -123,7 +123,7 @@ class Blocks_Everywhere {
 				// Load Gutenberg in in_admin_header so WP admin doesn't set the 'block-editor-page' body class
 				add_action(
 					'in_admin_header',
-					function() use ( $handler ) {
+					function () use ( $handler ) {
 						$handler->load_editor( '.wp-editor-area' );
 					}
 				);

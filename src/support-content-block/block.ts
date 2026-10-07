@@ -45,6 +45,14 @@ export function getContentTypeFromUrl( url: string ): ContentType | null {
 	return null;
 }
 
+/**
+ * Get a URL that is safe to link to. The URL comes from block attributes, which can be set to anything, so it is only
+ * returned if it is a supported http(s) URL.
+ */
+export function getSafeUrl( url: string ): string {
+	return url && getContentTypeFromUrl( url ) ? url : '';
+}
+
 export async function fetchAttributes( url: string ): Promise< SupportContentBlockAttributes > {
 	const type = await getContentTypeFromUrl( url );
 

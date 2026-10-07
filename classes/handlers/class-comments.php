@@ -11,12 +11,12 @@ class Comments extends Handler {
 
 		add_action( 'comment_form_after', [ $this, 'add_to_comments' ] );
 		add_filter( 'comment_form_defaults', [ $this, 'comment_form_defaults' ] );
-		add_filter( 'pre_comment_content', [ $this, 'remove_blocks' ] );
+		add_filter( 'pre_comment_content', [ $this, 'remove_blocks_slashed' ] );
 
 		// Ensure blocks are processed when displaying
 		add_filter(
 			'comment_text',
-			function( $content ) {
+			function ( $content ) {
 				return $this->do_blocks( $content, 'comment_text' );
 			},
 			8

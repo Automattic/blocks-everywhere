@@ -1,0 +1,40 @@
+{
+	"$schema": "https://playground.wordpress.net/blueprint-schema.json",
+	"preferredVersions": {
+		"php": "8.2",
+		"wp": "latest"
+	},
+	"steps": [
+		{
+			"step": "installPlugin",
+			"pluginData": {
+				"resource": "wordpress.org/plugins",
+				"slug": "bbpress"
+			}
+		},
+		{
+			"step": "installPlugin",
+			"pluginData": {
+				"resource": "wordpress.org/plugins",
+				"slug": "buddypress"
+			}
+		},
+		{
+			"step": "runPHP",
+			"code": "<?php try { require '/e2e/setup.php'; } catch ( Throwable $e ) { file_put_contents( '/e2e-out/setup-error.txt', (string) $e ); }"
+		},
+		{
+			"step": "writeFile",
+			"path": "/wordpress/wp-content/mu-plugins/blocks-everywhere-e2e.php",
+			"data": "<?php require '/e2e/mu-plugin.php';"
+		},
+		{
+			"step": "activatePlugin",
+			"pluginPath": "blocks-everywhere/blocks-everywhere.php"
+		},
+		{
+			"step": "runPHP",
+			"code": "<?php require '/e2e/attacks.php';"
+		}
+	]
+}

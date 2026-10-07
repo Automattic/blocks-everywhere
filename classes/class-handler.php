@@ -68,7 +68,8 @@ abstract class Handler {
 	 * @return String
 	 */
 	public function do_blocks( $content, $hook ) {
-		$blocks = parse_blocks( $content );
+		// Only render allowed blocks. This also covers content that was stored before it was filtered on save.
+		$blocks = $this->filter_blocks( parse_blocks( $content ), $this->get_allowed_blocks() );
 		$output = '';
 
 		foreach ( $blocks as $block ) {
@@ -133,21 +134,83 @@ abstract class Handler {
 	 * @return string
 	 */
 	public function remove_blocks( $content ) {
-		if ( ! has_blocks( $content ) ) {
+		// Block delimiters are HTML comments. Don't use has_blocks() as it is less strict than the block parser
+		if ( strpos( $content, '<!--' ) === false ) {
 			return $content;
 		}
 
-		$allowed = $this->get_allowed_blocks();
-		$blocks = parse_blocks( $content );
-		$output = '';
+		$blocks = $this->filter_blocks( parse_blocks( $content ), $this->get_allowed_blocks() );
+
+		return ltrim( serialize_blocks( $blocks ) );
+	}
+
+	/**
+	 * Remove blocks that aren't allowed from slashed content. The content must be unslashed so that block attributes
+	 * can be parsed, otherwise they are lost.
+	 *
+	 * @param string $content Slashed content.
+	 * @return string
+	 */
+	public function remove_blocks_slashed( $content ) {
+		return wp_slash( $this->remove_blocks( wp_unslash( $content ) ) );
+	}
+
+	/**
+	 * Remove blocks that aren't allowed, including any nested inner blocks. Freeform content (no block name) is kept as it
+	 * is plain HTML and is handled by KSES.
+	 *
+	 * @param array    $blocks Parsed blocks.
+	 * @param string[] $allowed Allowed block names.
+	 * @return array
+	 */
+	public function filter_blocks( array $blocks, array $allowed ) {
+		$filtered = [];
 
 		foreach ( $blocks as $block ) {
-			if ( in_array( $block['blockName'], $allowed, true ) ) {
-				$output .= serialize_block( $block );
+			if ( $block['blockName'] === null || in_array( $block['blockName'], $allowed, true ) ) {
+				$filtered[] = $this->filter_inner_blocks( $block, $allowed );
 			}
 		}
 
-		return ltrim( $output );
+		return $filtered;
+	}
+
+	/**
+	 * Remove inner blocks that aren't allowed. Each inner block has a `null` placeholder in `innerContent`, and this needs
+	 * to be removed along with the block so that serializing and rendering stay in sync.
+	 *
+	 * @param array    $block Parsed block.
+	 * @param string[] $allowed Allowed block names.
+	 * @return array
+	 */
+	private function filter_inner_blocks( array $block, array $allowed ) {
+		if ( empty( $block['innerBlocks'] ) ) {
+			return $block;
+		}
+
+		$inner_blocks = [];
+		$inner_content = [];
+		$position = 0;
+
+		foreach ( $block['innerContent'] as $chunk ) {
+			if ( is_string( $chunk ) ) {
+				$inner_content[] = $chunk;
+				continue;
+			}
+
+			$inner = isset( $block['innerBlocks'][ $position ] ) ? $block['innerBlocks'][ $position ] : null;
+			++$position;
+
+			if ( $inner && in_array( $inner['blockName'], $allowed, true ) ) {
+				$inner_blocks[] = $this->filter_inner_blocks( $inner, $allowed );
+				$inner_content[] = null;
+			}
+		}
+
+		$block['innerBlocks'] = $inner_blocks;
+		$block['innerContent'] = $inner_content;
+
+		return $block;
 	}
 
 	/**
@@ -273,16 +336,15 @@ abstract class Handler {
 	 * @return void
 	 */
 	protected function load_view_assets() {
-		$settings = apply_filters( 'blocks_everywhere_editor_settings', $this->get_default_settings() );
-
-		if ( in_array( 'blocks-everywhere/support-content', $settings['iso']['blocks']['allowBlocks'], true ) ) {
+		// Use the allowed blocks rather than the editor settings, which are expensive to create and only needed by the editor
+		if ( in_array( 'blocks-everywhere/support-content', $this->get_allowed_blocks(), true ) ) {
 			register_block_type(
 				'blocks-everywhere/support-content',
 				[
 					'editor_script' => 'support-content-editor',
 					'editor_style' => 'support-content-editor',
 					'style' => 'support-content-view',
-					'render_callback' => function( $attribs, $content ) {
+					'render_callback' => function ( $attribs, $content ) {
 						$this->enqueue_assets(
 							'support-content-view',
 							'support-content-view.min.asset.php',
@@ -455,6 +517,7 @@ abstract class Handler {
 	 * @param string $hook Hook.
 	 * @return boolean
 	 */
+	// phpcs:ignore
 	public function can_show_admin_editor( $hook ) {
 		return false;
 	}

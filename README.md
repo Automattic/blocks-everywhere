@@ -1,12 +1,15 @@
 # Blocks Everywhere
 
+> [!WARNING]
+> **This repository is deprecated.** It is based on old, out of date versions of Gutenberg and its dependencies, and is not maintained. It should not be used for anything other than a historical reference.
+
 <img width="1280" alt="110600033-c625d880-8183-11eb-9609-70ab7390c0d9" src="/resources/banner-1544x500.png">
 
 Switches the default WordPress editor for comments, bbPress, and BuddyPress to use Gutenberg. These can now use a richer set of editing tools, as well as having access to the full power of Gutenberg blocks.
 
 Admin moderation is also upgraded to use Gutenberg, and blocks are processed on the front end.
 
-For extra security the list of available blocks is determined by the allowed tags from WordPress.
+For extra security the list of available blocks is determined by the allowed tags from WordPress. Blocks that aren't allowed, including nested blocks, are removed when content is saved and are not displayed. The list can be changed with the `blocks_everywhere_allowed_blocks` filter, which is passed the list and the editor type (`comments`, `bbpress`, or `buddypress`).
 
 Gutenberg is not bundled and instead is side-loaded from WordPress. For better compatibility you should use the plugin version of Gutenberg, which is typically several versions ahead of the one included in WordPress.
 
@@ -74,7 +77,7 @@ Some settings are available through the settings object, which is filterable wit
 `pastePlainText` - Convert all pasted content to plain text
 `patchEmoji` - set to `true` to stop twemoji from affecting the editor
 `iso.allowEmbeds` - List of enabled embeds
-`iso.blocks.allowBlocks` - List of enabled blocks
+`iso.blocks.allowBlocks` - List of blocks offered in the editor. This defaults to the allowed blocks. To allow a block to be saved and displayed, use the `blocks_everywhere_allowed_blocks` filter instead
 `iso.className` - String of classes to be assigned to the editor.
 `iso.__experimentalOnChange` - An optional callback that is triggered when the blocks are changed.
 `iso.__experimentalOnInput` - An optional callback that is triggered when text is input.
@@ -102,12 +105,12 @@ Content Embed block uses REST API to fetch content to be embedded. This means th
 
 Blocks Everywhere enables topic REST API on its own, so if the site with bbPress have this plugin installed and configured, its topics can be embedded.
 
-To enable Content Embed block in the editor, pass these settings to `blocks_everywhere_editor_settings` filter:
+To enable the Content Embed block, add it to the allowed blocks with the `blocks_everywhere_allowed_blocks` filter. This adds it to the editor, and allows it to be saved and displayed:
 
 ```
-add_filter( 'blocks_everywhere_editor_settings', function( $settings ) {
-	$settings['iso']['blocks']['allowBlocks'][] = 'blocks-everywhere/support-content';
-	return $settings;
+add_filter( 'blocks_everywhere_allowed_blocks', function( $blocks ) {
+	$blocks[] = 'blocks-everywhere/support-content';
+	return $blocks;
 } );
 ```
 

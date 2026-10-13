@@ -45,7 +45,7 @@
 	},
 	"dependencies": {
 		"@automattic/color-studio": "^2.5.0",
-		"@automattic/isolated-block-editor": "^2.29.0",
+		"@automattic/isolated-block-editor": "^2.30.0",
 		"@automattic/typography": "^1.0.0",
 		"use-debounce": "^10.0.0"
 	},

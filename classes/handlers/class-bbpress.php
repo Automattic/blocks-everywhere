@@ -18,7 +18,7 @@ class bbPress extends Handler {
 			// Always load editor on topic/reply/forum admin pages
 			add_action(
 				'bbp_ready',
-				function() {
+				function () {
 					$this->enable_editor();
 				}
 			);
@@ -27,7 +27,7 @@ class bbPress extends Handler {
 		// Ensure blocks are processed when displaying. This needs to run even if the editor isn't loaded
 		add_filter(
 			'bbp_get_forum_content',
-			function( $content ) {
+			function ( $content ) {
 				$content = $GLOBALS['wp_embed']->autoembed( $content );
 				return $this->do_blocks( $content, 'bbp_get_forum_content' );
 			},
@@ -35,7 +35,7 @@ class bbPress extends Handler {
 		);
 		add_filter(
 			'bbp_get_topic_content',
-			function( $content ) {
+			function ( $content ) {
 				$content = $GLOBALS['wp_embed']->autoembed( $content );
 				return $this->do_blocks( $content, 'bbp_get_topic_content' );
 			},
@@ -43,15 +43,21 @@ class bbPress extends Handler {
 		);
 		add_filter(
 			'bbp_get_reply_content',
-			function( $content ) {
+			function ( $content ) {
 				$content = $GLOBALS['wp_embed']->autoembed( $content );
 				return $this->do_blocks( $content, 'bbp_get_reply_content' );
 			},
 			8
 		);
+		// Remove any blocks that aren't allowed. This needs to run even if the editor isn't loaded, and after
+		// allow_comments_in_bbp_encode_bad_post() has restored the block markup
+		foreach ( $this->get_content_filters() as $filter ) {
+			add_filter( $filter, [ $this, 'remove_blocks_slashed' ], 12 );
+		}
+
 		add_filter(
 			'blocks_everywhere_editor_settings',
-			function( $settings ) {
+			function ( $settings ) {
 				$settings['topicUsers'] = $this->get_topic_users();
 				return $settings;
 			}
@@ -258,8 +264,8 @@ class bbPress extends Handler {
 	 * @return string
 	 */
 	public function no_empty_block_content( $content ) {
-		// Convert blocks to content
-		$remove_blocks = do_blocks( $content );
+		// Convert blocks to content, only rendering allowed blocks
+		$remove_blocks = $this->do_blocks( $content, 'blocks_everywhere_no_empty_block_content' );
 		$remove_blocks = wp_strip_all_tags( $remove_blocks );
 		$remove_blocks = trim( $remove_blocks );
 
@@ -375,10 +381,7 @@ class bbPress extends Handler {
 			return $old_email;
 		}
 
-		// Get a decoded version of the content
-		$new_content = wp_specialchars_decode( $new_content );
-
-		// Process blocks
+		// Process blocks. The content isn't decoded first, as that would turn encoded text into block markup
 		$new_content = $this->do_blocks( $new_content, 'bbp_get_new_content_content' );
 
 		// Do a bit of markdown-lite
@@ -518,7 +521,7 @@ class bbPress extends Handler {
 		foreach ( $replies as $reply_id ) {
 			$user_id = bbp_get_reply_author_id( $reply_id );
 			// Add the user ID to the array if it's not already there
-			if ( ! in_array( $user_id, $users ) ) {
+			if ( ! in_array( $user_id, $users, true ) ) {
 				$users[] = $user_id;
 				$users_formatted[] = $this->get_user_data( $user_id, $reply_id );
 			}

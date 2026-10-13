@@ -11,10 +11,14 @@ class BuddyPress extends Handler {
 
 		add_action( 'bp_after_activity_post_form', [ $this, 'load_editor_buddypress' ] );
 
+		// Remove any blocks that aren't allowed. Activity content can be slashed or unslashed here, depending on where it
+		// comes from, so it is used as-is. Block names are parsed the same either way
+		add_filter( 'bp_activity_content_before_save', [ $this, 'remove_blocks' ] );
+
 		// Ensure blocks are processed when displaying
 		add_filter(
 			'bp_get_activity_content_body',
-			function( $content ) {
+			function ( $content ) {
 				return $this->do_blocks( $content, 'bp_get_activity_content_body' );
 			},
 			8

@@ -29,6 +29,7 @@ class Editor {
 	 * @param \WP_Theme_JSON_Data_Gutenberg $json JSON.
 	 * @return \WP_Theme_JSON_Data_Gutenberg
 	 */
+	// phpcs:ignore
 	public function wp_theme_json_data_theme( $json ) {
 		$theme = new \WP_Theme_JSON_Data_Gutenberg(
 			[
@@ -95,7 +96,7 @@ class Editor {
 		// Keep Jetpack out of things
 		add_filter(
 			'jetpack_blocks_variation',
-			function() {
+			function () {
 				return 'no-post-editor';
 			}
 		);

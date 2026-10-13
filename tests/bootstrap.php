@@ -2,6 +2,20 @@
 
 // Basic WP setup without needing PHPUnit and WP setup together
 require_once dirname( __DIR__ ) . '/classes/class-handler.php';
+require_once dirname( __DIR__ ) . '/classes/handlers/class-bbpress.php';
+
+// Skip asset registration as there is no build directory
+\Automattic\Blocks_Everywhere\Handler\Handler::$registered_assets = true;
+
+function plugins_url() {
+	return '';
+}
+
+function wp_register_script() {
+}
+
+function wp_register_style() {
+}
 
 function is_admin() {
 	return false;

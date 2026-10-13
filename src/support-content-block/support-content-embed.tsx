@@ -1,7 +1,7 @@
 import React from 'react';
 import { createInterpolateElement } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
-import { SupportContentBlockAttributes } from './block';
+import { getSafeUrl, SupportContentBlockAttributes } from './block';
 import { WordPressIcon } from './wordpress-icon';
 import { InlineSkeleton } from './inline-skeleton';
 import { getRelativeDate } from './utils';
@@ -80,7 +80,7 @@ export const SupportContentEmbed = ( props: {
 			) }
 
 			{ /* Only make embed clickable while viewing content for author not to lose unsaved changes */ }
-			{ props.clickable && <a className="be-support-content__opener" href={ props.attributes.url } /> }
+			{ props.clickable && <a className="be-support-content__opener" href={ getSafeUrl( props.attributes.url ) } /> }
 
 			<div className="be-support-content__header">
 				<WordPressIcon />

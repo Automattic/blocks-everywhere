@@ -39,9 +39,8 @@ domReady( () => {
 	// Modify any blocks we need to
 	addFilter( 'blocks.registerBlockType', 'blocks-everywhere/modify-blocks', customBlocks );
 
-	// Remove some formatting options
-	unregisterFormatType( 'core/text-color' );
-	unregisterFormatType( 'core/image' );
+	// Remove any formatting options we need to disable
+	wpBlocksEverywhere?.unregisterFormatType.forEach( ( formatType ) => unregisterFormatType( formatType ) );
 
 	if ( wpBlocksEverywhere.editorType === 'bbpress' && wpBlocksEverywhere.autocompleter ) {
 		addFilter(

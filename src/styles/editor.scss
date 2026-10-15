@@ -2,12 +2,8 @@
 .gutenberg-support .iso-editor {
 	min-height: 280px;
 
-	.iso-editor .edit-post-editor-regions__header {
-		margin: 0 15px;
-	}
-
-	.edit-post-header-toolbar__left {
-		padding-left: 15px;
+	.editor-document-tools__left {
+		padding-left: 0;
 	}
 
 	// Fix titles that may get changed

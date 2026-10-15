@@ -14,7 +14,8 @@ function disableSupports( settings ) {
 			anchor: false,
 			html: false,
 			color: false,
-			typography: false,
+			// Text alignment is part of typography in newer Gutenberg
+			typography: settings.supports?.typography?.textAlign ? { textAlign: true } : false,
 			renaming: false,
 		}
 	}

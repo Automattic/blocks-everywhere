@@ -1,6 +1,15 @@
 // BuddyPress & 2021
 .gutenberg-support {
-	.edit-post-header button:not(:hover):not(:active):not(.has-background):not(.is-primary),
+	// Disabled buttons keep the reset, but not the color, so Gutenberg's
+	// disabled style applies
+	.edit-post-header button:not(:hover):not(:active):not(.has-background):not(.is-primary) {
+		background: inherit;
+		border: inherit;
+		border-radius: inherit;
+		border-color: inherit !important;
+	}
+
+	.edit-post-header button:not(:hover):not(:active):not(.has-background):not(.is-primary):not(:disabled):not([aria-disabled="true"]),
 	.block-editor-inserter__panel-content button:not(:hover):not(:active):not(.has-background),
 	.block-editor-inserter__tabs button:not(:hover):not(:active):not(.has-background),
 	#buddypress.twentytwentyone button {

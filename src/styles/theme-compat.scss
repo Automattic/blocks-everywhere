@@ -160,7 +160,7 @@
 		font-size: 13px !important;
 	}
 
-	button:not(:hover):not(:active):not(.block-editor-list-view-block__menu):not(.has-background):not(.block-editor-inserter__toggle):not(.is-primary):not(.is-pressed):not(.block-list-appender__toggle) {
+	button:not(:hover):not(:active):not(.block-editor-list-view-block__menu):not(.has-background):not(.block-editor-inserter__toggle):not(.is-primary):not(.is-pressed):not(.block-list-appender__toggle):not(:disabled):not([aria-disabled="true"]) {
 		background-color: none;
 		color: #1e1e1e;
 	}
@@ -243,8 +243,8 @@ body:not(.gutenberg-support-upload) {
 		background-color: var(--wp-components-color-accent,var(--wp-admin-theme-color,#007cba));
 	}
 
-	.components-button.is-secondary,
-	.components-button.is-tertiary {
+	.components-button.is-secondary:not(:disabled):not([aria-disabled="true"]),
+	.components-button.is-tertiary:not(:disabled):not([aria-disabled="true"]) {
 		background: transparent;
 		color: var(--wp-components-color-accent, var(--wp-admin-theme-color, #007cba));
 		white-space: nowrap;

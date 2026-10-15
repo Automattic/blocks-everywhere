@@ -3,7 +3,7 @@ Contributors: johnny5, automattic
 Tags: gutenberg, comments, bbpress, buddypress
 Requires at least: 6.6
 Tested up to: 6.6
-Stable tag: 1.23.2
+Stable tag: 1.23.3
 Requires PHP: 7.4
 License: GPLv3
 
@@ -151,6 +151,10 @@ The plugin is simple to install:
 2. Gutenberg when editing a comment
 
 == Changelog ==
+
+= 1.23.3 =
+* Fix disabled undo/redo buttons appearing enabled with current Gutenberg
+* Fix inserter button position with current Gutenberg
 
 = 1.23.2 =
 * Fix editor failing to load with current Gutenberg (update isolated-block-editor to 2.30.0)

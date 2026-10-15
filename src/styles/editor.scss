@@ -2,6 +2,10 @@
 .gutenberg-support .iso-editor {
 	min-height: 280px;
 
+	.editor-document-tools__left {
+		padding-left: 0;
+	}
+
 	// Fix titles that may get changed
 	.block-editor-inserter__panel-header h2 {
 		font-size: 11px;

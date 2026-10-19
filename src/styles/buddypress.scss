@@ -1,6 +1,8 @@
 // BuddyPress & 2021
 .gutenberg-support {
-	// Keep the border the same on hover, so the toolbar doesn't move
+	// Keep the border the same on hover, so the toolbar and inserter don't move
+	.block-editor-inserter__panel-content button:not(.has-background),
+	.block-editor-inserter__tabs button:not(.has-background),
 	.edit-post-header button:not(.has-background):not(.is-primary) {
 		border: inherit;
 		border-radius: inherit;

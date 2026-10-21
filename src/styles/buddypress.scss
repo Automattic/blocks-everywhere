@@ -9,13 +9,13 @@
 		border-color: inherit !important;
 	}
 
-	// Disabled buttons keep the reset, but not the color, so Gutenberg's
-	// disabled style applies
+	// Disabled and pressed buttons keep the reset, but not the color, so
+	// Gutenberg's disabled and pressed styles apply
 	.edit-post-header button:not(:hover):not(:active):not(.has-background):not(.is-primary) {
 		background: inherit;
 	}
 
-	.edit-post-header button:not(:hover):not(:active):not(.has-background):not(.is-primary):not(:disabled):not([aria-disabled="true"]),
+	.edit-post-header button:not(:hover):not(:active):not(.has-background):not(.is-primary):not(.is-pressed):not(:disabled):not([aria-disabled="true"]),
 	.block-editor-inserter__panel-content button:not(:hover):not(:active):not(.has-background),
 	.block-editor-inserter__tabs button:not(:hover):not(:active):not(.has-background),
 	#buddypress.twentytwentyone button {
